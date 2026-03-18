@@ -21,6 +21,7 @@ public class OrderPaidEvent {
     private boolean cashOnDelivery;
     private Address deliveryAddress; // Le string reçu de l'Order
     private String storeId;
+    @com.fasterxml.jackson.annotation.JsonProperty("email") // 🟢 AJOUTE CECI
     private String customerEmail;
     // Fourni par le client lors du checkout
     private String message; // Optionnel (ex: "Code d'entrée 1234")

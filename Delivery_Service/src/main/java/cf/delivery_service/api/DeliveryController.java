@@ -71,4 +71,10 @@ public class DeliveryController {
     public ResponseEntity<List<DeliveryResponseDto>> getAllDeliveries() {
         return ResponseEntity.ok(deliveryService.getAllDeliveries());
     }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "delete Delivery", description = "delete Delivery")
+    public void deleteDelivery(@PathVariable Long id) {
+        deliveryService.deleteDelivery(id);
+    }
 }

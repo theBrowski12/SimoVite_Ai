@@ -191,6 +191,11 @@ public class DeliveryServiceImpl implements DeliveryService {
     }
 
     @Override
+    public void deleteDelivery(Long deliveryId) {
+        deliveryRepository.deleteById(deliveryId);
+    }
+
+    @Override
     public List<DeliveryResponseDto> getAllDeliveries() {
         log.info("Récupération de toutes les livraisons pour le Dashboard Admin");
         // On pourrait ajouter une pagination ici plus tard (Pageable)

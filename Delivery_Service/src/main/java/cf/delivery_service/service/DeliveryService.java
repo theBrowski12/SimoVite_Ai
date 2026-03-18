@@ -18,7 +18,7 @@ public interface DeliveryService {
 
     // Pour l'historique du livreur
     List<DeliveryResponseDto> getMyDeliveries(String courierId);
-
+    void deleteDelivery(Long deliveryId);
     // Pour le Dashboard Administrateur (Statistiques, monitoring)
     List<DeliveryResponseDto> getAllDeliveries();
 }

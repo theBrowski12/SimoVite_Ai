@@ -3,6 +3,7 @@ package cf.order_service.service;
 import cf.order_service.dto.OrderRequestDto;
 import cf.order_service.dto.OrderResponseDto;
 import cf.order_service.dto.catalogDto.CatalogResponseDto;
+import cf.order_service.entity.Address;
 import cf.order_service.entity.Order;
 import cf.order_service.entity.OrderItem;
 import cf.order_service.enums.OrderStatus;
@@ -43,9 +44,20 @@ public class OrderServiceImpl implements OrderService {
         String emailFromJwt = "mohamedbenbouazza1998@gmail.com";
         String userIdFromJwt = "user-123";
 
-        order.setUserId(userIdFromJwt);
-        order.setFullName(nameFromJwt);
+        order.setUserId(dto.getUserId());
+        order.setFullName(dto.getFullName());
+        if (dto.getDeliveryAddress() != null) {
+            Address address = Address.builder()
+                    .city(dto.getDeliveryAddress().getCity())
+                    .street(dto.getDeliveryAddress().getStreet())
+                    .buildingNumber(dto.getDeliveryAddress().getBuildingNumber())
+                    .apartment(dto.getDeliveryAddress().getApartment())
+                    .latitude(dto.getDeliveryAddress().getLatitude())
+                    .longitude(dto.getDeliveryAddress().getLongitude())
+                    .build();
 
+            order.setDeliveryAddress(address);
+        }
         // Initialisation du statut de paiement
         order.setPaid(false); // Par défaut, non payé
 

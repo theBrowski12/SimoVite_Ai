@@ -1,5 +1,6 @@
 package cf.order_service.dto;
 
+import cf.order_service.entity.Address;
 import cf.order_service.enums.OrderStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,7 +20,7 @@ public class OrderResponseDto {
     private String orderRef;
     private String userId;
     private String fullName;
-    private String deliveryAddress;
+    private Address deliveryAddress;
     private String storeId;
     private OrderStatus status;
     private BigDecimal price;
