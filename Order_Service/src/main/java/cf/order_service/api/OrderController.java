@@ -65,7 +65,7 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getOrdersByUserId(userId));
     }
 
-    @PatchMapping("/{id}/status")
+    @PutMapping("/{id}/status")
     @Operation(summary = "Mettre à jour uniquement le statut d'une commande via id")
     public ResponseEntity<OrderResponseDto> updateStatus(
             @PathVariable Long id,
@@ -73,13 +73,14 @@ public class OrderController {
             @RequestParam OrderStatus status) {
         return ResponseEntity.ok(orderService.updateOrderStatus(id, status));
     }
+
     @PostMapping("/{id}/pay")
     @Operation(summary = "Simuler la validation du paiement en ligne")
     public ResponseEntity<OrderResponseDto> confirmPayment(@PathVariable Long id) {
         return ResponseEntity.ok(orderService.confirmOnlinePayment(id));
     }
 
-    @PatchMapping("/ref/{orderRef}/status")
+    @PutMapping("/ref/{orderRef}/status")
     @Operation(summary = "Mettre à jour le statut via la référence de commande (utilisé par Delivery_Service)")
     public ResponseEntity<OrderResponseDto> updateStatusByRef(
             @PathVariable String orderRef,

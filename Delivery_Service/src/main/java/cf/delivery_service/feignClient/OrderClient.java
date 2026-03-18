@@ -9,6 +9,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(name = "ORDER-SERVICE") // N'oublie pas le tiret !
 public interface OrderClient {
-    @PatchMapping("/v1/orders/ref/{orderRef}/status")
+    @PutMapping("/v1/orders/ref/{orderRef}/status")
     void updateOrderStatus(@PathVariable("orderRef") String orderRef, @RequestParam("status") OrderStatus status);
 }

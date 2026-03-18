@@ -20,4 +20,8 @@ public class DeliveryNotificationEvent {
     private Integer estimatedTimeInMinutes;
     private String dropoffCity;
     private String dropoffStreet;
+    private String dropoffBuildingNumber;
+    private String dropoffApartment;
+    private Double dropoffLatitude;
+    private Double dropoffLongitude;
 }

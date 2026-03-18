@@ -16,7 +16,9 @@ public class OrderEventConsumer {
 
     @KafkaListener(
             topics = "order-topics",
-            groupId = "notification-service-group"
+            groupId = "notification-order-group",        // ✅ unique group
+            containerFactory = "orderKafkaListenerContainerFactory"  // ✅
+
     )
     public void consumeOrderEvent(OrderEvent event) {
         log.info("📩 Message Kafka reçu pour la commande : {}", event.getOrderRef());

@@ -138,6 +138,10 @@ public class DeliveryServiceImpl implements DeliveryService {
                 .estimatedTimeInMinutes(savedDelivery.getEstimatedTimeInMinutes())
                 .dropoffCity(savedDelivery.getDropoffAddress().getCity())
                 .dropoffStreet(savedDelivery.getDropoffAddress().getStreet())
+                .dropoffBuildingNumber(savedDelivery.getDropoffAddress().getBuildingNumber())
+                .dropoffApartment(savedDelivery.getDropoffAddress().getApartment())
+                .dropoffLatitude(savedDelivery.getDropoffAddress().getLatitude())
+                .dropoffLongitude(savedDelivery.getDropoffAddress().getLongitude())
                 .build();
 
         kafkaProducerService.sendDeliveryEvent(event);
@@ -166,7 +170,7 @@ public class DeliveryServiceImpl implements DeliveryService {
 
         // 3. Appel Asynchrone : Email de remerciement au client
         DeliveryNotificationEvent event = DeliveryNotificationEvent.builder()
-                .eventType("ORDER_FINISHED")
+                .eventType("DELIVERY_COMPLETED")
                 .orderRef(savedDelivery.getOrderRef())
                 .courierId(savedDelivery.getCourierId())
                 .customerEmail(customerEmail)
