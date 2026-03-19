@@ -12,7 +12,9 @@ import lombok.NoArgsConstructor;
 public class DeliveryNotificationEvent {
     private String eventType; // "COURIER_ASSIGNED" ou "ORDER_FINISHED"
     private String orderRef;
-    private String courierId; // Ou le nom du livreur si tu l'as
+    private String courierId;
+    private String courierName; // ✅ nom lisible
+    // Ou le nom du livreur si tu l'as
     private String customerEmail;
     private String message;
 

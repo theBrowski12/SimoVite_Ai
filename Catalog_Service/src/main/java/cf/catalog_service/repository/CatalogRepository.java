@@ -18,7 +18,7 @@ public interface CatalogRepository extends MongoRepository<Catalog, String> {
     List<Catalog> findByNameContainingIgnoreCase(String name);
 
     // 3. Trouver uniquement les produits actuellement disponibles
-    List<Catalog> findByIsAvailableTrue();
+    List<Catalog> findByAvailableTrue();
 
     // 4. Filtre "Budget"
     List<Catalog> findByBasePriceLessThanEqual(double maxPrice);

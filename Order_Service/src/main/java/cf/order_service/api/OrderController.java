@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,6 +27,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN')")
     @Operation(
             summary = "Créer une nouvelle commande",
             description = "Enregistre une commande en base, calcule le prix total et envoie un événement Kafka pour notification.",
@@ -39,12 +41,14 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN')")
     @Operation(summary = "Récupérer une commande par son ID technique")
     public ResponseEntity<OrderResponseDto> getOrderById(@PathVariable Long id) {
         return ResponseEntity.ok(orderService.getOrderById(id));
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(
             summary = "Récupérer toutes les commandes",
             description = "Retourne la liste complète de toutes les commandes enregistrées."
@@ -60,9 +64,18 @@ public class OrderController {
     }
 
     @GetMapping("/user/{userId}")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN')")
     @Operation(summary = "Lister toutes les commandes d'un utilisateur spécifique")
     public ResponseEntity<List<OrderResponseDto>> getOrdersByUser(@PathVariable String userId) {
         return ResponseEntity.ok(orderService.getOrdersByUserId(userId));
+    }
+
+    @GetMapping("/store/{storeId}")
+    @PreAuthorize("hasAnyRole('STORE_OWNER', 'ADMIN')")
+    @Operation(summary = "Commandes d'un store spécifique")
+    public ResponseEntity<List<OrderResponseDto>> getOrdersByStore(
+            @PathVariable String storeId) {
+        return ResponseEntity.ok(orderService.getOrdersByStoreId(storeId));
     }
 
     @PutMapping("/{id}/status")
@@ -75,6 +88,7 @@ public class OrderController {
     }
 
     @PostMapping("/{id}/pay")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN')")
     @Operation(summary = "Simuler la validation du paiement en ligne")
     public ResponseEntity<OrderResponseDto> confirmPayment(@PathVariable Long id) {
         return ResponseEntity.ok(orderService.confirmOnlinePayment(id));
@@ -96,6 +110,7 @@ public class OrderController {
     }
 
     @PatchMapping("/{id}/apply-promotion")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN')")
     @Operation(summary = "Appliquer une remise en pourcentage sur le prix total")
     public ResponseEntity<OrderResponseDto> applyPromotion(
             @PathVariable Long id,
@@ -104,6 +119,7 @@ public class OrderController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(
             summary = "Supprimer une commande",
             description = "Supprime définitivement une commande et ses articles associés par son ID."

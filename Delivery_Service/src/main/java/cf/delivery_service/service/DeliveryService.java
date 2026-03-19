@@ -1,5 +1,6 @@
 package cf.delivery_service.service;
 
+import cf.delivery_service.dto.CourierLocationRequest;
 import cf.delivery_service.dto.DeliveryResponseDto;
 import cf.delivery_service.kafkaEvents.OrderPaidEvent;
 
@@ -11,10 +12,10 @@ public interface DeliveryService {
     List<DeliveryResponseDto> getPendingDeliveries();
     void createDeliveryFromOrder(OrderPaidEvent event);
     // Le livreur accepte une commande
-    DeliveryResponseDto acceptDelivery(Long deliveryId, String courierId, String customerEmail);
-
+    DeliveryResponseDto acceptDelivery(Long deliveryId, String courierId, String courierName);
+    void updateCourierLocation(String courierId, CourierLocationRequest req);
     // Le livreur termine la livraison
-    DeliveryResponseDto completeDelivery(Long deliveryId, String customerEmail);
+    DeliveryResponseDto completeDelivery(Long deliveryId);
 
     // Pour l'historique du livreur
     List<DeliveryResponseDto> getMyDeliveries(String courierId);

@@ -13,6 +13,7 @@ import cf.order_service.kafkaEvents.OrderEvent;
 import cf.order_service.mapper.OrderItemMapper;
 import cf.order_service.mapper.OrderMapper;
 import cf.order_service.repository.OrderRepository;
+import cf.order_service.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -40,12 +41,11 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponseDto createOrder(OrderRequestDto dto) {
         Order order = orderMapper.toEntity(dto);
 
-        String nameFromJwt = "Utilisateur SimoVite";
-        String emailFromJwt = "mohamedbenbouazza1998@gmail.com";
-        String userIdFromJwt = "user-123";
-
-        order.setUserId(dto.getUserId());
-        order.setFullName(dto.getFullName());
+        String nameFromJwt  = JwtUtils.getFullName();
+        String emailFromJwt = JwtUtils.getEmail();
+        String userIdFromJwt = JwtUtils.getUserId();
+        order.setUserId(userIdFromJwt);      // ✅ depuis JWT, pas depuis dto
+        order.setFullName(nameFromJwt);      // ✅ depuis JWT, pas depuis dto
         if (dto.getDeliveryAddress() != null) {
             Address address = Address.builder()
                     .city(dto.getDeliveryAddress().getCity())
@@ -95,7 +95,13 @@ public class OrderServiceImpl implements OrderService {
 
         return orderMapper.toResponseDto(savedOrder);
     }
-
+    @Override
+    @Transactional(readOnly = true)
+    public List<OrderResponseDto> getOrdersByStoreId(String storeId) {
+        return orderRepository.findByStoreId(storeId).stream()
+                .map(orderMapper::toResponseDto)
+                .collect(Collectors.toList());
+    }
     // ⭐ NOUVELLE MÉTHODE : À appeler depuis le contrôleur quand le mock de paiement Front est OK
     @Override
     public OrderResponseDto confirmOnlinePayment(Long id) {
@@ -117,7 +123,7 @@ public class OrderServiceImpl implements OrderService {
         log.info("✅ Paiement en ligne validé pour la commande {}.", savedOrder.getOrderRef());
 
         // Maintenant on peut prévenir le livreur !
-        String emailFromJwt = "mohamedbenbouazza1998@gmail.com"; // A récupérer dynamiquement plus tard
+        String emailFromJwt = JwtUtils.getEmail();
         sendOrderConfirmedEvent(savedOrder, emailFromJwt);
 
         return orderMapper.toResponseDto(savedOrder);
@@ -211,7 +217,6 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // 3. Mettre à jour les informations de base
-        existingOrder.setFullName(dto.getFullName());
         existingOrder.setDeliveryAddress(dto.getDeliveryAddress());
 
         // 4. Mettre à jour les articles (Vider et Reconstruire)

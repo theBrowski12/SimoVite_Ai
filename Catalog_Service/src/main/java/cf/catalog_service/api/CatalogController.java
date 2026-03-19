@@ -10,18 +10,19 @@ import cf.catalog_service.enums.FoodCategory;
 import cf.catalog_service.enums.PharmacyCategory;
 import cf.catalog_service.enums.SupermarketCategory;
 import cf.catalog_service.srevices.CatalogService;
+import cf.catalog_service.utils.JwtUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/v1/catalog")
-@CrossOrigin(origins = "*") // À adapter avec l'URL de ton Front-end en production
 @Tag(name = "Catalog API", description = "Gestion des produits (Restaurants, Pharmacies, Supermarchés, Livraisons)")
 public class CatalogController {
 
@@ -36,12 +37,22 @@ public class CatalogController {
     // ==========================================
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('STORE_OWNER', 'ADMIN')")
     @Operation(summary = "Créer un nouveau produit ou service")
     public ResponseEntity<CatalogResponseDto> createOffer(@RequestBody CatalogRequestDto requestDto) {
         return new ResponseEntity<>(catalogService.createOffer(requestDto), HttpStatus.CREATED);
     }
 
+    @PatchMapping("/{id}/availability")
+    @PreAuthorize("hasAnyRole('STORE_OWNER', 'ADMIN')")
+    @Operation(summary = "Activer/Désactiver la disponibilité d'un produit")
+    public ResponseEntity<CatalogResponseDto> toggleAvailability(@PathVariable String id) {
+        String ownerId = JwtUtils.getUserId(); // ✅ depuis JWT
+        return ResponseEntity.ok(catalogService.toggleAvailability(id, ownerId));
+    }
+
     @PostMapping("/restaurant")
+    @PreAuthorize("hasAnyRole('STORE_OWNER', 'ADMIN')")
     @Operation(summary = "Ajouter un plat ou menu de restaurant")
     public ResponseEntity<CatalogResponseDto> createRestaurantItem(
             @RequestBody RestaurantRequestDto requestDto) { // 🟢 Type strict !
@@ -51,6 +62,7 @@ public class CatalogController {
         return new ResponseEntity<>(catalogService.createOffer(requestDto), HttpStatus.CREATED);
     }
     @PostMapping("/pharmacy")
+    @PreAuthorize("hasAnyRole('STORE_OWNER', 'ADMIN')")
     @Operation(summary = "Ajouter un médicament ou produit de santé")
     public ResponseEntity<CatalogResponseDto> createPharmacyItem(
             @RequestBody PharmacyRequestDto requestDto) { // 🟢 Type strict !
@@ -58,6 +70,7 @@ public class CatalogController {
         return new ResponseEntity<>(catalogService.createOffer(requestDto), HttpStatus.CREATED);
     }
     @PostMapping("/supermarket")
+    @PreAuthorize("hasAnyRole('STORE_OWNER', 'ADMIN')")
     @Operation(summary = "Ajouter un article de supermarché")
     public ResponseEntity<CatalogResponseDto> createSupermarketItem(
             @RequestBody SupermarketRequestDTO requestDto) { // 🟢 Type strict !
@@ -65,6 +78,7 @@ public class CatalogController {
         return new ResponseEntity<>(catalogService.createOffer(requestDto), HttpStatus.CREATED);
     }
     @PostMapping("/delivery")
+    @PreAuthorize("hasAnyRole('STORE_OWNER', 'ADMIN')")
     @Operation(summary = "Créer un service de livraison sur mesure")
     public ResponseEntity<CatalogResponseDto> createDeliveryService(
             @RequestBody SpecialDeliveryRequestDto requestDto) { // 🟢 Type strict !
@@ -84,6 +98,7 @@ public class CatalogController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('STORE_OWNER', 'ADMIN')")
     @Operation(summary = "Mettre à jour un produit existant")
     public ResponseEntity<CatalogResponseDto> updateOffer(
             @PathVariable String id,
@@ -92,6 +107,7 @@ public class CatalogController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('STORE_OWNER', 'ADMIN')")
     @Operation(summary = "Supprimer un produit")
     public ResponseEntity<Void> deleteOffer(@PathVariable String id) {
         catalogService.deleteOffer(id);

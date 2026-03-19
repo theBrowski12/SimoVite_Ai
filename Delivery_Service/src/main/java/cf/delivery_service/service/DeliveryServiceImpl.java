@@ -1,8 +1,10 @@
 package cf.delivery_service.service;
 
+import cf.delivery_service.dto.CourierLocationRequest;
 import cf.delivery_service.dto.DeliveryResponseDto;
 import cf.delivery_service.dto.StoreResponseDto;
 import cf.delivery_service.entity.Address;
+import cf.delivery_service.entity.CourierLocation;
 import cf.delivery_service.entity.Delivery;
 import cf.delivery_service.enums.DeliveryStatus;
 import cf.delivery_service.feignClient.OrderClient;
@@ -10,6 +12,7 @@ import cf.delivery_service.feignClient.StoreClient;
 import cf.delivery_service.kafkaEvents.DeliveryNotificationEvent;
 import cf.delivery_service.kafkaEvents.OrderPaidEvent;
 import cf.delivery_service.mapper.DeliveryMapper;
+import cf.delivery_service.repository.CourierLocationRepository;
 import cf.delivery_service.repository.DeliveryRepository;
 import cf.delivery_service.service.DeliveryService;
 import cf.delivery_service.utils.DistanceCalculator;
@@ -37,6 +40,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final OrderClient orderClient;
     private final KafkaProducerService kafkaProducerService;
     private final StoreClient storeClient;
+    private final CourierLocationRepository courierLocationRepository;
     @Override
     public List<DeliveryResponseDto> getPendingDeliveries() {
         log.info("Récupération des livraisons en attente...");
@@ -96,6 +100,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         // 6. Création de l'entité
         Delivery delivery = Delivery.builder()
                 .orderRef(event.getOrderRef())
+                .customerEmail(event.getCustomerEmail())
                 .pickupAddress(pickupAddress)
                 .dropoffAddress(dropoffAddress)
                 .isCashOnDelivery(event.isCashOnDelivery())
@@ -109,9 +114,10 @@ public class DeliveryServiceImpl implements DeliveryService {
         deliveryRepository.save(delivery);
     }
 
+    // ✅ acceptDelivery — customerEmail vient de la DB, courierName du JWT
     @Override
-    @Transactional // Très important : si Kafka ou Feign plante, la DB fait un Rollback !
-    public DeliveryResponseDto acceptDelivery(Long deliveryId, String courierId, String customerEmail) {
+    @Transactional
+    public DeliveryResponseDto acceptDelivery(Long deliveryId, String courierId, String courierName) {
         Delivery delivery = deliveryRepository.findById(deliveryId)
                 .orElseThrow(() -> new RuntimeException("Livraison introuvable avec l'ID : " + deliveryId));
 
@@ -119,21 +125,19 @@ public class DeliveryServiceImpl implements DeliveryService {
             throw new RuntimeException("Cette commande n'est plus disponible !");
         }
 
-        // 1. Mise à jour de l'entité
         delivery.setCourierId(courierId);
+        delivery.setCourierName(courierName);  // ✅ stocker le nom dans l'entité
         delivery.setStatus(DeliveryStatus.ASSIGNED);
         Delivery savedDelivery = deliveryRepository.save(delivery);
 
-        // 2. Appel Synchrone : Dire au Order_Service que le livreur est assigné
-        log.info("Appel de Order_Service via Feign pour la commande {}", savedDelivery.getOrderRef());
         orderClient.updateOrderStatus(savedDelivery.getOrderRef(), ACCEPTED);
 
-        // 3. Appel Asynchrone : Dire au Notification_Service d'envoyer un email
         DeliveryNotificationEvent event = DeliveryNotificationEvent.builder()
                 .eventType("COURIER_ASSIGNED")
                 .orderRef(savedDelivery.getOrderRef())
                 .courierId(courierId)
-                .customerEmail(customerEmail)
+                .courierName(courierName)           // ✅ nom lisible dans l'email
+                .customerEmail(savedDelivery.getCustomerEmail()) // ✅ depuis la DB
                 .message("Votre livreur est en route vers le point de retrait !")
                 .estimatedTimeInMinutes(savedDelivery.getEstimatedTimeInMinutes())
                 .dropoffCity(savedDelivery.getDropoffAddress().getCity())
@@ -145,14 +149,13 @@ public class DeliveryServiceImpl implements DeliveryService {
                 .build();
 
         kafkaProducerService.sendDeliveryEvent(event);
-        log.info("Événement Kafka envoyé pour l'assignation du livreur {}", courierId);
-
         return deliveryMapper.toDto(savedDelivery);
     }
 
+    // ✅ completeDelivery — tout vient de la DB
     @Override
     @Transactional
-    public DeliveryResponseDto completeDelivery(Long deliveryId, String customerEmail) {
+    public DeliveryResponseDto completeDelivery(Long deliveryId) {
         Delivery delivery = deliveryRepository.findById(deliveryId)
                 .orElseThrow(() -> new RuntimeException("Livraison introuvable avec l'ID : " + deliveryId));
 
@@ -160,38 +163,50 @@ public class DeliveryServiceImpl implements DeliveryService {
             throw new RuntimeException("Cette commande est déjà clôturée !");
         }
 
-        // 1. Mise à jour de l'entité
         delivery.setStatus(DeliveryStatus.DELIVERED);
         delivery.setDeliveredAt(LocalDateTime.now());
         Delivery savedDelivery = deliveryRepository.save(delivery);
 
-        // 2. Appel Synchrone : Dire au Order_Service que c'est livré
         orderClient.updateOrderStatus(savedDelivery.getOrderRef(), COMPLETED);
 
-        // 3. Appel Asynchrone : Email de remerciement au client
         DeliveryNotificationEvent event = DeliveryNotificationEvent.builder()
                 .eventType("DELIVERY_COMPLETED")
                 .orderRef(savedDelivery.getOrderRef())
                 .courierId(savedDelivery.getCourierId())
-                .customerEmail(customerEmail)
+                .courierName(savedDelivery.getCourierName())      // ✅ depuis la DB
+                .customerEmail(savedDelivery.getCustomerEmail())  // ✅ depuis la DB
                 .message("Votre commande a été livrée avec succès. Bon appétit ! 🎉")
                 .estimatedTimeInMinutes(savedDelivery.getEstimatedTimeInMinutes())
                 .dropoffCity(savedDelivery.getDropoffAddress().getCity())
                 .dropoffStreet(savedDelivery.getDropoffAddress().getStreet())
+                .dropoffBuildingNumber(savedDelivery.getDropoffAddress().getBuildingNumber())
+                .dropoffApartment(savedDelivery.getDropoffAddress().getApartment())
+                .dropoffLatitude(savedDelivery.getDropoffAddress().getLatitude())
+                .dropoffLongitude(savedDelivery.getDropoffAddress().getLongitude())
                 .build();
 
         kafkaProducerService.sendDeliveryEvent(event);
-        log.info("Commande {} clôturée avec succès !", savedDelivery.getOrderRef());
-
         return deliveryMapper.toDto(savedDelivery);
     }
 
+    // ✅ getMyDeliveries — courierId vient du JWT maintenant
     @Override
     public List<DeliveryResponseDto> getMyDeliveries(String courierId) {
-        log.info("Récupération de l'historique pour le livreur {}", courierId);
         return deliveryRepository.findByCourierId(courierId).stream()
                 .map(deliveryMapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+    // ✅ Nouveau : updateCourierLocation
+    @Override
+    public void updateCourierLocation(String courierId, CourierLocationRequest req) {
+        CourierLocation location = CourierLocation.builder()
+                .courierId(courierId)
+                .latitude(req.getLatitude())
+                .longitude(req.getLongitude())
+                .updatedAt(LocalDateTime.now().toString())
+                .build();
+        courierLocationRepository.save(location);
     }
 
     @Override

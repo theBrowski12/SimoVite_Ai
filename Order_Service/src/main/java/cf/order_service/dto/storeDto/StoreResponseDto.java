@@ -1,7 +1,15 @@
 package cf.order_service.dto.storeDto;
 
 import cf.order_service.entity.Address;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class StoreResponseDto {
     private String id; // L'ID MongoDB généré
     private String name;
@@ -13,5 +21,5 @@ public class StoreResponseDto {
     private String phone;
     private String imageURL;
     private String ownerId;
-    private boolean Open;
+    private Boolean open;
 }

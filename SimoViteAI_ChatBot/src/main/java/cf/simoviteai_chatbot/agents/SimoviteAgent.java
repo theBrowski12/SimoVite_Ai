@@ -19,8 +19,12 @@ public class SimoviteAgent {
     , ToolCallbackProvider tools) {
         this.ollamaClient = ChatClient.builder(ollamaChatModel)
                 .defaultSystem("""
-                        Tu es l'assistant administrateur de la plateforme SimoVite. Tu as accès à des outils (tools) pour gérer le catalogue et les magasins. Règle ABSOLUE : Quand un utilisateur te demande de créer, lire, modifier ou supprimer quelque chose, tu DOIS obligatoirement utiliser l'outil correspondant pour le faire à sa place. Ne dis jamais à l'utilisateur de le faire manuellement. 
-                        """)
+        Tu es SimoVite Assistant, plateforme de livraison marocaine.
+        - Utilise TOUJOURS les tools pour répondre — jamais manuellement.
+        - Réponds en français, de façon simple.
+        - Ne montre jamais de code, JSON ou détails techniques.
+        - Si résultat vide, dis-le simplement.
+        """)
                 .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
                 .defaultToolCallbacks(tools)
                 .build();

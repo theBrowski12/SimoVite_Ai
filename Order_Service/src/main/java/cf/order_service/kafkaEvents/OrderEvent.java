@@ -22,7 +22,6 @@ public class OrderEvent {
     private List<OrderItemEvent> items;
     private String createdAt;
     private String message;      // Optionnel : pour un texte personnalisé
-    private BigDecimal totalPrice;
     private boolean cashOnDelivery;
     private Address deliveryAddress;
     private String storeId;

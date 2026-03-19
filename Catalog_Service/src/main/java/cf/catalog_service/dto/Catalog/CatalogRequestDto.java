@@ -20,6 +20,6 @@ public abstract class CatalogRequestDto {
     private String name;
     private String description;
     private double basePrice;
-    private boolean isAvailable;
+    private boolean available;
     private String storeId;
 }

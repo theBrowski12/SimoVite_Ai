@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class StoreController {
     // ==========================================
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")  // Seul l'admin crée des stores
     @Operation(summary = "Créer un nouveau magasin")
     public ResponseEntity<StoreResponseDto> createStore(@RequestBody StoreRequestDto requestDto) {
         return new ResponseEntity<>(storeService.createStore(requestDto), HttpStatus.CREATED);
@@ -43,6 +45,7 @@ public class StoreController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     @Operation(summary = "Mettre à jour un magasin existant")
     public ResponseEntity<StoreResponseDto> updateStore(
             @PathVariable String id,
@@ -51,6 +54,7 @@ public class StoreController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Supprimer un magasin")
     public ResponseEntity<Void> deleteStore(@PathVariable String id) {
         storeService.deleteStore(id);

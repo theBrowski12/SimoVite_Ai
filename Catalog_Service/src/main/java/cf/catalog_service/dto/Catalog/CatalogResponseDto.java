@@ -24,7 +24,7 @@ import lombok.*;
     private String name;
     private String description;
     private double basePrice;
-    private boolean isAvailable;
+    private boolean available;
 
   // On ajoute un champ type explicite pour aider le Front-end (React/Angular)
     private String type;

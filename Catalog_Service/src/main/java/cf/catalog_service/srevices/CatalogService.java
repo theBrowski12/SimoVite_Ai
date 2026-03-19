@@ -26,7 +26,7 @@ public interface CatalogService {
     List<CatalogResponseDto> getAllOffers();
     CatalogResponseDto updateOffer(String id, CatalogRequestDto requestDto);
     void deleteOffer(String id);
-
+    CatalogResponseDto toggleAvailability(String productId, String requestingOwnerId);
     // Recherches spécifiques pour le Front-end
     List<CatalogResponseDto> getOffersByProviderId(String providerId);
     List<CatalogResponseDto> searchOffersByName(String name);

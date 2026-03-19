@@ -11,5 +11,5 @@ public interface StoreRepository extends MongoRepository<Store, String> {
     List<Store> findByOwnerId(String ownerId);
     List<Store> findByCategory(String category);
     List<Store> findByNameContainingIgnoreCase(String name);
-    List<Store> findByIsOpenTrue();
+    List<Store> findByOpenTrue();
 }

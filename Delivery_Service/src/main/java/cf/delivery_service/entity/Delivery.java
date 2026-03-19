@@ -21,7 +21,9 @@ public class Delivery {
 
     private String orderRef; // Référence de la commande
     private String courierId; // ID du livreur (null au début)
-
+// Dans ton entité Delivery.java, ajoute :
+    private String courierName;      // ✅ nom du coursier stocké à l'acceptation
+    private String customerEmail;    // ✅ email du client stocké à la création
     // 📍 1ère Adresse : Point de retrait (Restaurant/Pharmacie)
     // 📍 1ère Adresse : Point de retrait (Restaurant/Pharmacie)
     @Embedded

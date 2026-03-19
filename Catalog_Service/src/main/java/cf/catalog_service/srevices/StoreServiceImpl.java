@@ -2,13 +2,15 @@ package cf.catalog_service.srevices;
 
 import cf.catalog_service.dto.store.StoreRequestDto;
 import cf.catalog_service.dto.store.StoreResponseDto;
+import cf.catalog_service.entities.Address;
 import cf.catalog_service.entities.Store;
 import cf.catalog_service.mapper.StoreMapper;
 import cf.catalog_service.repository.StoreRepository;
+import cf.catalog_service.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springaicommunity.mcp.annotation.McpTool;
-import org.springaicommunity.mcp.annotation.McpToolParam;
+import org.springframework.ai.tool.annotation.Tool;
+import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,107 +25,97 @@ public class StoreServiceImpl implements StoreService {
     private final StoreMapper storeMapper;
 
     @Override
-    @McpTool(description = "Create a new store")
+    @Tool(description = "[ADMIN ONLY] Create a new store. category must be: RESTAURANT, PHARMACY, SUPERMARKET, or SPECIAL_DELIVERY")
     public StoreResponseDto createStore(
-            @McpToolParam(description = "Store details to create") StoreRequestDto requestDto) {
+            @ToolParam(description = "Store details. Required: name, description, category, address, phone. ownerId is auto-set from JWT.") StoreRequestDto requestDto) {
         log.info("Création d'un nouveau magasin : {}", requestDto.getName());
-
-        Store store = storeMapper.toEntity(requestDto);
-        Store savedStore = storeRepository.save(store);
-
-        return storeMapper.toDto(savedStore);
+        String ownerId = JwtUtils.getUserId();
+        Store store = Store.builder()
+                .name(requestDto.getName())
+                .description(requestDto.getDescription())
+                .category(requestDto.getCategory())
+                .phone(requestDto.getPhone())
+                .imageURL(requestDto.getImageURL())
+                .open(requestDto.getOpen() != null ? requestDto.getOpen() : true)
+                .ownerId(ownerId)
+                .address(Address.builder()
+                        .city(requestDto.getAddress().getCity())
+                        .street(requestDto.getAddress().getStreet())
+                        .buildingNumber(requestDto.getAddress().getBuildingNumber())
+                        .apartment(requestDto.getAddress().getApartment())
+                        .latitude(requestDto.getAddress().getLatitude())
+                        .longitude(requestDto.getAddress().getLongitude())
+                        .build())
+                .build();
+        return storeMapper.toDto(storeRepository.save(store));
     }
 
     @Override
-    @McpTool(description = "Get a store by its unique ID")
+    @Tool(description = "Get a store's full details by its MongoDB ObjectId")
     public StoreResponseDto getStoreById(
-            @McpToolParam(description = "The unique ID of the store") String id) {
-        Store store = storeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Magasin introuvable avec l'ID : " + id));
-        return storeMapper.toDto(store);
+            @ToolParam(description = "MongoDB ObjectId of the store (24 hex chars)") String id) {
+        return storeMapper.toDto(storeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Magasin introuvable : " + id)));
     }
 
     @Override
-    @McpTool(description = "Get a list of all stores")
+    @Tool(description = "Get all stores across all categories. Prefer filtered tools when possible.")
     public List<StoreResponseDto> getAllStores() {
-        return storeRepository.findAll()
-                .stream()
-                .map(storeMapper::toDto)
-                .collect(Collectors.toList());
+        return storeRepository.findAll().stream()
+                .map(storeMapper::toDto).collect(Collectors.toList());
     }
 
     @Override
-    @McpTool(description = "Update an existing store's information")
+    @Tool(description = "[ADMIN / STORE_OWNER ONLY] Update an existing store's information by ID")
     public StoreResponseDto updateStore(
-            @McpToolParam(description = "ID of the store to update") String id,
-            @McpToolParam(description = "Updated store details") StoreRequestDto requestDto) {
-        log.info("Mise à jour du magasin avec l'ID : {}", id);
-
-        // 1. On vérifie que le magasin existe
-        Store existingStore = storeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Magasin introuvable avec l'ID : " + id));
-
-        // 2. On transforme la requête en entité pour récupérer les nouvelles valeurs
-        Store updatedData = storeMapper.toEntity(requestDto);
-
-        // 3. On met à jour l'ID pour ne pas créer un nouveau document dans MongoDB
-        updatedData.setId(existingStore.getId());
-
-        // 4. On sauvegarde (MongoDB écrase le document existant avec le même ID)
-        Store savedStore = storeRepository.save(updatedData);
-
-        return storeMapper.toDto(savedStore);
+            @ToolParam(description = "MongoDB ObjectId of the store to update") String id,
+            @ToolParam(description = "Updated store details") StoreRequestDto requestDto) {
+        log.info("Mise à jour du magasin : {}", id);
+        Store existing = storeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Magasin introuvable : " + id));
+        Store updated = storeMapper.toEntity(requestDto);
+        updated.setId(existing.getId());
+        return storeMapper.toDto(storeRepository.save(updated));
     }
 
     @Override
-    @McpTool(description = "Search for stores by their name")
+    @Tool(description = "Search stores by name keyword (case-insensitive partial match). Use when user mentions a store by name.")
     public List<StoreResponseDto> getStoreByName(
-            @McpToolParam(description = "Name or partial name of the store") String name) {
-        return storeRepository.findByNameContainingIgnoreCase(name)
-                .stream()
-                .map(storeMapper::toDto)
-                .collect(Collectors.toList());
+            @ToolParam(description = "Partial or full store name. Example: 'Pizza', 'Pharmacie Centrale'") String name) {
+        return storeRepository.findByNameContainingIgnoreCase(name).stream()
+                .map(storeMapper::toDto).collect(Collectors.toList());
     }
 
     @Override
-    @McpTool(description = "Delete a store by its ID")
+    @Tool(description = "[ADMIN ONLY] Permanently delete a store by ID. IRREVERSIBLE — confirm before calling.")
     public void deleteStore(
-            @McpToolParam(description = "ID of the store to delete") String id) {
-        log.info("Suppression du magasin avec l'ID : {}", id);
-        if (!storeRepository.existsById(id)) {
-            throw new RuntimeException("Impossible de supprimer : Magasin introuvable avec l'ID : " + id);
-        }
-        // TODO plus tard : Vérifier s'il y a des articles (Catalog) liés à ce magasin avant de le supprimer,
-        // ou supprimer les articles en cascade !
+            @ToolParam(description = "MongoDB ObjectId of the store to delete") String id) {
+        log.info("Suppression du magasin : {}", id);
+        if (!storeRepository.existsById(id))
+            throw new RuntimeException("Magasin introuvable : " + id);
         storeRepository.deleteById(id);
     }
 
     @Override
-    @McpTool(description = "Get all stores owned by a specific user/owner")
+    @Tool(description = "Get all stores owned by a specific user. Use with the owner's Keycloak UUID.")
     public List<StoreResponseDto> getStoresByOwner(
-            @McpToolParam(description = "ID of the store owner") String ownerId) {
-        return storeRepository.findByOwnerId(ownerId)
-                .stream()
-                .map(storeMapper::toDto)
-                .collect(Collectors.toList());
+            @ToolParam(description = "Keycloak UUID of the store owner") String ownerId) {
+        return storeRepository.findByOwnerId(ownerId).stream()
+                .map(storeMapper::toDto).collect(Collectors.toList());
     }
 
     @Override
-    @McpTool(description = "Get stores filtered by their category (e.g., PHARMACY, RESTAURANT, SUPERMARKET)")
+    @Tool(description = "Filter stores by category. Values: RESTAURANT, PHARMACY, SUPERMARKET, SPECIAL_DELIVERY")
     public List<StoreResponseDto> getStoresByCategory(
-            @McpToolParam(description = "Category to filter by") String category) {
-        return storeRepository.findByCategory(category)
-                .stream()
-                .map(storeMapper::toDto)
-                .collect(Collectors.toList());
+            @ToolParam(description = "Category: RESTAURANT | PHARMACY | SUPERMARKET | SPECIAL_DELIVERY") String category) {
+        return storeRepository.findByCategory(category).stream()
+                .map(storeMapper::toDto).collect(Collectors.toList());
     }
 
     @Override
-    @McpTool(description = "Get a list of all currently open stores")
+    @Tool(description = "Get all currently open stores. Use when user asks 'what is open now?' or 'available stores'.")
     public List<StoreResponseDto> getOpenStores() {
-        return storeRepository.findByIsOpenTrue()
-                .stream()
-                .map(storeMapper::toDto)
-                .collect(Collectors.toList());
+        return storeRepository.findByOpenTrue().stream()
+                .map(storeMapper::toDto).collect(Collectors.toList());
     }
 }

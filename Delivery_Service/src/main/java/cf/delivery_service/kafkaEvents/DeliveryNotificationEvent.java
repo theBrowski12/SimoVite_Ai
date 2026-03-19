@@ -14,9 +14,10 @@ public class DeliveryNotificationEvent {
     private String eventType; // "COURIER_ASSIGNED" ou "ORDER_FINISHED"
     private String orderRef;
     private String courierId;
-    private String customerEmail; // On supposera qu'on l'a récupéré
+    private String courierName;
+    private String customerEmail;
     private String message;
-    private Integer  estimatedTimeInMinutes;
+    private Integer estimatedTimeInMinutes;
     private String dropoffCity;
     private String dropoffStreet;
     private String dropoffBuildingNumber;

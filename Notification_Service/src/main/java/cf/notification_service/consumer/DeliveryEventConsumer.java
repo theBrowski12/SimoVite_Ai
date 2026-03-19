@@ -39,54 +39,74 @@ public class DeliveryEventConsumer {
     }
 
     private void sendCourierAssignedEmail(DeliveryNotificationEvent event) {
-        String subject = "SimoVite - Votre livreur est en route ! 🏍️";
-        StringBuilder body = new StringBuilder();
+        String subject = "SimoVite — Votre commande est en cours de livraison 🚀";
         String timeNow = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
 
+        StringBuilder body = new StringBuilder();
         body.append("Bonjour,\n\n");
-        body.append("Bonne nouvelle ! Votre commande ").append(event.getOrderRef()).append(" a été prise en charge.\n\n");
+        body.append("Nous avons le plaisir de vous informer que votre commande a été prise en charge par l'un de nos livreurs.\n\n");
 
-        body.append("📦 DÉTAILS DE LA LIVRAISON :\n");
-        body.append("--------------------------------------------------\n");
-        body.append("Livreur (ID)   : ").append(event.getCourierId()).append("\n");
-        body.append("Heure de prise : ").append(timeNow).append("\n");
+        body.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+        body.append("          📦 DÉTAILS DE VOTRE LIVRAISON\n");
+        body.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n");
+
+        body.append("  🔖 Référence commande  : ").append(event.getOrderRef()).append("\n");
+        body.append("  🏍️  Livreur assigné     : ").append(event.getCourierName() != null ? event.getCourierName() : "En cours d'assignation").append("\n");
+        body.append("  🕐 Heure de prise en charge : ").append(timeNow).append("\n");
 
         if (event.getEstimatedTimeInMinutes() != null) {
-            body.append("Temps estimé   : ~").append(event.getEstimatedTimeInMinutes()).append(" minutes\n");
+            body.append("  ⏱️  Temps estimé        : environ ").append(event.getEstimatedTimeInMinutes()).append(" minutes\n");
         }
 
-        // ✅ Full address block
-        body.append("Adresse        : ");
+        body.append("\n  📍 Adresse de livraison :\n");
+        body.append("     ");
         if (event.getDropoffStreet() != null)         body.append(event.getDropoffStreet());
         if (event.getDropoffBuildingNumber() != null) body.append(", Bât. ").append(event.getDropoffBuildingNumber());
         if (event.getDropoffApartment() != null)      body.append(", Appt. ").append(event.getDropoffApartment());
         if (event.getDropoffCity() != null)           body.append(", ").append(event.getDropoffCity());
         body.append("\n");
 
-        // ✅ Google Maps link
         if (event.getDropoffLatitude() != null && event.getDropoffLongitude() != null) {
             String mapsLink = "https://www.google.com/maps?q="
                     + event.getDropoffLatitude() + "," + event.getDropoffLongitude();
-            body.append("📍 Voir sur Google Maps : ").append(mapsLink).append("\n");
+            body.append("     🗺️  Voir sur Google Maps : ").append(mapsLink).append("\n");
         }
 
-        body.append("--------------------------------------------------\n\n");
-        body.append("Message du système : ").append(event.getMessage()).append("\n\n");
-        body.append("Préparez-vous à réceptionner votre commande !\n\n");
-        body.append("L'équipe SimoVite 🚀");
+        body.append("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n");
+        body.append("Vous pouvez suivre l'état de votre livraison en temps réel depuis l'application SimoVite.\n\n");
+        body.append("Pour toute question, notre équipe reste à votre disposition.\n\n");
+        body.append("Cordialement,\n");
+        body.append("L'équipe SimoVite 🚀\n");
+        body.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+        body.append("Cet email est généré automatiquement, merci de ne pas y répondre.");
 
         emailService.sendBookingEmail(event.getCustomerEmail(), subject, body.toString());
     }
 
     private void sendOrderFinishedEmail(DeliveryNotificationEvent event) {
-        String subject = "SimoVite - Commande livrée ! ✅";
-        StringBuilder body = new StringBuilder();
+        String subject = "SimoVite — Votre commande a été livrée avec succès ✅";
+        String timeNow = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm 'le' dd/MM/yyyy"));
 
+        StringBuilder body = new StringBuilder();
         body.append("Bonjour,\n\n");
-        body.append("Votre commande ").append(event.getOrderRef()).append(" vient d'être livrée avec succès !\n\n");
-        body.append("Nous espérons que vous êtes satisfait du service.\n");
-        body.append("Bon appétit et à très vite sur SimoVite ! 🍔\n\n");
-        body.append("L'équipe SimoVite 🚀");
+        body.append("Votre commande a été livrée avec succès. Nous espérons que vous êtes pleinement satisfait de notre service.\n\n");
+
+        body.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+        body.append("          ✅ CONFIRMATION DE LIVRAISON\n");
+        body.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n");
+
+        body.append("  🔖 Référence commande  : ").append(event.getOrderRef()).append("\n");
+        body.append("  🏍️  Livrée par          : ").append(event.getCourierName() != null ? event.getCourierName() : "Livreur SimoVite").append("\n");
+        body.append("  🕐 Heure de livraison  : ").append(timeNow).append("\n\n");
+
+        body.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n");
+        body.append("Merci de faire confiance à SimoVite pour vos livraisons. 🙏\n");
+        body.append("Votre satisfaction est notre priorité.\n\n");
+        body.append("N'hésitez pas à laisser un avis sur notre application — vos retours nous aident à nous améliorer !\n\n");
+        body.append("Cordialement,\n");
+        body.append("L'équipe SimoVite 🚀\n");
+        body.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+        body.append("Cet email est généré automatiquement, merci de ne pas y répondre.");
 
         emailService.sendBookingEmail(event.getCustomerEmail(), subject, body.toString());
     }

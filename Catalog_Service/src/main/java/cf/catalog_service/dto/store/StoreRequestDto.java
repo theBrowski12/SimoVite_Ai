@@ -19,11 +19,8 @@ public class StoreRequestDto {
     // On utilise bien le DTO ici !
     private AddressDto address;
 
-    // L'ID Keycloak du gérant (optionnel au moment de la création si c'est géré par le token)
-    private String ownerId;
-
     private String phone;
 
     private String imageURL;
-    private boolean Open;
+    private Boolean open;
 }

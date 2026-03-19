@@ -15,8 +15,9 @@ import cf.catalog_service.enums.SupermarketCategory;
 import cf.catalog_service.mapper.CatalogMapper;
 import cf.catalog_service.repository.CatalogRepository;
 import cf.catalog_service.repository.StoreRepository;
-import org.springaicommunity.mcp.annotation.McpTool;
-import org.springaicommunity.mcp.annotation.McpToolParam;
+import org.springframework.ai.tool.annotation.Tool;
+import org.springframework.ai.tool.annotation.ToolParam;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -45,67 +46,120 @@ public class CatalogServiceImpl implements CatalogService {
         return catalogMapper.toDto(savedEntity);
     }
     @Override
-    @McpTool(description = "USE THIS TOOL ONLY FOR RESTAURANTS. Adds food, meals, drinks, or restaurant items (like Burrito, Pizza, Burger). NEVER use this for medicine or groceries.")
+    @Tool(description = """
+            [ADMIN / STORE_OWNER ONLY] Add a new FOOD item to a RESTAURANT store.
+            Use ONLY for food, meals, drinks, or anything edible served by a restaurant.
+            NEVER use for medicine, groceries, or delivery services.
+            
+            Required fields: name, description, basePrice, storeId, ingredients, foodCategories.
+            
+            foodCategories — pick one or more EXACT values from this list:
+              🍕 PIZZA        → Pizza, calzone, flatbreads
+              🍔 BURGER       → Beef, chicken, veggie burgers
+              🥪 SANDWICH     → Club, panini, wraps, baguettes
+              🌮 TACOS        → Tacos, quesadillas, nachos
+              🍝 ITALIAN      → Pasta, risotto, lasagna
+              🍜 ASIAN        → Sushi, ramen, noodles, dim sum, wok
+              🥘 MOROCCAN     → Tagine, couscous, harira, pastilla
+              🌯 MEXICAN      → Burritos, enchiladas, guacamole
+              🍟 FAST_FOOD    → Fries, nuggets, hot dogs, combos
+              🧆 SNACKS       → Small bites, appetizers, sides
+              🎉 PROMOTION    → Discounted or promotional items
+              ⭐ TOP_SELLER   → Best selling items of the restaurant
+            
+            Optional: isVegetarian (true/false), allergens (comma-separated text), availableExtras.
+            """)
     public CatalogResponseDto createRestaurantItem(
-            @McpToolParam(description = "Restaurant item details") RestaurantRequestDto requestDto) {
+            @ToolParam(description = """
+                    Full restaurant item object. foodCategories must be a list of values from:
+                    [PIZZA, BURGER, SANDWICH, TACOS, ITALIAN, ASIAN, MOROCCAN, MEXICAN, FAST_FOOD, SNACKS, PROMOTION, TOP_SELLER]
+                    Example: { "name": "Pizza Margherita", "basePrice": 45.0, "storeId": "abc123",
+                    "foodCategories": ["PIZZA", "TOP_SELLER"], "ingredients": ["tomato", "mozzarella"],
+                    "isVegetarian": true, "allergens": "Gluten, Lait" }
+                    """) RestaurantRequestDto requestDto) {
         return this.createOffer(requestDto);
     }
 
     @Override
-    @McpTool(description = "USE THIS TOOL ONLY FOR PHARMACIES. Adds medicine, drugs, or health products. NEVER use this for food.")
+    @Tool(description = "Add a MEDICINE or health product to a pharmacy. pharmacyCategories: MEDICINE,AESTHETIC,MEDICAL_EQUIPMENT,SUPPLEMENTS,BABY_CARE,HYGIENE,VISION,PROMOTION,OTHER")
     public CatalogResponseDto createPharmacyItem(
-            @McpToolParam(description = "Pharmacy item details") PharmacyRequestDto requestDto) {
+            @ToolParam(description = "Pharmacy item. Required: name,basePrice,storeId,activeIngredient,pharmacyCategories. Optional: dosage,requiresPrescription") PharmacyRequestDto requestDto) {
         return this.createOffer(requestDto);
     }
 
     @Override
-    @McpTool(description = "Add a new grocery item to a SUPERMARKET")
+    @Tool(description = "Add a GROCERY item to a supermarket. supermarketCategories: BEVERAGES,DAIRY,BAKERY,MEAT,VEGETABLES,FRUITS,SNACKS,CLEANING,PERSONAL_CARE,PROMOTION,TOP_SELLER")
     public CatalogResponseDto createSupermarketItem(
-            @McpToolParam(description = "Supermarket item details") SupermarketRequestDTO requestDto) {
+            @ToolParam(description = "Supermarket item. Required: name,basePrice,storeId,weightInKg,supermarketCategories") SupermarketRequestDTO requestDto) {
         return this.createOffer(requestDto);
     }
 
     @Override
-    @McpTool(description = "Create a new SPECIAL DELIVERY service configuration")
+    @Tool(description = "Create a SPECIAL DELIVERY service config (NOT a product). Pricing: basePrice + distanceKm×pricePerKm + weightKg×pricePerKg")
     public CatalogResponseDto createDeliveryService(
-            @McpToolParam(description = "Delivery service details") SpecialDeliveryRequestDto requestDto) {
+            @ToolParam(description = "Delivery service. Required: name,basePrice,storeId,pricePerKm,pricePerKg,maxWeightKg") SpecialDeliveryRequestDto requestDto) {
         return this.createOffer(requestDto);
     }
+
     @Override
-    @McpTool(description = "Get product by ID")
-    public CatalogResponseDto getOfferById(@McpToolParam(description = "Product ID") String id) {
-        Catalog entity = catalogRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Offre introuvable avec l'ID : " + id));
-        return catalogMapper.toDto(entity);
+    @Tool(description = "Get product details by MongoDB ID")
+    public CatalogResponseDto getOfferById(
+            @ToolParam(description = "MongoDB ObjectId (24 hex chars)") String id) {
+        return catalogMapper.toDto(catalogRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Produit introuvable : " + id)));
     }
 
     @Override
-    @McpTool(description = "Get All products")
+    @Tool(description = "Get ALL products across all stores. Prefer filtered tools when possible.")
     public List<CatalogResponseDto> getAllOffers() {
-        return catalogRepository.findAll().stream()
-                .map(catalogMapper::toDto)
-                .collect(Collectors.toList());
+        return catalogRepository.findAll().stream().map(catalogMapper::toDto).collect(Collectors.toList());
     }
 
     @Override
-    @McpTool(description = "Update an existing product")
+    @Tool(description = "Update an existing product by ID")
     public CatalogResponseDto updateOffer(
-            @McpToolParam(description = "ID of the product to update") String id,
-            @McpToolParam(description = "Updated product data") CatalogRequestDto requestDto) {
-        catalogRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Impossible de modifier. Offre introuvable (ID: " + id + ")"));
-
-        Catalog updatedEntity = catalogMapper.toEntity(requestDto);
-        updatedEntity.setId(id);
-        return catalogMapper.toDto(catalogRepository.save(updatedEntity));
+            @ToolParam(description = "MongoDB ObjectId of product to update") String id,
+            @ToolParam(description = "Updated product data") CatalogRequestDto requestDto) {
+        catalogRepository.findById(id).orElseThrow(() -> new RuntimeException("Produit introuvable : " + id));
+        Catalog updated = catalogMapper.toEntity(requestDto);
+        updated.setId(id);
+        return catalogMapper.toDto(catalogRepository.save(updated));
     }
+
     @Override
-    @McpTool(description = "Delete a product")
-    public void deleteOffer(@McpToolParam(description = "Product ID to delete") String id) {
-        if (!catalogRepository.existsById(id)) {
-            throw new RuntimeException("Impossible de supprimer. Offre introuvable (ID: " + id + ")");
-        }
+    @Tool(description = "Permanently DELETE a product. IRREVERSIBLE — confirm before calling.")
+    public void deleteOffer(
+            @ToolParam(description = "MongoDB ObjectId of product to delete") String id) {
+        if (!catalogRepository.existsById(id)) throw new RuntimeException("Produit introuvable : " + id);
         catalogRepository.deleteById(id);
+    }
+
+    @Override
+    @Tool(description = "Toggle product availability. Verifies ownership for STORE_OWNER. ADMIN bypasses check.")
+    public CatalogResponseDto toggleAvailability(
+            @ToolParam(description = "MongoDB ObjectId of product") String productId,
+            @ToolParam(description = "Keycloak UUID of requesting user (JWT sub)") String requestingOwnerId) {
+
+        Catalog catalog = catalogRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Produit introuvable : " + productId));
+
+        // ✅ ADMIN bypass — pas de vérification d'ownership
+        boolean isAdmin = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getAuthorities()
+                .stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isAdmin) {
+            Store store = storeRepository.findById(catalog.getStoreId())
+                    .orElseThrow(() -> new RuntimeException("Store introuvable"));
+            if (!store.getOwnerId().equals(requestingOwnerId)) {
+                throw new RuntimeException("❌ Accès refusé !");
+            }
+        }
+
+        catalog.setAvailable(!catalog.isAvailable());
+        return catalogMapper.toDto(catalogRepository.save(catalog));
     }
 
     // ==========================================
@@ -113,25 +167,27 @@ public class CatalogServiceImpl implements CatalogService {
     // ==========================================
 
     @Override
-    @McpTool(description = "Get products by store ID")
-    public List<CatalogResponseDto> getOffersByProviderId(@McpToolParam(description = "Store ID") String providerId) {
+    @Tool(description = "Get all products of a specific store by storeId")
+    public List<CatalogResponseDto> getOffersByProviderId(
+            @ToolParam(description = "MongoDB ObjectId of the store") String providerId) {
         return catalogRepository.findByStoreId(providerId).stream()
                 .map(catalogMapper::toDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    @McpTool(description = "Get products by name")
-    public List<CatalogResponseDto> searchOffersByName(@McpToolParam(description = "Product name") String name) {
+    @Tool(description = "Search products by name keyword (case-insensitive partial match)")
+    public List<CatalogResponseDto> searchOffersByName(
+            @ToolParam(description = "Name keyword. Example: 'pizza', 'lait', 'para'") String name) {
         return catalogRepository.findByNameContainingIgnoreCase(name).stream()
                 .map(catalogMapper::toDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    @McpTool(description = "Get all available products")
+    @Tool(description = "Get only currently available products (available=true)")
     public List<CatalogResponseDto> getAvailableOffers() {
-        return catalogRepository.findByIsAvailableTrue().stream()
+        return catalogRepository.findByAvailableTrue().stream()
                 .map(catalogMapper::toDto)
                 .collect(Collectors.toList());
     }
@@ -141,27 +197,27 @@ public class CatalogServiceImpl implements CatalogService {
     // ==========================================
 
     @Override
-    @McpTool(description = "Get products by Food category")
-    public List<CatalogResponseDto> getOffersByFoodCategory(@McpToolParam(description = "Food Category") FoodCategory category) {
+    @Tool(description = "Filter food items by category. Values: PIZZA,BURGER,SANDWICH,TACOS,ITALIAN,ASIAN,MOROCCAN,MEXICAN,FAST_FOOD,SNACKS,PROMOTION,TOP_SELLER")
+    public List<CatalogResponseDto> getOffersByFoodCategory(
+            @ToolParam(description = "FoodCategory: PIZZA|BURGER|SANDWICH|TACOS|ITALIAN|ASIAN|MOROCCAN|MEXICAN|FAST_FOOD|SNACKS|PROMOTION|TOP_SELLER") FoodCategory category) {
         return catalogRepository.findByFoodCategoriesContaining(category).stream()
-                .map(catalogMapper::toDto)
-                .collect(Collectors.toList());
+                .map(catalogMapper::toDto).collect(Collectors.toList());
     }
 
     @Override
-    @McpTool(description = "Get products by Pharmacy category")
-    public List<CatalogResponseDto> getOffersByPharmacyCategory(@McpToolParam(description = "Pharmacy Category") PharmacyCategory category) {
+    @Tool(description = "Filter pharmacy products by category. Values: MEDICINE,AESTHETIC,MEDICAL_EQUIPMENT,SUPPLEMENTS,BABY_CARE,HYGIENE,VISION,PROMOTION,OTHER")
+    public List<CatalogResponseDto> getOffersByPharmacyCategory(
+            @ToolParam(description = "PharmacyCategory: MEDICINE|AESTHETIC|MEDICAL_EQUIPMENT|SUPPLEMENTS|BABY_CARE|HYGIENE|VISION|PROMOTION|OTHER") PharmacyCategory category) {
         return catalogRepository.findByPharmacyCategoriesContaining(category).stream()
-                .map(catalogMapper::toDto)
-                .collect(Collectors.toList());
+                .map(catalogMapper::toDto).collect(Collectors.toList());
     }
 
     @Override
-    @McpTool(description = "Get products by Supermarket category")
-    public List<CatalogResponseDto> getOffersBySupermarketCategory(@McpToolParam(description = "Supermarket Category") SupermarketCategory category) {
+    @Tool(description = "Filter supermarket products by category. Values: BEVERAGES,DAIRY,BAKERY,MEAT,VEGETABLES,FRUITS,SNACKS,CLEANING,PERSONAL_CARE,PROMOTION,TOP_SELLER")
+    public List<CatalogResponseDto> getOffersBySupermarketCategory(
+            @ToolParam(description = "SupermarketCategory: BEVERAGES|DAIRY|BAKERY|MEAT|VEGETABLES|FRUITS|SNACKS|CLEANING|PERSONAL_CARE|PROMOTION|TOP_SELLER") SupermarketCategory category) {
         return catalogRepository.findBySupermarketCategoriesContaining(category).stream()
-                .map(catalogMapper::toDto)
-                .collect(Collectors.toList());
+                .map(catalogMapper::toDto).collect(Collectors.toList());
     }
 
     // ==========================================
@@ -169,73 +225,57 @@ public class CatalogServiceImpl implements CatalogService {
     // ==========================================
 
     @Override
-    @McpTool(description = "Get food products for a specific store by category")
+    @Tool(description = "Filter food items by category for a SPECIFIC restaurant store")
     public List<CatalogResponseDto> getStoreOffersByFoodCategory(
-            @McpToolParam(description = "ID of the store") String storeId,
-            @McpToolParam(description = "Food Category") FoodCategory category) {
+            @ToolParam(description = "Store MongoDB ObjectId") String storeId,
+            @ToolParam(description = "FoodCategory: PIZZA|BURGER|SANDWICH|TACOS|ITALIAN|ASIAN|MOROCCAN|MEXICAN|FAST_FOOD|SNACKS|PROMOTION|TOP_SELLER") FoodCategory category) {
         return catalogRepository.findByStoreIdAndFoodCategoriesContaining(storeId, category).stream()
-                .map(catalogMapper::toDto)
-                .toList();
+                .map(catalogMapper::toDto).toList();
     }
 
     @Override
-    @McpTool(description = "Get pharmacy products for a specific store by category")
+    @Tool(description = "Filter pharmacy products by category for a SPECIFIC pharmacy store")
     public List<CatalogResponseDto> getStoreOffersByPharmacyCategory(
-            @McpToolParam(description = "ID of the store") String storeId,
-            @McpToolParam(description = "Pharmacy Category") PharmacyCategory category) {
+            @ToolParam(description = "Store MongoDB ObjectId") String storeId,
+            @ToolParam(description = "PharmacyCategory: MEDICINE|AESTHETIC|MEDICAL_EQUIPMENT|SUPPLEMENTS|BABY_CARE|HYGIENE|VISION|PROMOTION|OTHER") PharmacyCategory category) {
         return catalogRepository.findByStoreIdAndPharmacyCategoriesContaining(storeId, category).stream()
-                .map(catalogMapper::toDto)
-                .toList();
+                .map(catalogMapper::toDto).toList();
     }
 
     @Override
-    @McpTool(description = "Get supermarket products for a specific store by category")
+    @Tool(description = "Filter supermarket products by category for a SPECIFIC supermarket store")
     public List<CatalogResponseDto> getStoreOffersBySupermarketCategory(
-            @McpToolParam(description = "ID of the store") String storeId,
-            @McpToolParam(description = "Supermarket Category") SupermarketCategory category) {
+            @ToolParam(description = "Store MongoDB ObjectId") String storeId,
+            @ToolParam(description = "SupermarketCategory: BEVERAGES|DAIRY|BAKERY|MEAT|VEGETABLES|FRUITS|SNACKS|CLEANING|PERSONAL_CARE|PROMOTION|TOP_SELLER") SupermarketCategory category) {
         return catalogRepository.findByStoreIdAndSupermarketCategoriesContaining(storeId, category).stream()
-                .map(catalogMapper::toDto)
-                .toList();
+                .map(catalogMapper::toDto).toList();
     }
 
     @Override
-    @McpTool(description = "Get all products by their main type (e.g., PHARMACY, RESTAURANT)")
-    public List<CatalogResponseDto> getProductsByMainType(@McpToolParam(description = "Main type") String mainType) {
-
-        // On traduit le type demandé en alias MongoDB
+    @Tool(description = "Get products by main type. Values: RESTAURANT, PHARMACY, SUPERMARKET, SPECIAL_DELIVERY")
+    public List<CatalogResponseDto> getProductsByMainType(
+            @ToolParam(description = "RESTAURANT | PHARMACY | SUPERMARKET | SPECIAL_DELIVERY") String mainType) {
         String alias = switch (mainType.toUpperCase()) {
             case "PHARMACY" -> "pharmacy_item";
             case "RESTAURANT" -> "restaurant_item";
             case "SUPERMARKET" -> "SUPERMARKET";
-            case "DELIVERY" -> "delivery_service";
-            default -> throw new IllegalArgumentException("Type de produit inconnu : " + mainType);
+            case "SPECIAL_DELIVERY" -> "delivery_service";
+            default -> throw new IllegalArgumentException("Type inconnu : " + mainType);
         };
-
-        // On interroge la base de données
         return catalogRepository.findByItemType(alias).stream()
-                .map(catalogMapper::toDto)
-                .collect(Collectors.toList());
+                .map(catalogMapper::toDto).collect(Collectors.toList());
     }
 
     @Override
-    @McpTool(description = "Calculate the total cost of a delivery based on distance (km) and weight (kg)")
+    @Tool(description = "Calculate delivery cost. Formula: basePrice + (distanceKm×pricePerKm) + (weightKg×pricePerKg)")
     public double calculateDeliveryPrice(
-            @McpToolParam(description = "The ID of the delivery service catalog item") String deliveryId,
-            @McpToolParam(description = "The distance of the delivery in kilometers") double distanceKm,
-            @McpToolParam(description = "The weight of the package in kilograms") double weightKg) {
-
-        // 1. On cherche l'offre dans la base de données
+            @ToolParam(description = "MongoDB ObjectId of the SpecialDelivery service") String deliveryId,
+            @ToolParam(description = "Distance in km") double distanceKm,
+            @ToolParam(description = "Package weight in kg") double weightKg) {
         Catalog offer = catalogRepository.findById(deliveryId)
-                .orElseThrow(() -> new RuntimeException("Delivery service not found with ID: " + deliveryId));
-
-        // 2. On vérifie que c'est bien une offre de type livraison
-        if (!(offer instanceof SpecialDelivery)) {
-            throw new RuntimeException("The requested ID is not a delivery service. It is a: " + offer.getClass().getSimpleName());
-        }
-
-        // 3. On fait le calcul (en utilisant la méthode que tu as déjà codée dans ton Entité !)
-        SpecialDelivery deliveryService = (SpecialDelivery) offer;
-
-        return deliveryService.calculatePrice(distanceKm, weightKg);
+                .orElseThrow(() -> new RuntimeException("Delivery service not found: " + deliveryId));
+        if (!(offer instanceof SpecialDelivery))
+            throw new RuntimeException("Not a delivery service: " + offer.getClass().getSimpleName());
+        return ((SpecialDelivery) offer).calculatePrice(distanceKm, weightKg);
     }
 }

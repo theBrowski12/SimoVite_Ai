@@ -1,9 +1,6 @@
 package cf.catalog_service.entities;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -11,6 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @NoArgsConstructor
 @Getter
 @Setter
+@Builder
 @Document(collection = "stores") // Une collection distincte pour les magasins !
 public class Store {
 
@@ -26,5 +24,5 @@ public class Store {
     private String ownerId;
     private String imageURL;
     private String phone;
-    private boolean isOpen;
+    private Boolean open;
 }

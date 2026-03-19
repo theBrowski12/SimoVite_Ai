@@ -20,6 +20,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     // Filtrer par statut (ex: pour l'interface Admin ou Livreur)
     List<Order> findByStatus(OrderStatus status);
 
+
     // Récupérer les commandes d'un restaurant spécifique
     List<Order> findByStoreId(String storeId);
 }

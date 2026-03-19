@@ -20,5 +20,5 @@ public class StoreResponseDto {
     private String phone;
     private String imageURL;
     private String ownerId;
-    private boolean Open;
+    private Boolean open;
 }
