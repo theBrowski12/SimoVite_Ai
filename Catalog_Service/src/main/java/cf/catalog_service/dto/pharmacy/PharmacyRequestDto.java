@@ -12,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class PharmacyRequestDto extends CatalogRequestDto {
-    private boolean requiresPrescription;
+    private Boolean requiresPrescription;
     private String dosage;
     private String activeIngredient;
     private List<PharmacyCategory> pharmacyCategories;

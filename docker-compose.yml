@@ -42,6 +42,14 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: order_db
     command: --default-authentication-plugin=mysql_native_password
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: simovite-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
   ollama:
     image: ollama/ollama:0.3.6
     container_name: ollama

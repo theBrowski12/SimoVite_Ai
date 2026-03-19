@@ -9,7 +9,7 @@ import lombok.*;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class SpecialDeliveryRequestDto extends CatalogRequestDto {
-    private double pricePerKm;
-    private double pricePerKg;
+    private Double pricePerKm;
+    private Double pricePerKg;
     private String requiredVehicleType;
 }

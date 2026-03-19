@@ -7,8 +7,8 @@ import cf.catalog_service.enums.ReviewTargetType;
 import cf.catalog_service.mapper.ReviewMapper;
 import cf.catalog_service.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.ai.tool.annotation.Tool;
-import org.springframework.ai.tool.annotation.ToolParam;
+import org.springaicommunity.mcp.annotation.McpTool;
+import org.springaicommunity.mcp.annotation.McpToolParam;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -24,11 +24,11 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewMapper reviewMapper;
 
     @Override
-    @Tool(description = "Add a review (rating + comment) for a product or store. CLIENT only. One review per target per client. Rating: 1.0 to 5.0")
+    @McpTool(description = "Add a review (rating + comment) for a product or store. CLIENT only. One review per target per client. Rating: 1.0 to 5.0")
     public ReviewResponseDto addReview(
-            @ToolParam(description = "Review data: targetId (MongoDB ObjectId), targetType (PRODUCT|STORE), comment, rating (1.0-5.0)") ReviewRequestDto dto,
-            @ToolParam(description = "Keycloak UUID of the client (from JWT sub)") String clientId,
-            @ToolParam(description = "Full name of the client (from JWT given_name + family_name)") String clientName) {
+            @McpToolParam(description = "Review data: targetId (MongoDB ObjectId), targetType (PRODUCT|STORE), comment, rating (1.0-5.0)") ReviewRequestDto dto,
+            @McpToolParam(description = "Keycloak UUID of the client (from JWT sub)") String clientId,
+            @McpToolParam(description = "Full name of the client (from JWT given_name + family_name)") String clientName) {
         if (reviewRepository.existsByTargetIdAndClientId(dto.getTargetId(), clientId))
             throw new RuntimeException("Vous avez déjà laissé un avis pour cet élément !");
         if (dto.getRating() == null || dto.getRating() < 1.0 || dto.getRating() > 5.0)
@@ -39,28 +39,28 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    @Tool(description = "Get all reviews for a specific product or store. targetType: PRODUCT or STORE")
+    @McpTool(description = "Get all reviews for a specific product or store. targetType: PRODUCT or STORE")
     public List<ReviewResponseDto> getReviews(
-            @ToolParam(description = "MongoDB ObjectId of the product or store") String targetId,
-            @ToolParam(description = "Target type: PRODUCT | STORE") ReviewTargetType targetType) {
+            @McpToolParam(description = "MongoDB ObjectId of the product or store") String targetId,
+            @McpToolParam(description = "Target type: PRODUCT | STORE") ReviewTargetType targetType) {
         return reviewRepository.findByTargetIdAndTargetType(targetId, targetType)
                 .stream().map(reviewMapper::toDto).collect(Collectors.toList());
     }
 
     @Override
-    @Tool(description = "Get the average rating (1.0-5.0) of a product or store based on all reviews")
+    @McpTool(description = "Get the average rating (1.0-5.0) of a product or store based on all reviews")
     public Double getAverageRating(
-            @ToolParam(description = "MongoDB ObjectId of the product or store") String targetId,
-            @ToolParam(description = "Target type: PRODUCT | STORE") ReviewTargetType targetType) {
+            @McpToolParam(description = "MongoDB ObjectId of the product or store") String targetId,
+            @McpToolParam(description = "Target type: PRODUCT | STORE") ReviewTargetType targetType) {
         return reviewRepository.findByTargetIdAndTargetType(targetId, targetType)
                 .stream().mapToDouble(Review::getRating).average().orElse(0.0);
     }
 
     @Override
-    @Tool(description = "[CLIENT / ADMIN ONLY] Delete a review by ID. CLIENT can only delete their own reviews. ADMIN can delete any.")
+    @McpTool(description = "[CLIENT / ADMIN ONLY] Delete a review by ID. CLIENT can only delete their own reviews. ADMIN can delete any.")
     public void deleteReview(
-            @ToolParam(description = "MongoDB ObjectId of the review to delete") String reviewId,
-            @ToolParam(description = "Keycloak UUID of the requesting client (from JWT sub)") String clientId) {
+            @McpToolParam(description = "MongoDB ObjectId of the review to delete") String reviewId,
+            @McpToolParam(description = "Keycloak UUID of the requesting client (from JWT sub)") String clientId) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new RuntimeException("Review introuvable : " + reviewId));
         boolean isAdmin = SecurityContextHolder.getContext().getAuthentication()

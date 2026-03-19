@@ -14,7 +14,7 @@ import java.util.List;
 @TypeAlias("pharmacy_item")
 public class Pharmacy extends Catalog {
 
-    private boolean requiresPrescription; // Vrai si besoin d'une ordonnance
+    private Boolean requiresPrescription; // Vrai si besoin d'une ordonnance
     private String dosage; // Ex: "500mg"
     private String activeIngredient; // Ex: "Paracétamol"
     private List<PharmacyCategory> pharmacyCategories;

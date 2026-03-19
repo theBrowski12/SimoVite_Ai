@@ -23,8 +23,8 @@ import lombok.*;
     private String id; // L'ID est présent dans la réponse !
     private String name;
     private String description;
-    private double basePrice;
-    private boolean available;
+    private Double basePrice;
+    private Boolean available;
 
   // On ajoute un champ type explicite pour aider le Front-end (React/Angular)
     private String type;

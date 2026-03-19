@@ -15,6 +15,6 @@ import java.util.List;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class SuperMarket extends Catalog {
-    private double weightInKg; // Poids du produit
+    private Double weightInKg; // Poids du produit
     private List<SupermarketCategory> supermarketCategories;
 }

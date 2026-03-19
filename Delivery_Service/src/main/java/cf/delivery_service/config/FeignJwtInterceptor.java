@@ -17,13 +17,22 @@ public class FeignJwtInterceptor {
             Authentication authentication =
                     SecurityContextHolder.getContext().getAuthentication();
 
+            // CAS 1: Utilisateur authentifié avec JWT
             if (authentication instanceof JwtAuthenticationToken jwtAuth) {
                 String token = jwtAuth.getToken().getTokenValue();
-                System.out.println("✅ Feign Interceptor: Token trouvé et ajouté !");
+                System.out.println("✅ Feign Interceptor: Token JWT utilisateur trouvé !");
                 requestTemplate.header("Authorization", "Bearer " + token);
             }
+            // CAS 2: Appel système (Kafka) - endpoint public, pas besoin de token
+            else if (authentication != null && "system".equals(authentication.getPrincipal())) {
+                System.out.println("🔧 Feign Interceptor: Appel système sans token (endpoint public)");
+                // Ne pas ajouter de header Authorization
+            }
+            // CAS 3: Pas d'authentification
             else {
-                System.out.println("❌ Feign Interceptor: AUTHENTICATION IS NULL OR WRONG TYPE");
+                System.out.println("⚠️ Feign Interceptor: Aucune authentification trouvée");
+                System.out.println("   Type: " + (authentication != null ? authentication.getClass().getSimpleName() : "null"));
+                // Tenter sans token car l'endpoint est public
             }
         };
     }

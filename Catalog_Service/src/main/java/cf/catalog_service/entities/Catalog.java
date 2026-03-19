@@ -20,8 +20,8 @@ public class Catalog {
 
     private String name;
     private String description;
-    private double basePrice;
-    private boolean available;
+    private Double basePrice;
+    private Boolean available;
     private String imageURL;
     private String storeId;
     @Transient

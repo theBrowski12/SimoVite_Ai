@@ -15,8 +15,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class SimoviteAgent {
     private ChatClient ollamaClient;
 
-    public SimoviteAgent(OllamaChatModel ollamaChatModel, ChatMemory chatMemory
-    , ToolCallbackProvider tools) {
+    public SimoviteAgent(OllamaChatModel ollamaChatModel, ChatMemory chatMemory, ToolCallbackProvider tools
+    ) {
+        System.out.println("🔧 Tools disponibles : " + tools.getToolCallbacks().length);
+        for (var tool : tools.getToolCallbacks()) {
+            System.out.println("  - " + tool.getToolDefinition().name());
+        }
         this.ollamaClient = ChatClient.builder(ollamaChatModel)
                 .defaultSystem("""
         Tu es SimoVite Assistant, plateforme de livraison marocaine.

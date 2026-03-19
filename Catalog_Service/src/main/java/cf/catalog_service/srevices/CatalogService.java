@@ -20,7 +20,7 @@ public interface CatalogService {
     CatalogResponseDto createPharmacyItem(PharmacyRequestDto requestDto);
     CatalogResponseDto createSupermarketItem(SupermarketRequestDTO requestDto);
     CatalogResponseDto createDeliveryService(SpecialDeliveryRequestDto requestDto);
-    double calculateDeliveryPrice(String deliveryId,double distanceKm,double weightKg);
+    double calculateDeliveryPrice(String deliveryId,Double distanceKm,Double weightKg);
     CatalogResponseDto createOffer(CatalogRequestDto requestDto);
     CatalogResponseDto getOfferById(String id);
     List<CatalogResponseDto> getAllOffers();

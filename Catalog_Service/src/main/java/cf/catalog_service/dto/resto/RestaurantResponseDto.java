@@ -17,6 +17,6 @@ public class RestaurantResponseDto extends CatalogResponseDto {
     private List<FoodCategory> foodCategories;
     private List<MenuItemExtra> availableExtras;
     private List<String> ingredients;
-    private boolean isVegetarian;
+    private Boolean vegetarian;
     private String allergens;
 }

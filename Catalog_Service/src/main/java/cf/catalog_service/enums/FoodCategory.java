@@ -2,6 +2,7 @@ package cf.catalog_service.enums;
 
 public enum FoodCategory {
     PIZZA,
+    VEGETARIAN,
     BURGER,
     SANDWICH,
     TACOS,

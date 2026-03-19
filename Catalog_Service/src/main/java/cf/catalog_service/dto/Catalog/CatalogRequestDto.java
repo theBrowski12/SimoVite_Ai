@@ -19,7 +19,7 @@ import org.springframework.data.annotation.Transient;
 public abstract class CatalogRequestDto {
     private String name;
     private String description;
-    private double basePrice;
-    private boolean available;
+    private Double basePrice;
+    private Boolean available;
     private String storeId;
 }
