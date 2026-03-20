@@ -2,6 +2,7 @@ package cf.catalog_service.api;
 
 import cf.catalog_service.dto.store.StoreRequestDto;
 import cf.catalog_service.dto.store.StoreResponseDto;
+import cf.catalog_service.enums.MainCategory;
 import cf.catalog_service.srevices.StoreService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -80,7 +81,7 @@ public class StoreController {
 
     @GetMapping("/category/{category}")
     @Operation(summary = "Filtrer les magasins par catégorie (ex: RESTAURANT, PHARMACY)")
-    public ResponseEntity<List<StoreResponseDto>> getStoresByCategory(@PathVariable String category) {
+    public ResponseEntity<List<StoreResponseDto>> getStoresByCategory(@PathVariable MainCategory category) {
         return ResponseEntity.ok(storeService.getStoresByCategory(category));
     }
 

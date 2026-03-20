@@ -1,6 +1,7 @@
 package cf.catalog_service.dto.store;
 
 import cf.catalog_service.dto.AddressDto;
+import cf.catalog_service.enums.MainCategory;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
@@ -14,7 +15,7 @@ public class StoreRequestDto {
     private String description;
 
     // Ex: RESTAURANT, PHARMACY, SUPERMARKET
-    private String category;
+    private MainCategory category;    // L'adresse qu'on a créée tout à l'heure, elle a parfaitement sa place ici !
 
     // On utilise bien le DTO ici !
     private AddressDto address;

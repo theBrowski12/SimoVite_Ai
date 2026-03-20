@@ -4,6 +4,7 @@ import cf.catalog_service.dto.store.StoreRequestDto;
 import cf.catalog_service.dto.store.StoreResponseDto;
 import cf.catalog_service.entities.Address;
 import cf.catalog_service.entities.Store;
+import cf.catalog_service.enums.MainCategory;
 import cf.catalog_service.mapper.StoreMapper;
 import cf.catalog_service.repository.StoreRepository;
 import cf.catalog_service.utils.JwtUtils;
@@ -107,7 +108,7 @@ public class StoreServiceImpl implements StoreService {
     @Override
     @McpTool(description = "Filter stores by category. Values: RESTAURANT, PHARMACY, SUPERMARKET, SPECIAL_DELIVERY")
     public List<StoreResponseDto> getStoresByCategory(
-            @McpToolParam(description = "Category: RESTAURANT | PHARMACY | SUPERMARKET | SPECIAL_DELIVERY") String category) {
+            @McpToolParam(description = "Category: RESTAURANT | PHARMACY | SUPERMARKET | SPECIAL_DELIVERY") MainCategory category) {
         return storeRepository.findByCategory(category).stream()
                 .map(storeMapper::toDto).collect(Collectors.toList());
     }

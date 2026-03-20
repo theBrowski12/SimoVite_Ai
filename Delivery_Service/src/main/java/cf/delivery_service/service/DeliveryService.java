@@ -2,6 +2,7 @@ package cf.delivery_service.service;
 
 import cf.delivery_service.dto.CourierLocationRequest;
 import cf.delivery_service.dto.DeliveryResponseDto;
+import cf.delivery_service.enums.VehicleType;
 import cf.delivery_service.kafkaEvents.OrderPaidEvent;
 
 import java.util.List;
@@ -12,7 +13,7 @@ public interface DeliveryService {
     List<DeliveryResponseDto> getPendingDeliveries();
     void createDeliveryFromOrder(OrderPaidEvent event);
     // Le livreur accepte une commande
-    DeliveryResponseDto acceptDelivery(Long deliveryId, String courierId, String courierName);
+    DeliveryResponseDto acceptDelivery(Long deliveryId, String courierId, String courierName, VehicleType vehicleType);
     void updateCourierLocation(String courierId, CourierLocationRequest req);
     // Le livreur termine la livraison
     DeliveryResponseDto completeDelivery(Long deliveryId);

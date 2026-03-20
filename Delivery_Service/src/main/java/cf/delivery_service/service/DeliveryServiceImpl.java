@@ -2,11 +2,15 @@ package cf.delivery_service.service;
 
 import cf.delivery_service.dto.CourierLocationRequest;
 import cf.delivery_service.dto.DeliveryResponseDto;
+import cf.delivery_service.dto.ETA.ETARequest;
+import cf.delivery_service.dto.ETA.ETAResponse;
 import cf.delivery_service.dto.StoreResponseDto;
 import cf.delivery_service.entity.Address;
 import cf.delivery_service.entity.CourierLocation;
 import cf.delivery_service.entity.Delivery;
 import cf.delivery_service.enums.DeliveryStatus;
+import cf.delivery_service.enums.VehicleType;
+import cf.delivery_service.feignClient.ETAFeignClient;
 import cf.delivery_service.feignClient.OrderClient;
 import cf.delivery_service.feignClient.StoreClient;
 import cf.delivery_service.kafkaEvents.DeliveryNotificationEvent;
@@ -40,6 +44,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final OrderClient orderClient;
     private final KafkaProducerService kafkaProducerService;
     private final StoreClient storeClient;
+    private final ETAFeignClient etaFeignClient;
     private final CourierLocationRepository courierLocationRepository;
     @Override
     public List<DeliveryResponseDto> getPendingDeliveries() {
@@ -88,7 +93,19 @@ public class DeliveryServiceImpl implements DeliveryService {
 
         // Estimer l'ETA : environ 3 minutes par kilomètre + 10 mins au resto
         // à changer pour retriver eta depuis ETA_Service
-        Integer etaMinutes = 10 + (int) Math.round(distanceKm * 3);
+        Integer etaMinutes;
+        try {
+            ETARequest etaRequest = ETARequest.builder()
+                    .distanceKm(distanceKm)
+                    .vehicleType("MOTORCYCLE") // défaut avant assignation coursier
+                    .pickupLatitude(pickupAddress.getLatitude())
+                    .pickupLongitude(pickupAddress.getLongitude())
+                    .build();
+            etaMinutes = etaFeignClient.calculateETA(etaRequest).getEstimatedMinutes();
+        } catch (Exception e) {
+            log.warn("⚠️ ETA Service indisponible — calcul par défaut");
+            etaMinutes = 10 + (int) Math.round(distanceKm * 3);
+        }
 
         // 5. Calcul de l'argent à collecter si paiement à la livraison
 
@@ -103,7 +120,7 @@ public class DeliveryServiceImpl implements DeliveryService {
                 .customerEmail(event.getCustomerEmail())
                 .pickupAddress(pickupAddress)
                 .dropoffAddress(dropoffAddress)
-                .isCashOnDelivery(event.isCashOnDelivery())
+                .cashOnDelivery(event.isCashOnDelivery())
                 .amountToCollect(amountToCollect)
                 .deliveryCost(deliveryCost)
                 .distanceInKm(distanceKm)
@@ -117,9 +134,10 @@ public class DeliveryServiceImpl implements DeliveryService {
     // ✅ acceptDelivery — customerEmail vient de la DB, courierName du JWT
     @Override
     @Transactional
-    public DeliveryResponseDto acceptDelivery(Long deliveryId, String courierId, String courierName) {
+    public DeliveryResponseDto acceptDelivery(Long deliveryId, String courierId, String courierName, VehicleType vehicleType) {
         Delivery delivery = deliveryRepository.findById(deliveryId)
                 .orElseThrow(() -> new RuntimeException("Livraison introuvable avec l'ID : " + deliveryId));
+        log.info("📦 Livraison {} — statut actuel : {}", deliveryId, delivery.getStatus());
 
         if (delivery.getStatus() != DeliveryStatus.PENDING) {
             throw new RuntimeException("Cette commande n'est plus disponible !");
@@ -128,7 +146,35 @@ public class DeliveryServiceImpl implements DeliveryService {
         delivery.setCourierId(courierId);
         delivery.setCourierName(courierName);  // ✅ stocker le nom dans l'entité
         delivery.setStatus(DeliveryStatus.ASSIGNED);
+        delivery.setVehicleType(vehicleType);
+
+        log.info("🚀 Appel ETA_Service — distance: {}km, véhicule: {}, lat: {}, lng: {}",
+                delivery.getDistanceInKm(),
+                vehicleType.name(),
+                delivery.getPickupAddress().getLatitude(),
+                delivery.getPickupAddress().getLongitude());
+        try {
+            ETARequest etaRequest = ETARequest.builder()
+                    .distanceKm(delivery.getDistanceInKm())
+                    .vehicleType(vehicleType.name())
+                    .pickupLatitude(delivery.getPickupAddress().getLatitude())
+                    .pickupLongitude(delivery.getPickupAddress().getLongitude())
+                    .build();
+            ETAResponse etaResponse = etaFeignClient.calculateETA(etaRequest);
+            log.info("✅ ETA reçu depuis ETA_Service : {} min | météo: {} | rush: {} | via {}",
+                    etaResponse.getEstimatedMinutes(),
+                    etaResponse.getWeatherCondition(),
+                    etaResponse.getRushHourFactor(),
+                    vehicleType);
+
+            delivery.setEstimatedTimeInMinutes(etaResponse.getEstimatedMinutes());
+        } catch (Exception e) {
+            log.warn("⚠️ ETA Service indisponible — conservation ETA existant : {} min",
+                    delivery.getEstimatedTimeInMinutes());
+        }
+
         Delivery savedDelivery = deliveryRepository.save(delivery);
+        log.info("💾 ETA final sauvegardé en DB : {} min", savedDelivery.getEstimatedTimeInMinutes());
 
         orderClient.updateOrderStatus(savedDelivery.getOrderRef(), ACCEPTED);
 

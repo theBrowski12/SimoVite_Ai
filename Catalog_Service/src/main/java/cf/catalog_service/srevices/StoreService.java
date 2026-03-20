@@ -2,6 +2,7 @@ package cf.catalog_service.srevices;
 
 import cf.catalog_service.dto.store.StoreRequestDto;
 import cf.catalog_service.dto.store.StoreResponseDto;
+import cf.catalog_service.enums.MainCategory;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,6 +17,6 @@ public interface StoreService {
 
     // Recherches spécifiques
     List<StoreResponseDto> getStoresByOwner(String ownerId);
-    List<StoreResponseDto> getStoresByCategory(String category);
+    List<StoreResponseDto> getStoresByCategory(MainCategory category);
     List<StoreResponseDto> getOpenStores();
 }

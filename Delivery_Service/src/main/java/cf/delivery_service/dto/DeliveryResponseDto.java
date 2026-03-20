@@ -1,6 +1,9 @@
 package cf.delivery_service.dto;
 
 import cf.delivery_service.enums.DeliveryStatus;
+import cf.delivery_service.enums.VehicleType;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,21 +16,34 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+
 public class DeliveryResponseDto {
     private Long id;
     private String orderRef;
     private String courierId;
+    private String courierName;
+    private String customerEmail;
 
-    // Adresses structurées
+    // Adresses
     private AddressDto pickupAddress;
     private AddressDto dropoffAddress;
 
-    // Champs ML
-    private Double distanceInKm;// à calculer depuis les adresses ou bien longtitude et lattitude ?
-    private BigDecimal deliveryCost; // Ajout du coût !
-    private Integer estimatedTimeInMinutes;//depuis ETA_Service
+    // ML / ETA
+    private Double distanceInKm;
+    private BigDecimal deliveryCost;
+    private Integer estimatedTimeInMinutes;
 
+    // Véhicule
+    @Enumerated(EnumType.STRING)
+    private VehicleType vehicleType;
+
+    // Paiement
+    private boolean cashOnDelivery;
+    private BigDecimal amountToCollect;
+
+    // Status & dates
     private DeliveryStatus status;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private LocalDateTime deliveredAt;
 }

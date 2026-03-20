@@ -1,6 +1,7 @@
 package cf.delivery_service.entity;
 
 import cf.delivery_service.enums.DeliveryStatus;
+import cf.delivery_service.enums.VehicleType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -60,13 +61,13 @@ public class Delivery {
     private DeliveryStatus status; // PENDING, ASSIGNED, PICKED_UP, DELIVERED
 
     @Column(nullable = false)
-    private boolean isCashOnDelivery;
-    // Si isCashOnDelivery est TRUE, c'est l'argent que le livreur doit récupérer (Prix du panier + Frais de livraison)
+    private boolean cashOnDelivery;    // Si isCashOnDelivery est TRUE, c'est l'argent que le livreur doit récupérer (Prix du panier + Frais de livraison)
     private BigDecimal amountToCollect;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime deliveredAt;
-
+    @Enumerated(EnumType.STRING)
+    private VehicleType vehicleType;
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

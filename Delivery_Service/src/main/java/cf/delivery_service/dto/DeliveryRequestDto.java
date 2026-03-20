@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+//ce dto n'est jamais utilisé puisqu on crée delivery via kafka order
 @Data
 @Builder
 @NoArgsConstructor

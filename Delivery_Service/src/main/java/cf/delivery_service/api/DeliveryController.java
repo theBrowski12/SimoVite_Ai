@@ -2,6 +2,7 @@ package cf.delivery_service.api;
 
 import cf.delivery_service.dto.CourierLocationRequest;
 import cf.delivery_service.dto.DeliveryResponseDto;
+import cf.delivery_service.enums.VehicleType;
 import cf.delivery_service.service.DeliveryService;
 import cf.delivery_service.utils.JwtUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -48,10 +49,11 @@ public class DeliveryController {
     @PutMapping("/{id}/accept")
     @PreAuthorize("hasRole('COURIER')")
     @Operation(summary = "Accepter une livraison")
-    public ResponseEntity<DeliveryResponseDto> acceptDelivery(@PathVariable Long id) {
+    public ResponseEntity<DeliveryResponseDto> acceptDelivery(@PathVariable Long id,
+                                                              @RequestParam VehicleType vehicleType) {
         String courierId   = JwtUtils.getUserId();
         String courierName = JwtUtils.getFullName();
-        return ResponseEntity.ok(deliveryService.acceptDelivery(id, courierId, courierName));
+        return ResponseEntity.ok(deliveryService.acceptDelivery(id, courierId, courierName, vehicleType));
     }
 
     // 4. Marquer une course comme livrée
