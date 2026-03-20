@@ -32,3 +32,22 @@ build/
 ### VS Code ###
 .vscode/
 .env
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+*.pkl          # modèles ML — lourds, régénérables
+*.csv          # datasets — régénérables
+
+# Java / Maven
+*.class
+*.jar
+
+# IDE
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
