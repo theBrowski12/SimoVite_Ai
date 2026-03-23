@@ -50,10 +50,11 @@ public class DeliveryController {
     @PreAuthorize("hasRole('COURIER')")
     @Operation(summary = "Accepter une livraison")
     public ResponseEntity<DeliveryResponseDto> acceptDelivery(@PathVariable Long id,
-                                                              @RequestParam VehicleType vehicleType) {
+                                                              @RequestParam VehicleType vehicleType,
+                                                              @RequestBody CourierLocationRequest request) {
         String courierId   = JwtUtils.getUserId();
         String courierName = JwtUtils.getFullName();
-        return ResponseEntity.ok(deliveryService.acceptDelivery(id, courierId, courierName, vehicleType));
+        return ResponseEntity.ok(deliveryService.acceptDelivery(id, courierId, courierName, vehicleType, request));
     }
 
     // 4. Marquer une course comme livrée

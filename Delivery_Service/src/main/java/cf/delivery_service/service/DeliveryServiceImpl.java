@@ -69,6 +69,8 @@ public class DeliveryServiceImpl implements DeliveryService {
         Address pickupAddress = Address.builder()
                 .city(store.getAddress().getCity())
                 .street(store.getAddress().getStreet())
+                .buildingNumber(store.getAddress().getBuildingNumber())
+                .apartment(store.getAddress().getApartment())
                 .latitude(store.getAddress().getLatitude()) // À ajouter plus tard
                 .longitude(store.getAddress().getLongitude()) // À ajouter plus tard
                 .build();
@@ -134,7 +136,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     // ✅ acceptDelivery — customerEmail vient de la DB, courierName du JWT
     @Override
     @Transactional
-    public DeliveryResponseDto acceptDelivery(Long deliveryId, String courierId, String courierName, VehicleType vehicleType) {
+    public DeliveryResponseDto acceptDelivery(Long deliveryId, String courierId, String courierName, VehicleType vehicleType, CourierLocationRequest  locationRequest) {
         Delivery delivery = deliveryRepository.findById(deliveryId)
                 .orElseThrow(() -> new RuntimeException("Livraison introuvable avec l'ID : " + deliveryId));
         log.info("📦 Livraison {} — statut actuel : {}", deliveryId, delivery.getStatus());
@@ -142,25 +144,40 @@ public class DeliveryServiceImpl implements DeliveryService {
         if (delivery.getStatus() != DeliveryStatus.PENDING) {
             throw new RuntimeException("Cette commande n'est plus disponible !");
         }
+        //calcule distance from courrier to pickUp
+        Double distanceCourierToPickup = DistanceCalculator.calculateDistance(
+                locationRequest.getLatitude(),
+                locationRequest.getLongitude(),
+                delivery.getPickupAddress().getLatitude(),
+                delivery.getPickupAddress().getLongitude()
+        );
+        //calcule distance totale
+        Double totalDistance = distanceCourierToPickup + delivery.getDistanceInKm();
 
+        log.info("📍 Distance courrier→pickUp: {}km | pickUp→dropOff: {}km | Total: {}km",
+                String.format("%.2f", distanceCourierToPickup),
+                String.format("%.2f", delivery.getDistanceInKm()),
+                String.format("%.2f", totalDistance));
+        delivery.setDistanceInKm(totalDistance);
         delivery.setCourierId(courierId);
         delivery.setCourierName(courierName);  // ✅ stocker le nom dans l'entité
         delivery.setStatus(DeliveryStatus.ASSIGNED);
         delivery.setVehicleType(vehicleType);
 
         log.info("🚀 Appel ETA_Service — distance: {}km, véhicule: {}, lat: {}, lng: {}",
-                delivery.getDistanceInKm(),
+                totalDistance,
                 vehicleType.name(),
                 delivery.getPickupAddress().getLatitude(),
                 delivery.getPickupAddress().getLongitude());
         try {
             ETARequest etaRequest = ETARequest.builder()
-                    .distanceKm(delivery.getDistanceInKm())
+                    .distanceKm(totalDistance)
                     .vehicleType(vehicleType.name())
                     .pickupLatitude(delivery.getPickupAddress().getLatitude())
                     .pickupLongitude(delivery.getPickupAddress().getLongitude())
                     .build();
             ETAResponse etaResponse = etaFeignClient.calculateETA(etaRequest);
+
             log.info("✅ ETA reçu depuis ETA_Service : {} min | météo: {} | rush: {} | via {}",
                     etaResponse.getEstimatedMinutes(),
                     etaResponse.getWeatherCondition(),
@@ -169,8 +186,14 @@ public class DeliveryServiceImpl implements DeliveryService {
 
             delivery.setEstimatedTimeInMinutes(etaResponse.getEstimatedMinutes());
         } catch (Exception e) {
-            log.warn("⚠️ ETA Service indisponible — conservation ETA existant : {} min",
-                    delivery.getEstimatedTimeInMinutes());
+            // ✅ FIX: Calculate ETA based on total distance when service is unavailable
+            // Assuming average speed: 30 km/h for motorcycle = 2 minutes per km
+            Integer calculatedETA = (int) Math.round(totalDistance * 2);
+
+            log.warn("⚠️ ETA Service indisponible — calcul local basé sur distance totale: {}km → {} min",
+                    String.format("%.2f", totalDistance), calculatedETA);
+
+            delivery.setEstimatedTimeInMinutes(calculatedETA);
         }
 
         Delivery savedDelivery = deliveryRepository.save(delivery);

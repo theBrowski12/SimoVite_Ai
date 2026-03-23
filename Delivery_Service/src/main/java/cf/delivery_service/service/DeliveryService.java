@@ -13,7 +13,7 @@ public interface DeliveryService {
     List<DeliveryResponseDto> getPendingDeliveries();
     void createDeliveryFromOrder(OrderPaidEvent event);
     // Le livreur accepte une commande
-    DeliveryResponseDto acceptDelivery(Long deliveryId, String courierId, String courierName, VehicleType vehicleType);
+    DeliveryResponseDto acceptDelivery(Long deliveryId, String courierId, String courierName, VehicleType vehicleType, CourierLocationRequest courierLocationRequest);
     void updateCourierLocation(String courierId, CourierLocationRequest req);
     // Le livreur termine la livraison
     DeliveryResponseDto completeDelivery(Long deliveryId);
