@@ -3,45 +3,57 @@ package cf.simoviteai_chatbot.agents;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.ollama.OllamaChatModel;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.tool.ToolCallbackProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @Service
 public class SimoviteAgent {
-    private ChatClient ollamaClient;
 
-    public SimoviteAgent(OllamaChatModel ollamaChatModel, ChatMemory chatMemory, ToolCallbackProvider tools
-    ) {
+    // FIX 1: Change type to ChatClient (this is why .prompt() failed)
+    private final ChatClient chatClient;
+
+    // FIX 2: Use @Qualifier to tell Spring to use Groq/OpenAI specifically
+    public SimoviteAgent(@Qualifier("openAiChatModel") ChatModel chatModel,
+                         ChatMemory chatMemory,
+                         ToolCallbackProvider tools) {
+
         System.out.println("🔧 Tools disponibles : " + tools.getToolCallbacks().length);
-        for (var tool : tools.getToolCallbacks()) {
-            System.out.println("  - " + tool.getToolDefinition().name());
-        }
-        this.ollamaClient = ChatClient.builder(ollamaChatModel)
+
+        // FIX 3: Use the .builder() for the advisor (the constructor is private)
+        this.chatClient = ChatClient.builder(chatModel)
                 .defaultSystem("""
-        Tu es SimoVite Assistant, plateforme de livraison marocaine.
-        - Utilise TOUJOURS les tools pour répondre — jamais manuellement.
-        - Réponds en français, de façon simple.
-        - Ne montre jamais de code, JSON ou détails techniques.
-        - Si résultat vide, dis-le simplement.
-        """)
-                .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
-                .defaultToolCallbacks(tools)
+                    Tu es SimoVite Assistant, plateforme de livraison marocaine.
+                    - Utilise TOUJOURS les tools pour répondre — jamais manuellement.
+                    - Utilise UNIQUEMENT le nom de l'outil
+                    - Réponds en français, de façon simple.
+                    - Ne montre jamais de code, JSON ou détails techniques.
+                    - Si résultat vide, dis-le simplement.
+                    RÈGLE CRUCIALE POUR getReviews :
+                    L'outil 'getReviews' prends deux paramètres : 'targetId' et 'targetType'.
+                    Si l'utilisateur demande TOUS les avis ou une demande générale :
+                      - targetId : utilise impérativement la valeur "all"
+                      - targetType : utilise impérativement la valeur "PRODUCT"
+                        
+                                    N'appelle JAMAIS getReviews avec des parenthèses vides ().    
+                    """)
+                //.defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
+                .defaultToolCallbacks(tools.getToolCallbacks())
                 .build();
     }
 
-    public ResponseEntity<String> chat(
-            Prompt prompt,
-            String conversationId) {
-        var resultResponse = this.ollamaClient
-                .prompt(prompt)
+    public ResponseEntity<String> chat(String userMessage, String conversationId) {
+        // Now .prompt() and .advisors() will work because chatClient is a ChatClient
+        String resultResponse = this.chatClient
+                .prompt()
+                .user(userMessage)
+                // FIX 4: Correct parameter key for conversation ID
                 .advisors(a -> a.param("chat_memory_conversation_id", conversationId))
                 .call()
                 .content();
+
         return ResponseEntity.ok(resultResponse);
     }
 }

@@ -5,7 +5,6 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,6 +23,6 @@ public class SimoviteChatbotController {
             @RequestParam(value = "query", defaultValue = "Bonjour!") String query,
             @RequestParam(value = "conversationId", defaultValue = "default") String conversationId) {
 
-        return simoviteAgent.chat(new Prompt(query), conversationId);
+        return simoviteAgent.chat(query, conversationId);
     }
 }

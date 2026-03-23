@@ -33,11 +33,14 @@ public class ReviewController {
     }
 
     @GetMapping
-    @Operation(summary = "Récupérer les avis d'un produit ou d'un store")
+    @Operation(summary = "Récupérer les avis (filtres optionnels)")
     public ResponseEntity<List<ReviewResponseDto>> getReviews(
-            @RequestParam String targetId,
-            @RequestParam ReviewTargetType targetType) {
-        return ResponseEntity.ok(reviewService.getReviews(targetId, targetType));
+            @RequestParam(required = false) String targetId,
+            @RequestParam(required = false) ReviewTargetType targetType) {
+        // Logique de nettoyage : si targetId est "all" ou vide, on passe null au service
+        String finalId = (targetId == null || "all".equalsIgnoreCase(targetId)) ? null : targetId;
+
+        return ResponseEntity.ok(reviewService.getReviews(finalId, targetType));
     }
 
     @GetMapping("/rating")

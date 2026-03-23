@@ -10,4 +10,8 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
     List<Review> findByTargetIdAndTargetType(String targetId, ReviewTargetType targetType);
     double findAverageRatingByTargetId(String targetId);
     boolean existsByTargetIdAndClientId(String targetId, String clientId);
+    // Ajoute ceci pour filtrer uniquement par type (STORE ou PRODUCT)
+    List<Review> findByTargetType(ReviewTargetType targetType);
+
+    List<Review> findByTargetId(String targetId);
 }

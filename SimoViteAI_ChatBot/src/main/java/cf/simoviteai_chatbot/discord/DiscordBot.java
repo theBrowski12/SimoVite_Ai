@@ -30,7 +30,7 @@ public class DiscordBot {
         // ✅ Traite la requête dans un thread séparé
         CompletableFuture.runAsync(() -> {
             try {
-                String response = simoviteAgent.chat(new Prompt(query), conversationId).getBody();
+                String response = simoviteAgent.chat(query, conversationId).getBody();
                 if (response != null && !response.isEmpty()) {
                     event.getChannel().sendMessage(response).queue();
                 }

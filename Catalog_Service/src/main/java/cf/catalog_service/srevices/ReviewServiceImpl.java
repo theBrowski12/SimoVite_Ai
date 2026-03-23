@@ -38,13 +38,33 @@ public class ReviewServiceImpl implements ReviewService {
         return reviewMapper.toDto(reviewRepository.save(review));
     }
 
+    @McpTool(description = "Récupérer les avis. Laissez les paramètres vides pour voir TOUS les avis de la plateforme.")
     @Override
-    @McpTool(description = "Get all reviews for a specific product or store. targetType: PRODUCT or STORE")
     public List<ReviewResponseDto> getReviews(
-            @McpToolParam(description = "MongoDB ObjectId of the product or store") String targetId,
-            @McpToolParam(description = "Target type: PRODUCT | STORE") ReviewTargetType targetType) {
-        return reviewRepository.findByTargetIdAndTargetType(targetId, targetType)
-                .stream().map(reviewMapper::toDto).collect(Collectors.toList());
+            @McpToolParam(description = "ID du produit ou store (optionnel)") String targetId,
+            @McpToolParam(description = "Type: PRODUCT ou STORE (optionnel)") ReviewTargetType targetType) {
+        List<Review> reviews;
+
+        // Cas 1 : On veut filtrer par ID et par TYPE (Précis)
+        if (targetId != null && !"all".equalsIgnoreCase(targetId) && targetType != null) {
+            reviews = reviewRepository.findByTargetIdAndTargetType(targetId, targetType);
+        }
+        // Cas 2 : On veut filtrer UNIQUEMENT par TYPE (ex: tous les avis sur les STORES)
+        else if (targetType != null && (targetId == null || "all".equalsIgnoreCase(targetId))) {
+            reviews = reviewRepository.findByTargetType(targetType);
+        }
+        // Cas 3 : On veut filtrer UNIQUEMENT par ID (rare mais possible)
+        else if (targetId != null && !"all".equalsIgnoreCase(targetId)) {
+            reviews = reviewRepository.findByTargetId(targetId);
+        }
+        // Cas 4 : Tout est vide ou "all", on renvoie TOUT
+        else {
+            reviews = reviewRepository.findAll();
+        }
+
+        return reviews.stream()
+                .map(reviewMapper::toDto)
+                .toList();
     }
 
     @Override
