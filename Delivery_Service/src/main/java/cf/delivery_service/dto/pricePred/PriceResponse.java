@@ -25,8 +25,7 @@ public class PriceResponse {
 
     @JsonProperty("rush_hour_factor") private Double rushHourFactor;
 
-
-    //@JsonProperty("percentage")  private Double percentage;
+    @JsonProperty("price_percentage")  private Double pricePercentage;
 
 
 }

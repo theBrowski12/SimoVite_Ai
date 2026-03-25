@@ -2,6 +2,7 @@ package cf.delivery_service.service;
 
 import cf.delivery_service.dto.CourierLocationRequest;
 import cf.delivery_service.dto.DeliveryResponseDto;
+import cf.delivery_service.dto.DistancePreviewDto;
 import cf.delivery_service.dto.ETA.ETARequest;
 import cf.delivery_service.dto.ETA.ETAResponse;
 import cf.delivery_service.dto.StoreResponseDto;
@@ -69,75 +70,101 @@ public class DeliveryServiceImpl implements DeliveryService {
             throw new RuntimeException("Impossible de trouver le magasin ou son adresse pour le storeId: " + event.getStoreId());
         }
 
-        // 2. Préparer l'adresse de Pickup (Depuis le Feign Client)
+        // 2. Préparer l'adresse de Pickup
         Address pickupAddress = Address.builder()
                 .city(store.getAddress().getCity())
                 .street(store.getAddress().getStreet())
                 .buildingNumber(store.getAddress().getBuildingNumber())
                 .apartment(store.getAddress().getApartment())
-                .latitude(store.getAddress().getLatitude()) // À ajouter plus tard
-                .longitude(store.getAddress().getLongitude()) // À ajouter plus tard
+                .latitude(store.getAddress().getLatitude())
+                .longitude(store.getAddress().getLongitude())
                 .build();
 
         // 3. Préparer l'adresse de Dropoff
         Address dropoffAddress = event.getDeliveryAddress();
 
-        // 4. Calculs de la distance et des frais
+        // 4. Calculs de la distance
         Double distanceKm = DistanceCalculator.calculateDistance(
                 pickupAddress.getLatitude(), pickupAddress.getLongitude(),
                 dropoffAddress.getLatitude(), dropoffAddress.getLongitude()
         );
 
-        // Si on ne peut pas calculer la distance, on met un minimum de 1km par défaut
         if (distanceKm == 0.0) {
             distanceKm = 1.0;
         }
 
+        // 5. Calculate delivery cost with ML and get percentage
         BigDecimal deliveryCost;
+        Double pricePercentage = null;
         try {
             PriceRequest priceRequest = PriceRequest.builder()
                     .distanceKm(distanceKm)
                     .vehicleType("MOTORCYCLE")
-                    .category(event.getStoreCategory().toString())   // ✅ from event
+                    .category(event.getStoreCategory().toString())
                     .pickupLatitude(pickupAddress.getLatitude())
                     .pickupLongitude(pickupAddress.getLongitude())
-                    .orderTotal(event.getTotalAmount().doubleValue()) // ✅ from event
+                    .orderTotal(event.getTotalAmount().doubleValue())
                     .build();
 
             PriceResponse priceResponse = priceFeignClient.calculatePrice(priceRequest);
-            deliveryCost = BigDecimal.valueOf(priceResponse.getDeliveryCost()); // ✅ getDeliveryCost()
-            log.info("✅ Price ML: {} DH | weather: {} | rush: {}",
-                    deliveryCost, priceResponse.getWeatherCondition(),
-                    priceResponse.getRushHourFactor());
+            deliveryCost = BigDecimal.valueOf(priceResponse.getDeliveryCost());
+            pricePercentage = priceResponse.getPricePercentage();  // Get percentage from service
+
+            // Calculate fallback for logging only
+            Double fallbackPrice = 10.00 + (distanceKm * 2.00);
+
+            log.info("✅ Price ML: {} DH | weather: {} | rush: {} | change: {}% (fallback: {} DH)",
+                    deliveryCost,
+                    priceResponse.getWeatherCondition(),
+                    priceResponse.getRushHourFactor(),
+                    pricePercentage != null ? pricePercentage : 0.0,
+                    fallbackPrice);
+
         } catch (Exception e) {
-            log.warn("⚠️ Price Service unavailable — fallback: {}", e.getMessage());
+            log.warn("⚠️ Price Service unavailable — using fallback calculation: {}", e.getMessage());
             deliveryCost = new BigDecimal("10.00")
                     .add(new BigDecimal(distanceKm).multiply(new BigDecimal("2.00")));
+            pricePercentage = 0.0;
+            log.info("💰 Using fallback price: {} DH (0% change)", deliveryCost);
         }
-        // Estimer l'ETA : environ 3 minutes par kilomètre + 10 mins au resto
-        // à changer pour retriver eta depuis ETA_Service
+
+        // 6. Calculate ETA with ML and get percentage
         Integer etaMinutes;
+        Double etaPercentage = null;
         try {
             ETARequest etaRequest = ETARequest.builder()
                     .distanceKm(distanceKm)
-                    .vehicleType("MOTORCYCLE") // défaut avant assignation coursier
+                    .vehicleType("MOTORCYCLE")
                     .pickupLatitude(pickupAddress.getLatitude())
                     .pickupLongitude(pickupAddress.getLongitude())
                     .build();
-            etaMinutes = etaFeignClient.calculateETA(etaRequest).getEstimatedMinutes();
+
+            ETAResponse etaResponse = etaFeignClient.calculateETA(etaRequest);
+            etaMinutes = etaResponse.getEstimatedMinutes();
+            etaPercentage = etaResponse.getEtaPercentage();  // Get percentage from service
+
+            // Calculate fallback for logging only
+            Integer fallbackEta = 10 + (int) Math.round(distanceKm * 3);
+
+            log.info("✅ ETA ML: {} min | change: {}% (fallback: {} min)",
+                    etaMinutes,
+                    etaPercentage != null ? etaPercentage : 0.0,
+                    fallbackEta);
+
         } catch (Exception e) {
-            log.warn("⚠️ ETA Service indisponible — calcul par défaut");
+            log.warn("⚠️ ETA Service unavailable — using fallback calculation: {}", e.getMessage());
             etaMinutes = 10 + (int) Math.round(distanceKm * 3);
+            etaPercentage = 0.0;
+            log.info("⏱️ Using fallback ETA: {} min (0% change)", etaMinutes);
         }
 
-        // 5. Calcul de l'argent à collecter si paiement à la livraison
-
+        // 7. Calcul de l'argent à collecter
         BigDecimal amountToCollect = BigDecimal.ZERO;
         if (event.isCashOnDelivery()) {
             amountToCollect = event.getTotalAmount().add(deliveryCost);
         }
 
-        // 6. Création de l'entité
+        // 8. Création de l'entité
         Delivery delivery = Delivery.builder()
                 .orderRef(event.getOrderRef())
                 .customerEmail(event.getCustomerEmail())
@@ -152,6 +179,15 @@ public class DeliveryServiceImpl implements DeliveryService {
                 .build();
 
         deliveryRepository.save(delivery);
+
+        // Log final summary
+        log.info("📊 Delivery created - Order: {} | ETA: {} min ({}% change) | Cost: {} DH ({}% change) | Distance: {} km",
+                event.getOrderRef(),
+                etaMinutes,
+                etaPercentage != null ? etaPercentage : 0.0,
+                deliveryCost,
+                pricePercentage != null ? pricePercentage : 0.0,
+                distanceKm);
     }
 
     // ✅ acceptDelivery — customerEmail vient de la DB, courierName du JWT
@@ -312,4 +348,98 @@ public class DeliveryServiceImpl implements DeliveryService {
                 .map(deliveryMapper::toDto)
                 .collect(Collectors.toList());
     }
+
+    // DeliveryServiceImpl.java - Implémentation
+    @Override
+    public DistancePreviewDto previewDeliveryDistance(Long deliveryId, CourierLocationRequest courierLocationRequest, VehicleType vehicleType) {
+        log.info("📏 Preview distance for delivery {} from courier position ({}, {}) with vehicle {}",
+                deliveryId,
+                courierLocationRequest.getLatitude(),
+                courierLocationRequest.getLongitude(),
+                vehicleType);
+
+        // 1. Récupérer la livraison
+        Delivery delivery = deliveryRepository.findById(deliveryId)
+                .orElseThrow(() -> new RuntimeException("Livraison non trouvée avec l'ID: " + deliveryId));
+
+        // 2. Vérifier que la livraison est encore disponible
+        if (delivery.getStatus() != DeliveryStatus.PENDING) {
+            throw new RuntimeException("Cette livraison n'est plus disponible (statut: " + delivery.getStatus() + ")");
+        }
+
+        // 3. Calculer la distance du livreur au point de retrait
+        Double distanceToPickup = DistanceCalculator.calculateDistance(
+                courierLocationRequest.getLatitude(),
+                courierLocationRequest.getLongitude(),
+                delivery.getPickupAddress().getLatitude(),
+                delivery.getPickupAddress().getLongitude()
+        );
+
+        // 4. Distance totale (livreur → pickUp + pickUp → dropOff)
+        Double totalDistance = distanceToPickup + delivery.getDistanceInKm();
+
+        // 5. Calculer le fallback ETA selon le véhicule
+        Integer fallbackEta = calculateFallbackEta(totalDistance, vehicleType);
+
+        // 6. Appeler le vrai service ETA avec le véhicule du livreur
+        Integer etaWithML = null;
+        Double etaPercentage = null;
+
+        try {
+            ETARequest etaRequest = ETARequest.builder()
+                    .distanceKm(totalDistance)
+                    .vehicleType(vehicleType.name())
+                    .pickupLatitude(delivery.getPickupAddress().getLatitude())
+                    .pickupLongitude(delivery.getPickupAddress().getLongitude())
+                    .build();
+
+            ETAResponse etaResponse = etaFeignClient.calculateETA(etaRequest);
+            etaWithML = etaResponse.getEstimatedMinutes();
+            etaPercentage = etaResponse.getEtaPercentage();
+
+            log.info("✅ ETA ML ({}) pour {}: {} min (change: {}%)",
+                    vehicleType, delivery.getOrderRef(), etaWithML, etaPercentage);
+
+        } catch (Exception e) {
+            log.warn("⚠️ ETA Service unavailable for {}, using fallback: {} min", vehicleType, fallbackEta);
+            etaWithML = fallbackEta;
+            etaPercentage = 0.0;
+        }
+
+        // 7. Construire la réponse
+        return DistancePreviewDto.builder()
+                .deliveryId(delivery.getId())
+                .orderRef(delivery.getOrderRef())
+                .pickupAddress(delivery.getPickupAddress())
+                .dropoffAddress(delivery.getDropoffAddress())
+                .distanceToPickupKm(Math.round(distanceToPickup * 100.0) / 100.0)
+                .distancePickupToDropoffKm(delivery.getDistanceInKm())
+                .totalDistanceKm(Math.round(totalDistance * 100.0) / 100.0)
+                .deliveryCost(delivery.getDeliveryCost())
+                .estimatedEtaMinutes(etaWithML)
+                .etaPercentage(etaPercentage)
+                .vehicleType(vehicleType)
+                .cashOnDelivery(delivery.isCashOnDelivery())
+                .amountToCollect(delivery.getAmountToCollect())
+                .status(delivery.getStatus())
+                .build();
+    }
+
+    // Méthode utilitaire pour calculer le fallback selon le véhicule
+    private Integer calculateFallbackEta(Double distanceKm, VehicleType vehicleType) {
+        switch (vehicleType) {
+            case BICYCLE:
+                return (int) Math.round(distanceKm * 5);  // 5 min/km (12 km/h)
+            case MOTORCYCLE:
+                return (int) Math.round(distanceKm * 2);  // 2 min/km (30 km/h)
+            case CAR:
+                return (int) Math.round(distanceKm * 3);  // 3 min/km (20 km/h en ville)
+            case TRUCK:
+                return (int) Math.round(distanceKm * 4);  // 4 min/km (15 km/h)
+            default:
+                return (int) Math.round(distanceKm * 2);
+        }
+    }
+
+
 }

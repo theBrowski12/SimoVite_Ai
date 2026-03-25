@@ -18,6 +18,7 @@ def load_model():
         print("✅ Modèle ETA chargé en mémoire")
 
 
+# eta_controller.py
 async def calculate_eta_from_request(request: ETARequest) -> ETAResponse:
     load_model()
 
@@ -27,22 +28,34 @@ async def calculate_eta_from_request(request: ETARequest) -> ETAResponse:
     )
     rush_factor = get_rush_hour_factor()
 
-    estimated_minutes = _predict(
-        distance_km    = request.distance_km,
-        vehicle_type   = request.vehicle_type,
-        weather_factor = weather_factor,
-        rush_factor    = rush_factor
+    # Get ML prediction
+    ml_eta = _predict(
+        distance_km=request.distance_km,
+        vehicle_type=request.vehicle_type,
+        weather_factor=weather_factor,
+        rush_factor=rush_factor
     )
+
+    # Calculate percentage compared to Delivery Service's fallback
+    # Note: Delivery Service uses: 10 + (distance_km * 3)
+    fallback_eta = 10 + (request.distance_km * 3)
+    fallback_eta = max(1, int(round(fallback_eta)))
+
+    if fallback_eta > 0:
+        eta_percentage = ((ml_eta - fallback_eta) / fallback_eta) * 100
+        eta_percentage = round(eta_percentage, 2)
+    else:
+        eta_percentage = 0.0
 
     return ETAResponse(
-        estimated_minutes = estimated_minutes,
-        distance_km       = request.distance_km,
-        vehicle_type      = request.vehicle_type,
-        weather_condition = weather_condition,
-        weather_factor    = weather_factor,
-        rush_hour_factor  = rush_factor
+        estimated_minutes=ml_eta,  # Return ML value
+        distance_km=request.distance_km,
+        vehicle_type=request.vehicle_type,
+        weather_condition=weather_condition,
+        weather_factor=weather_factor,
+        rush_hour_factor=rush_factor,
+        eta_percentage=eta_percentage  # % difference from Delivery Service fallback
     )
-
 
 def _predict(distance_km: float, vehicle_type: str,
              weather_factor: float, rush_factor: float) -> int:

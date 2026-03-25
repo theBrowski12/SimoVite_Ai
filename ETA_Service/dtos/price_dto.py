@@ -17,3 +17,4 @@ class PriceResponse(BaseModel):
     weather_factor:   float
     rush_hour_factor: float
     breakdown: dict               # detailed breakdown for transparency
+    price_percentage: float = 0.0

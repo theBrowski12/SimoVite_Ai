@@ -15,6 +15,8 @@ def load_price_model():
         _le_category = joblib.load("model/price_le_category.pkl")
         print("✅ Price model loaded")
 
+
+# price_controller.py
 async def predict_price(request: PriceRequest) -> PriceResponse:
     load_price_model()
 
@@ -24,35 +26,48 @@ async def predict_price(request: PriceRequest) -> PriceResponse:
     rush_factor = get_rush_hour_factor()
 
     try:
-        vehicle_enc  = _le_vehicle.transform([request.vehicle_type])[0]
+        vehicle_enc = _le_vehicle.transform([request.vehicle_type])[0]
         category_enc = _le_category.transform([request.category])[0]
     except Exception:
-        vehicle_enc, category_enc = 1, 0  # defaults
+        vehicle_enc, category_enc = 1, 0
 
     import pandas as pd
     features = pd.DataFrame([[
         request.distance_km, vehicle_enc, category_enc,
         weather_factor, rush_factor, request.order_total
-    ]], columns=["distance_km","vehicle_enc","category_enc",
-                 "weather_factor","rush_factor","order_total"])
+    ]], columns=["distance_km", "vehicle_enc", "category_enc",
+                 "weather_factor", "rush_factor", "order_total"])
 
     raw_price = _price_model.predict(features)[0]
-    delivery_cost = max(8.0, round(float(raw_price), 2))
+    ml_price = max(8.0, round(float(raw_price), 2))
+
+    # Calculate percentage compared to Delivery Service's fallback
+    # Note: Delivery Service uses: 10.00 + (distance_km * 2.00)
+    fallback_price = 10.00 + (request.distance_km * 2.00)
+
+    if fallback_price > 0:
+        price_percentage = ((ml_price - fallback_price) / fallback_price) * 100
+        price_percentage = round(price_percentage, 2)
+    else:
+        price_percentage = 0.0
 
     return PriceResponse(
-        delivery_cost     = delivery_cost,
-        distance_km       = request.distance_km,
-        vehicle_type      = request.vehicle_type,
-        category          = request.category,
-        weather_condition = weather_condition,
-        weather_factor    = weather_factor,
-        rush_hour_factor  = rush_factor,
-        breakdown = {
-            "base":             10.0,
-            "distance_charge":  round(request.distance_km * 2, 2),
-            "weather_surcharge": round((1 - weather_factor) * 5, 2),
-            "rush_surcharge":   round((1 - rush_factor) * 8, 2),
-            "category_factor":  request.category,
-            "ml_adjustment":    round(delivery_cost - 10 - (request.distance_km * 2), 2)
+        delivery_cost=ml_price,
+        distance_km=request.distance_km,
+        vehicle_type=request.vehicle_type,
+        category=request.category,
+        weather_condition=weather_condition,
+        weather_factor=weather_factor,
+        rush_hour_factor=rush_factor,
+        price_percentage=price_percentage,  # % difference from Delivery Service fallback
+        breakdown={
+            "ml_price": ml_price,
+            "fallback_price": round(fallback_price, 2),
+            "percentage_change": price_percentage,
+            "distance_km": request.distance_km,
+            "weather_factor": weather_factor,
+            "rush_factor": rush_factor,
+            "category": request.category,
+            "order_total": request.order_total
         }
     )

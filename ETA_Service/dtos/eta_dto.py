@@ -13,3 +13,4 @@ class ETAResponse(BaseModel):
     weather_condition:  str
     weather_factor:     float
     rush_hour_factor:   float
+    eta_percentage: float = 0.0

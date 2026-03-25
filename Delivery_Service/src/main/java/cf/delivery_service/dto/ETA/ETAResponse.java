@@ -28,4 +28,6 @@ public class ETAResponse {
 
     @JsonProperty("rush_hour_factor")
     private Double rushHourFactor;
+
+    @JsonProperty("eta_percentage")  private Double etaPercentage;
 }
