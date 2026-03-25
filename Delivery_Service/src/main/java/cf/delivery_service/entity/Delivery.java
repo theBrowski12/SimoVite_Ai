@@ -55,6 +55,9 @@ public class Delivery {
     // 🧠 Champs calculés (Bientôt par Machine Learning)
     private Double distanceInKm;
     private BigDecimal deliveryCost; // Coût de livraison (camelCase)
+
+    private BigDecimal amountToCollect;
+
     private Integer estimatedTimeInMinutes; // ETA
 
     @Enumerated(EnumType.STRING)
@@ -62,12 +65,13 @@ public class Delivery {
 
     @Column(nullable = false)
     private boolean cashOnDelivery;    // Si isCashOnDelivery est TRUE, c'est l'argent que le livreur doit récupérer (Prix du panier + Frais de livraison)
-    private BigDecimal amountToCollect;
+
+    @Enumerated(EnumType.STRING)
+    private VehicleType vehicleType;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime deliveredAt;
-    @Enumerated(EnumType.STRING)
-    private VehicleType vehicleType;
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

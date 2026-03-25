@@ -3,12 +3,14 @@ package cf.order_service.service;
 import cf.order_service.dto.OrderRequestDto;
 import cf.order_service.dto.OrderResponseDto;
 import cf.order_service.dto.catalogDto.CatalogResponseDto;
+import cf.order_service.dto.storeDto.StoreResponseDto;
 import cf.order_service.entity.Address;
 import cf.order_service.entity.Order;
 import cf.order_service.entity.OrderItem;
 import cf.order_service.enums.OrderStatus;
 import cf.order_service.enums.PaymentMethod;
 import cf.order_service.feignClient.CatalogClient;
+import cf.order_service.feignClient.StoreClient;
 import cf.order_service.kafkaEvents.OrderEvent;
 import cf.order_service.mapper.OrderItemMapper;
 import cf.order_service.mapper.OrderMapper;
@@ -18,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -36,6 +39,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderItemMapper orderItemMapper;
     private final KafkaProducerService kafkaProducerService ;
     private final CatalogClient catalogRestClient;
+    private final StoreClient storeClient;
 
     @Override
     public OrderResponseDto createOrder(OrderRequestDto dto) {
@@ -141,8 +145,18 @@ public class OrderServiceImpl implements OrderService {
             event.setTotalAmount(order.getPrice());
             event.setStoreId(order.getStoreId());
             event.setDeliveryAddress(order.getDeliveryAddress());
+            String storeCategory = null;
+            try {
+                StoreResponseDto store = storeClient.getStoreById(order.getStoreId());
+                storeCategory = store.getCategory();
+                log.info("✅ Store info retrieved: {} - Category: {}", store.getName(), storeCategory);
+            } catch (Exception e) {
+                log.error("⚠️ Could not fetch store info for ID {}: {}", order.getStoreId(), e.getMessage());
+                storeCategory = "UNKNOWN"; // Fallback value
+            }
             // 🚨 NOUVEAU POUR LE DELIVERY SERVICE :
             event.setCashOnDelivery(order.getPaymentMethod() == PaymentMethod.CASH_ON_DELIVERY);
+            event.setStoreCategory(storeCategory);
 
             List<OrderEvent.OrderItemEvent> itemEvents = order.getItems().stream()
                     .map(item -> new OrderEvent.OrderItemEvent(

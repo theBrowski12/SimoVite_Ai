@@ -1,5 +1,6 @@
 package cf.order_service.entity;
 
+import cf.order_service.dto.storeDto.StoreResponseDto;
 import cf.order_service.enums.OrderStatus;
 import cf.order_service.enums.PaymentMethod;
 import jakarta.persistence.*;
@@ -52,6 +53,7 @@ public class Order {
     @Column(nullable = false)
     private PaymentMethod paymentMethod;
     private boolean isPaid;
+    //private StoreResponseDto store;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     @PrePersist

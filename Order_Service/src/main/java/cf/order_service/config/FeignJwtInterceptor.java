@@ -23,7 +23,7 @@ public class FeignJwtInterceptor {
                 requestTemplate.header("Authorization", "Bearer " + token);
             }
             else {
-                System.out.println("❌ Feign Interceptor: AUTHENTICATION IS NULL OR WRONG TYPE");
+                System.out.println("Feign Interceptor: AUTHENTICATION IS NULL OR WRONG TYPE");
             }
         };
     }

@@ -10,6 +10,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 @FeignClient(name = "eta-service", url = "${ETA_SERVICE_URL:http://localhost:8085}")
 public interface ETAFeignClient {
 
-    @PostMapping("/api/eta/calculate")
+    @PostMapping("/v1/eta/calculate")
     ETAResponse calculateETA(@RequestBody ETARequest request);
 }

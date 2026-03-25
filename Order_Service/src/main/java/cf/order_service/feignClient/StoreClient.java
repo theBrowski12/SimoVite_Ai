@@ -6,7 +6,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@FeignClient(name = "catalog-service-store", path = "/v1/stores")
+@FeignClient(name = "catalog-service", path = "/v1/stores", contextId = "storeClient")
 public interface StoreClient {
 
     @GetMapping("/{id}")
@@ -18,6 +18,7 @@ public interface StoreClient {
         return StoreResponseDto.builder()
                 .id(storeId)
                 .name("Store Not found")
+                .category("UNKNOWN")
                 .build();
     }
 }

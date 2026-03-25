@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.math.BigDecimal;
 
-@FeignClient(name = "catalog-service")
+@FeignClient(name = "catalog-service", contextId = "catalogClient")
 public interface CatalogClient {
 
     @GetMapping("/v1/catalog/{id}")

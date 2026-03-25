@@ -25,6 +25,7 @@ public class OrderEvent {
     private boolean cashOnDelivery;
     private Address deliveryAddress;
     private String storeId;
+    private String storeCategory;
     @Data
     @AllArgsConstructor
     @NoArgsConstructor

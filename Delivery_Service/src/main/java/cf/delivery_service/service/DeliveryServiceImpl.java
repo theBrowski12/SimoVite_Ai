@@ -5,6 +5,8 @@ import cf.delivery_service.dto.DeliveryResponseDto;
 import cf.delivery_service.dto.ETA.ETARequest;
 import cf.delivery_service.dto.ETA.ETAResponse;
 import cf.delivery_service.dto.StoreResponseDto;
+import cf.delivery_service.dto.pricePred.PriceRequest;
+import cf.delivery_service.dto.pricePred.PriceResponse;
 import cf.delivery_service.entity.Address;
 import cf.delivery_service.entity.CourierLocation;
 import cf.delivery_service.entity.Delivery;
@@ -12,6 +14,7 @@ import cf.delivery_service.enums.DeliveryStatus;
 import cf.delivery_service.enums.VehicleType;
 import cf.delivery_service.feignClient.ETAFeignClient;
 import cf.delivery_service.feignClient.OrderClient;
+import cf.delivery_service.feignClient.PriceFeignClient;
 import cf.delivery_service.feignClient.StoreClient;
 import cf.delivery_service.kafkaEvents.DeliveryNotificationEvent;
 import cf.delivery_service.kafkaEvents.OrderPaidEvent;
@@ -46,6 +49,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final StoreClient storeClient;
     private final ETAFeignClient etaFeignClient;
     private final CourierLocationRepository courierLocationRepository;
+    private final PriceFeignClient priceFeignClient;
     @Override
     public List<DeliveryResponseDto> getPendingDeliveries() {
         log.info("Récupération des livraisons en attente...");
@@ -89,10 +93,27 @@ public class DeliveryServiceImpl implements DeliveryService {
             distanceKm = 1.0;
         }
 
-        // Modèle de tarification simple : 10 Dhs de base + 2 Dhs par Kilomètre
-        BigDecimal deliveryCost = new BigDecimal("10.00")
-                .add(new BigDecimal(distanceKm).multiply(new BigDecimal("2.00")));
+        BigDecimal deliveryCost;
+        try {
+            PriceRequest priceRequest = PriceRequest.builder()
+                    .distanceKm(distanceKm)
+                    .vehicleType("MOTORCYCLE")
+                    .category(event.getStoreCategory().toString())   // ✅ from event
+                    .pickupLatitude(pickupAddress.getLatitude())
+                    .pickupLongitude(pickupAddress.getLongitude())
+                    .orderTotal(event.getTotalAmount().doubleValue()) // ✅ from event
+                    .build();
 
+            PriceResponse priceResponse = priceFeignClient.calculatePrice(priceRequest);
+            deliveryCost = BigDecimal.valueOf(priceResponse.getDeliveryCost()); // ✅ getDeliveryCost()
+            log.info("✅ Price ML: {} DH | weather: {} | rush: {}",
+                    deliveryCost, priceResponse.getWeatherCondition(),
+                    priceResponse.getRushHourFactor());
+        } catch (Exception e) {
+            log.warn("⚠️ Price Service unavailable — fallback: {}", e.getMessage());
+            deliveryCost = new BigDecimal("10.00")
+                    .add(new BigDecimal(distanceKm).multiply(new BigDecimal("2.00")));
+        }
         // Estimer l'ETA : environ 3 minutes par kilomètre + 10 mins au resto
         // à changer pour retriver eta depuis ETA_Service
         Integer etaMinutes;

@@ -50,15 +50,15 @@ services:
       - "6379:6379"
     restart: unless-stopped
 
-  ollama:
-    image: ollama/ollama:0.3.6
-    container_name: ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    restart: unless-stopped
+#  ollama:
+#    image: ollama/ollama:0.3.6
+#    container_name: ollama
+#    ports:
+#      - "11434:11434"
+#    volumes:
+#      - ollama_data:/root/.ollama
+#    restart: unless-stopped
 volumes:
   mongo-data:
   mysql-data:
-  ollama_data:
+#  ollama_data:
