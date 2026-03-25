@@ -23,5 +23,11 @@ public class Review {
     private String clientName;    // JWT given_name + family_name
     private String comment;
     private Double rating;           // 1 à 5
+
+    private String sentiment;        // POSITIVE / NEGATIVE / MIXED
+    private Double sentimentScore;   // 0.0 à 1.0
+    private Boolean sentimentAnalyzed;
+    private Boolean incoherent;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

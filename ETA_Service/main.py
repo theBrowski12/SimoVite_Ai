@@ -3,6 +3,8 @@ from contextlib import asynccontextmanager
 import py_eureka_client.eureka_client as eureka_client
 from controllers.eta_controller import router as eta_router
 from controllers.price_controller import router as price_router
+from controllers.sentiment_controller import router as sentiment_router
+
 from dotenv import load_dotenv
 import os
 
@@ -29,6 +31,7 @@ app = FastAPI(
 
 app.include_router(eta_router)
 app.include_router(price_router)
+app.include_router(sentiment_router)
 
 @app.get("/health")
 def health():

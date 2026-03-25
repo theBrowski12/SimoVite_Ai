@@ -32,6 +32,20 @@ public class ReviewController {
         return new ResponseEntity<>(reviewService.addReview(dto, clientId, clientName), HttpStatus.CREATED);
     }
 
+    @PutMapping("/{reviewId}")
+    @PreAuthorize("hasRole('CLIENT')")
+    @Operation(summary = "Modifier un avis existant")
+    public ResponseEntity<ReviewResponseDto> updateReview(
+            @PathVariable String reviewId,
+            @RequestBody ReviewRequestDto dto) {
+
+        String clientId = JwtUtils.getUserId();
+        String clientName = JwtUtils.getFullName();
+
+        ReviewResponseDto response = reviewService.updateReview(reviewId, dto, clientId, clientName);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping
     @Operation(summary = "Récupérer les avis (filtres optionnels)")
     public ResponseEntity<List<ReviewResponseDto>> getReviews(

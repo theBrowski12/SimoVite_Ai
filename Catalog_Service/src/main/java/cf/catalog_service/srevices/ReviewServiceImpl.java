@@ -2,63 +2,120 @@ package cf.catalog_service.srevices;
 
 import cf.catalog_service.dto.review.ReviewRequestDto;
 import cf.catalog_service.dto.review.ReviewResponseDto;
+import cf.catalog_service.dto.sentiment.SentimentRequest;
+import cf.catalog_service.dto.sentiment.SentimentResponse;
 import cf.catalog_service.entities.Review;
 import cf.catalog_service.enums.ReviewTargetType;
+import cf.catalog_service.feignClients.SentimentFeignClient;
 import cf.catalog_service.mapper.ReviewMapper;
 import cf.catalog_service.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springaicommunity.mcp.annotation.McpTool;
 import org.springaicommunity.mcp.annotation.McpToolParam;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ReviewServiceImpl implements ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final ReviewMapper reviewMapper;
+    private final SentimentFeignClient sentimentFeignClient;
 
     @Override
+    @Transactional
     @McpTool(description = "Add a review (rating + comment) for a product or store. CLIENT only. One review per target per client. Rating: 1.0 to 5.0")
     public ReviewResponseDto addReview(
-            @McpToolParam(description = "Review data: targetId (MongoDB ObjectId), targetType (PRODUCT|STORE), comment, rating (1.0-5.0)") ReviewRequestDto dto,
-            @McpToolParam(description = "Keycloak UUID of the client (from JWT sub)") String clientId,
-            @McpToolParam(description = "Full name of the client (from JWT given_name + family_name)") String clientName) {
-        if (reviewRepository.existsByTargetIdAndClientId(dto.getTargetId(), clientId))
-            throw new RuntimeException("Vous avez déjà laissé un avis pour cet élément !");
-        if (dto.getRating() == null || dto.getRating() < 1.0 || dto.getRating() > 5.0)
+            @McpToolParam(description = "Review data") ReviewRequestDto dto,
+            @McpToolParam(description = "Keycloak UUID of the client") String clientId,
+            @McpToolParam(description = "Full name of the client") String clientName) {
+
+        // Vérifications
+        long reviewCount = reviewRepository.countByTargetIdAndClientId(dto.getTargetId(), clientId);
+        if (reviewCount >= 5) {
+            throw new RuntimeException("Vous avez déjà laissé 5 avis pour cet élément. Maximum atteint !");
+        }
+        if (dto.getRating() == null || dto.getRating() < 1.0 || dto.getRating() > 5.0) {
             throw new RuntimeException("La note doit être entre 1 et 5 !");
+        }
+
+        // Création
         Review review = reviewMapper.toEntity(dto, clientId, clientName);
         review.setCreatedAt(LocalDateTime.now());
-        return reviewMapper.toDto(reviewRepository.save(review));
+        review.setSentimentAnalyzed(false);
+        review.setIncoherent(false);
+
+        Review savedReview = reviewRepository.save(review);
+        log.info("📝 Review created with id: {}", savedReview.getId());
+
+        // Analyse sentiment
+        savedReview = analyzeAndUpdateSentiment(savedReview, dto);
+
+        return reviewMapper.toDto(savedReview);
     }
 
-    @McpTool(description = "Récupérer les avis. Laissez les paramètres vides pour voir TOUS les avis de la plateforme.")
     @Override
+    @McpTool(description = "Update an existing review. CLIENT can only update their own reviews.")
+    @Transactional
+    public ReviewResponseDto updateReview(
+            @McpToolParam(description = "ID of the review to update") String reviewId,
+            @McpToolParam(description = "Updated review data") ReviewRequestDto dto,
+            @McpToolParam(description = "Keycloak UUID of the client") String clientId,
+            @McpToolParam(description = "Full name of the client") String clientName) {
+
+        log.info("📝 Updating review {} for client {}", reviewId, clientName);
+
+        // Vérifications
+        Review existingReview = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new RuntimeException("Review introuvable: " + reviewId));
+
+        if (!existingReview.getClientId().equals(clientId)) {
+            throw new RuntimeException("❌ Vous ne pouvez modifier que vos propres avis !");
+        }
+
+        if (dto.getRating() == null || dto.getRating() < 1.0 || dto.getRating() > 5.0) {
+            throw new RuntimeException("La note doit être entre 1 et 5 !");
+        }
+
+        // Mise à jour
+        existingReview.setComment(dto.getComment());
+        existingReview.setRating(dto.getRating());
+        existingReview.setUpdatedAt(LocalDateTime.now());
+        existingReview.setSentimentAnalyzed(false);
+        existingReview.setSentiment(null);
+        existingReview.setSentimentScore(null);
+        existingReview.setIncoherent(false);
+
+        // Analyse sentiment
+        Review updatedReview = analyzeAndUpdateSentiment(existingReview, dto);
+
+        log.info("✅ Review {} updated successfully", reviewId);
+        return reviewMapper.toDto(updatedReview);
+    }
+
+    @Override
+    @McpTool(description = "Get reviews. Leave parameters empty to get ALL reviews.")
     public List<ReviewResponseDto> getReviews(
-            @McpToolParam(description = "ID du produit ou store (optionnel)") String targetId,
-            @McpToolParam(description = "Type: PRODUCT ou STORE (optionnel)") ReviewTargetType targetType) {
+            @McpToolParam(description = "Target ID (optional)") String targetId,
+            @McpToolParam(description = "Target type (optional)") ReviewTargetType targetType) {
+
         List<Review> reviews;
 
-        // Cas 1 : On veut filtrer par ID et par TYPE (Précis)
         if (targetId != null && !"all".equalsIgnoreCase(targetId) && targetType != null) {
             reviews = reviewRepository.findByTargetIdAndTargetType(targetId, targetType);
-        }
-        // Cas 2 : On veut filtrer UNIQUEMENT par TYPE (ex: tous les avis sur les STORES)
-        else if (targetType != null && (targetId == null || "all".equalsIgnoreCase(targetId))) {
+        } else if (targetType != null && (targetId == null || "all".equalsIgnoreCase(targetId))) {
             reviews = reviewRepository.findByTargetType(targetType);
-        }
-        // Cas 3 : On veut filtrer UNIQUEMENT par ID (rare mais possible)
-        else if (targetId != null && !"all".equalsIgnoreCase(targetId)) {
+        } else if (targetId != null && !"all".equalsIgnoreCase(targetId)) {
             reviews = reviewRepository.findByTargetId(targetId);
-        }
-        // Cas 4 : Tout est vide ou "all", on renvoie TOUT
-        else {
+        } else {
             reviews = reviewRepository.findAll();
         }
 
@@ -68,26 +125,87 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    @McpTool(description = "Get the average rating (1.0-5.0) of a product or store based on all reviews")
+    @McpTool(description = "Get average rating (1.0-5.0) of a product or store")
     public Double getAverageRating(
-            @McpToolParam(description = "MongoDB ObjectId of the product or store") String targetId,
-            @McpToolParam(description = "Target type: PRODUCT | STORE") ReviewTargetType targetType) {
-        return reviewRepository.findByTargetIdAndTargetType(targetId, targetType)
-                .stream().mapToDouble(Review::getRating).average().orElse(0.0);
+            @McpToolParam(description = "Target ID") String targetId,
+            @McpToolParam(description = "Target type") ReviewTargetType targetType) {
+        Optional<Double> average = reviewRepository.findAverageRatingByTargetIdAndTargetType(targetId, targetType);
+
+        return average.orElse(0.0);
     }
 
     @Override
-    @McpTool(description = "[CLIENT / ADMIN ONLY] Delete a review by ID. CLIENT can only delete their own reviews. ADMIN can delete any.")
+    @Transactional
+    @McpTool(description = "Delete a review by ID. CLIENT can only delete their own reviews.")
     public void deleteReview(
-            @McpToolParam(description = "MongoDB ObjectId of the review to delete") String reviewId,
-            @McpToolParam(description = "Keycloak UUID of the requesting client (from JWT sub)") String clientId) {
+            @McpToolParam(description = "Review ID") String reviewId,
+            @McpToolParam(description = "Client ID from JWT") String clientId) {
+
         Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new RuntimeException("Review introuvable : " + reviewId));
+                .orElseThrow(() -> new RuntimeException("Review introuvable: " + reviewId));
+
         boolean isAdmin = SecurityContextHolder.getContext().getAuthentication()
                 .getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-        if (!isAdmin && !review.getClientId().equals(clientId))
+
+        if (!isAdmin && !review.getClientId().equals(clientId)) {
             throw new RuntimeException("❌ Accès refusé !");
+        }
+
         reviewRepository.deleteById(reviewId);
+        log.info("🗑️ Review {} deleted by {}", reviewId, clientId);
+    }
+
+    /**
+     * Analyse le sentiment et met à jour la review
+     */
+    private Review analyzeAndUpdateSentiment(Review review, ReviewRequestDto dto) {
+        if (dto.getComment() == null || dto.getComment().isBlank()) {
+            log.info("📝 No comment for review {}, skipping sentiment analysis", review.getId());
+            review.setSentimentAnalyzed(false);
+            return review;
+        }
+
+        log.info("📊 Analyzing sentiment for review {}: '{}'",
+                review.getId(),
+                dto.getComment().substring(0, Math.min(50, dto.getComment().length())));
+
+        try {
+            SentimentRequest sentimentRequest = SentimentRequest.builder()
+                    .comment(dto.getComment())
+                    .rating(dto.getRating())
+                    .build();
+
+            long startTime = System.currentTimeMillis();
+            SentimentResponse sentiment = sentimentFeignClient.analyzeSentiment(sentimentRequest);
+            long duration = System.currentTimeMillis() - startTime;
+
+            log.info("⏱️ Sentiment analysis completed in {}ms", duration);
+            log.info("✅ Result: {} (score: {:.2f}, confidence: {:.2f})",
+                    sentiment.getSentiment(),
+                    sentiment.getScore(),
+                    sentiment.getConfidence());
+
+            // Mettre à jour la review
+            review.setSentiment(sentiment.getSentiment());
+            review.setSentimentScore(sentiment.getScore());
+            review.setSentimentAnalyzed(true);
+            review.setIncoherent(Boolean.TRUE.equals(sentiment.getIncoherent()));
+
+            if (Boolean.TRUE.equals(sentiment.getIncoherent())) {
+                log.warn("🚨 INCOHERENCE: rating={} but sentiment={} - {}",
+                        dto.getRating(), sentiment.getSentiment(), sentiment.getAlert());
+            }
+
+            review = reviewRepository.save(review);
+            log.info("💾 Review {} updated with sentiment data", review.getId());
+
+        } catch (Exception e) {
+            log.error("❌ Sentiment Service error for review {}: {}", review.getId(), e.getMessage());
+            review.setSentimentAnalyzed(false);
+            review.setIncoherent(false);
+        }
+
+        return review;
     }
 }

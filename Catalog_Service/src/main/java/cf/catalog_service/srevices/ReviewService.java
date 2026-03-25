@@ -11,5 +11,6 @@ public interface ReviewService {
     ReviewResponseDto addReview(ReviewRequestDto dto, String clientId, String clientName);
     List<ReviewResponseDto> getReviews(String targetId, ReviewTargetType targetType);
     Double getAverageRating(String targetId, ReviewTargetType targetType);
+    ReviewResponseDto updateReview(String reviewId, ReviewRequestDto dto, String clientId, String clientName);
     void deleteReview(String reviewId, String clientId);
 }

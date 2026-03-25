@@ -7,3 +7,5 @@ joblib
 requests
 python-dotenv
 py-eureka-client
+transformers
+torch
