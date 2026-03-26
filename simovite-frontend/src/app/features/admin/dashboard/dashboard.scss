@@ -1,0 +1,142 @@
+// Variables locales inspirées de ton fichier simovite_admin_dashboard_claude.html
+$orange: #FF6B35;
+$navy: #0D1B2A;
+$bg-color: #F0F3F8;
+$purple: #8B5CF6;
+$green: #22C55E;
+.charts-section {
+  margin-bottom: 2rem;
+  .chart-container {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+    
+    h2 {
+      font-family: 'Syne', sans-serif;
+      margin-bottom: 1rem;
+    }
+    
+    canvas {
+      max-height: 300px; // Évite que le graphique ne devienne géant
+    }
+  }
+}
+.admin-dashboard {
+  padding: 2rem;
+  background-color: $bg-color;
+  min-height: 100vh;
+
+  .admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      color: $navy;
+      font-size: 1.8rem;
+      margin: 0;
+    }
+
+    .date-picker {
+      background: white;
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
+      font-weight: 500;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      color: $navy;
+    }
+  }
+
+  // Grille de statistiques
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+
+    .stat-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 16px;
+      border-left: 5px solid transparent;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      transition: transform 0.3s ease;
+
+      &:hover { transform: translateY(-5px); }
+
+      .label {
+        color: #6b7a90;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+
+      .value {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: $navy;
+        margin: 0.5rem 0;
+      }
+
+      .trend {
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+
+      &.orange { 
+        border-color: $orange; 
+        .trend { color: $orange; }
+      }
+      &.purple { 
+        border-color: $purple; 
+        .trend { color: $purple; }
+      }
+      &.green { 
+        border-color: $green; 
+        .trend { color: $green; }
+      }
+    }
+  }
+
+  // Table des avis
+  .recent-reviews {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+
+    h2 {
+      font-family: 'Syne', sans-serif;
+      margin-bottom: 1.5rem;
+      color: $navy;
+    }
+
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+
+      th {
+        text-align: left;
+        padding: 1rem;
+        background: #f8f9fb;
+        color: #6b7a90;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+      }
+
+      td {
+        padding: 1.2rem 1rem;
+        border-bottom: 1px solid #f0f3f8;
+        color: $navy;
+        font-size: 0.95rem;
+      }
+
+      tr:last-child td { border-bottom: none; }
+    }
+  }
+}

@@ -1,0 +1,34 @@
+<div class="courier-pending">
+  <div class="welcome-banner">
+    <h2>Bonjour, Livreur ! 🏍️</h2>
+    <p>Il y a 5 nouvelles livraisons disponibles à proximité.</p>
+  </div>
+
+  <div class="delivery-list">
+    <div class="delivery-card" *ngFor="let delivery of availableDeliveries">
+      <div class="card-top">
+        <span class="store-name">{{ delivery.storeName }}</span>
+        <span class="price">{{ delivery.price | dhCurrency }}</span>
+      </div>
+      
+      <div class="route-info">
+        <div class="point">
+          <i class="dot blue"></i>
+          <span>Collecte : {{ delivery.pickupAddress.name }}</span>
+        </div>
+        <div class="line"></div>
+        <div class="point">
+          <i class="dot orange"></i>
+          <span>Livraison : {{ delivery.dropoffAddress.name }}</span>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <span class="distance">{{ delivery.distanceKm }} km</span>
+        <button class="btn-outline" [routerLink]="['/courier/delivery-preview', delivery.id]">
+          Détails
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

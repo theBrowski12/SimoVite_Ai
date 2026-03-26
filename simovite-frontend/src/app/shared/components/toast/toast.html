@@ -1,0 +1,9 @@
+<div *ngIf="message" class="toast-container" [ngClass]="message.type">
+  <div class="toast-content">
+    <span class="icon">
+      <i *ngIf="message.type === 'success'">✅</i>
+      <i *ngIf="message.type === 'error'">❌</i>
+    </span>
+    <p>{{ message.message }}</p>
+  </div>
+</div>

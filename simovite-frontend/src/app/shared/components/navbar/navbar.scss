@@ -1,0 +1,52 @@
+.auth-buttons {
+  display: flex;
+  gap: 1rem;
+
+  .btn-login {
+    background: transparent;
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 0.5rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    &:hover { background: rgba(255,255,255,0.1); }
+  }
+
+  .btn-register {
+    background: #FF6B35; // Orange SimoVite
+    color: white;
+    border: none;
+    padding: 0.5rem 1.2rem;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255,107,53,0.3);
+    &:hover { background: #e85a2a; }
+  }
+}
+.btn-primary {
+  background: var(--orange);
+  color: #fff;
+  border: none;
+  padding: 10px 20px; /* Ajusté pour la navbar */
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+/* Doit être dans styles.scss pour être prioritaire */
+body {
+  background-color: #0D1B2A !important; /* Ton bleu marine */
+  color: white;
+  margin: 0;
+  padding: 0;
+}

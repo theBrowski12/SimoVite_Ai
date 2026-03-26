@@ -1,0 +1,13 @@
+// styles/_themes.scss
+:root {
+  --bg:     #F0F3F8;
+  --card:   #ffffff;
+  --text:   #0D1B2A;
+  --orange: #FF6B35;
+}
+
+[data-theme="dark"] {
+  --bg:   #0D1B2A;
+  --card: #162435;
+  --text: #F0F3F8;
+}

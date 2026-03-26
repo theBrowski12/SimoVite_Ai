@@ -1,0 +1,47 @@
+<div class="preview-container">
+  <app-route-map
+    [courierPosition]="courierGps$ | async"
+    [pickupAddress]="delivery.pickupAddress"
+    [dropoffAddress]="delivery.dropoffAddress">
+  </app-route-map>
+
+  <div class="distance-breakdown">
+    <div class="leg">
+      <span>📍 You → Pickup</span>
+      <strong>{{ courierToPickup | number:'1.1-1' }} km</strong>
+    </div>
+    <div class="leg">
+      <span>🏪 Pickup → Client</span>
+      <strong>{{ delivery.distanceInKm | number:'1.1-1' }} km</strong>
+    </div>
+    <div class="leg total">
+      <span>Total distance</span>
+      <strong>{{ totalDistance | number:'1.1-1' }} km</strong>
+    </div>
+  </div>
+
+  <div class="ml-estimates">
+    <div class="estimate-card">
+      <div class="label">⏱ Estimated Time</div>
+      <div class="value">{{ etaPreview?.estimatedMinutes }} min</div>
+      <div class="sub">{{ etaPreview?.weatherCondition }} · {{ rushPeriod }}</div>
+    </div>
+    <div class="estimate-card">
+      <div class="label">💰 Delivery Cost</div>
+      <div class="value">{{ pricePreview?.deliveryCost | currency:'MAD' }}</div>
+      <div class="sub">{{ pricePreview?.weatherFactor | number:'1.2-2' }}x weather</div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <select [(ngModel)]="selectedVehicle">
+      <option *ngFor="let v of vehicles" [value]="v">{{ v }}</option>
+    </select>
+    <button class="btn-accept" (click)="acceptDelivery()">
+      Accept Delivery 🛵
+    </button>
+    <button class="btn-decline" (click)="goBack()">
+      Decline
+    </button>
+  </div>
+</div>
