@@ -1,1 +1,38 @@
-<p>stores works!</p>
+<div class="page active">
+  <div class="page-header">
+    <div class="header-text">
+      <div class="page-title">Stores Management</div>
+      <div class="page-subtitle">Manage all registered stores</div>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <div class="filter-group">
+      <select [(ngModel)]="filterCategory" (change)="applyFilters()" class="filter-select">
+        <option value="">All Categories</option>
+        <option value="RESTAURANT">Restaurant</option>
+        <option value="PHARMACY">Pharmacy</option>
+        <option value="SUPERMARKET">Supermarket</option>
+      </select>
+      
+      <select [(ngModel)]="filterStatus" (change)="applyFilters()" class="filter-select">
+        <option value="">All Status</option>
+        <option value="open">Open</option>
+        <option value="closed">Closed</option>
+      </select>
+    </div>
+
+    <div class="search-wrapper">
+      <span class="search-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </span>
+      <input [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="Search stores..." class="search-input">
+    </div>
+
+    <button class="btn-reset" (click)="reset()">Reset</button>
+  </div>
+
+  </div>

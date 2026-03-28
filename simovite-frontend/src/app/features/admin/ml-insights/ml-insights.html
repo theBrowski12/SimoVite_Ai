@@ -1,1 +1,29 @@
-<p>ml-insights works!</p>
+<div class="ml-page">
+  <header class="page-header"><h1>ML Insights</h1><p class="page-sub">ETA · Price Prediction · Sentiment Analysis</p></header>
+  <div class="model-grid">
+    <div class="model-card"><div class="model-header"><span>⏱️</span><div><b>ETA Model</b><div class="sub">GradientBoosting · {{etaMetrics.samples}} samples</div></div></div>
+      <div class="gauge"><svg width="120" height="70" viewBox="0 0 120 70"><path d="M10 65 A50 50 0 0 1 110 65" fill="none" stroke="#F0F3F8" stroke-width="10"/><path d="M10 65 A50 50 0 0 1 110 65" fill="none" stroke="#FF6B35" stroke-width="10" stroke-linecap="round" [attr.stroke-dasharray]="gaugeArc(etaMetrics.accuracy/100)"/><text x="60" y="62" text-anchor="middle" style="font-size:16px;font-weight:700;font-family:Syne;fill:#1a2332">{{etaMetrics.accuracy}}%</text></svg></div>
+      <div class="mrow"><span>MAE</span><b>{{etaMetrics.mae}} min</b></div><div class="mrow"><span>R²</span><b style="color:#22C55E">{{etaMetrics.r2}}</b></div></div>
+    <div class="model-card"><div class="model-header"><span>💰</span><div><b>Price Model</b><div class="sub">GradientBoosting · {{priceMetrics.samples}} samples</div></div></div>
+      <div class="gauge"><svg width="120" height="70" viewBox="0 0 120 70"><path d="M10 65 A50 50 0 0 1 110 65" fill="none" stroke="#F0F3F8" stroke-width="10"/><path d="M10 65 A50 50 0 0 1 110 65" fill="none" stroke="#22C55E" stroke-width="10" stroke-linecap="round" [attr.stroke-dasharray]="gaugeArc(priceMetrics.accuracy/100)"/><text x="60" y="62" text-anchor="middle" style="font-size:16px;font-weight:700;font-family:Syne;fill:#1a2332">{{priceMetrics.accuracy}}%</text></svg></div>
+      <div class="mrow"><span>MAE</span><b>{{priceMetrics.mae}} DH</b></div><div class="mrow"><span>R²</span><b style="color:#22C55E">{{priceMetrics.r2}}</b></div></div>
+    <div class="model-card"><div class="model-header"><span>🧠</span><div><b>Sentiment Model</b><div class="sub">distilbert-multilingual</div></div></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin:12px 0">
+        <span class="ltag">🇫🇷 French</span><span class="ltag">🇲🇦 Arabic</span><span class="ltag">🇬🇧 English</span>
+      </div>
+      <div class="mrow"><span>Outputs</span><b>POSITIVE / NEGATIVE / MIXED</b></div>
+      <div class="mrow"><span>Incoherence detection</span><b style="color:#FF6B35">✅ Active</b></div></div>
+  </div>
+  <div class="charts-row">
+    <div class="chart-card"><div class="chart-hd"><b>ETA Predicted vs Actual</b><span class="chip">Last 30 deliveries</span></div><canvas id="etaChart" height="200"></canvas></div>
+    <div class="chart-card"><div class="chart-hd"><b>Vehicle Distribution</b><span class="chip">Active couriers</span></div><canvas id="vehicleChart" height="200"></canvas></div>
+  </div>
+  <div class="chart-card" style="margin-bottom:20px"><div class="chart-hd"><b>Weather Impact on ETA</b><span class="chip">Average minutes</span></div><canvas id="weatherChart" height="150" style="padding:0 20px 16px"></canvas></div>
+  <div class="table-card"><div class="table-hd"><b>Rush Hour Factors</b></div>
+    <table><thead><tr><th>Period</th><th>Factor</th><th>Impact</th><th>Bar</th></tr></thead>
+    <tbody><tr *ngFor="let r of rushData">
+      <td>{{r.period}}</td><td><b>{{r.factor}}x</b></td>
+      <td><span [style.color]="getRushColor(r.factor)">{{ r.factor >= 1.2 ? '🟢 Faster' : r.factor >= 1 ? '🔵 Normal' : r.factor >= 0.75 ? '🟡 Slower' : '🔴 Very slow' }}</span></td>
+      <td><div class="fbar"><div class="ffill" [style.width.%]="r.factor*80" [style.background]="getRushColor(r.factor)"></div></div></td>
+    </tr></tbody></table></div>
+</div>

@@ -1,1 +1,32 @@
-<p>config works!</p>
+<div class="admin-config">
+  <header class="page-header"><h1>Configuration</h1><p class="page-sub">Platform settings and microservice status</p></header>
+  <div class="config-grid">
+    <div class="config-card">
+      <h3>🏷️ Pricing Rules</h3>
+      <div class="form-group"><label>Base delivery cost (DH)</label><input type="number" [(ngModel)]="pricing.baseCost" class="form-input"></div>
+      <div class="form-group"><label>Price per km (DH)</label><input type="number" [(ngModel)]="pricing.perKm" class="form-input"></div>
+      <div class="form-group"><label>Rush hour surcharge (DH)</label><input type="number" [(ngModel)]="pricing.rushSurcharge" class="form-input"></div>
+      <button class="btn-save" (click)="save()">Save Pricing Rules</button>
+    </div>
+    <div class="config-card">
+      <h3>🚀 Microservices Status</h3>
+      <div *ngFor="let s of services" class="service-row">
+        <div class="svc-left"><span class="dot" [class.up]="s.status==='UP'" [class.down]="s.status==='DOWN'"></span><span class="svc-name">{{ s.name }}</span></div>
+        <span class="svc-port">:{{ s.port }}</span>
+        <span class="badge {{ s.status === 'UP' ? 'badge-green' : 'badge-red' }}">{{ s.status }}</span>
+      </div>
+    </div>
+    <div class="config-card">
+      <h3>📨 Kafka Topics</h3>
+      <div *ngFor="let t of kafkaTopics" class="topic-row">
+        <code>{{ t }}</code><span class="badge badge-green">ACTIVE</span>
+      </div>
+    </div>
+    <div class="config-card">
+      <h3>📧 Email Configuration</h3>
+      <div class="form-group"><label>SMTP Host</label><input class="form-input" [value]="email.host" readonly></div>
+      <div class="form-group"><label>Sender Email</label><input class="form-input" [value]="email.sender" readonly></div>
+      <div class="service-row" style="margin-top:12px"><span>Status</span><span class="badge badge-green">✓ {{ email.status }}</span></div>
+    </div>
+  </div>
+</div>

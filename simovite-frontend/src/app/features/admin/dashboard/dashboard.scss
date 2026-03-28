@@ -1,142 +1,313 @@
-// Variables locales inspirées de ton fichier simovite_admin_dashboard_claude.html
-$orange: #FF6B35;
 $navy: #0D1B2A;
-$bg-color: #F0F3F8;
-$purple: #8B5CF6;
-$green: #22C55E;
-.charts-section {
+$orange: #FF6B35;
+$text-muted: #6b7a90;
+$bg-light: #F8FAFC;
+$border-color: #E2E8F0;
+
+.admin-dashboard {
+  padding: 2rem;
+}
+
+.admin-header {
+  margin-bottom: 2.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: $navy;
+    margin-bottom: 0.25rem;
+  }
+
+  .subtitle {
+    color: $text-muted;
+    font-size: 0.95rem;
+    margin: 0;
+  }
+
+  .date-badge {
+    background: white;
+    padding: 0.6rem 1.2rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: $navy;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+  }
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+
+  .stat-card {
+    background: white;
+    padding: 1.8rem;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: -20px; right: -20px;
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.05;
+    }
+
+    .card-icon {
+      width: 45px; height: 45px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+      
+      &.icon-orange { background: rgba(255, 107, 53, 0.1); color: #FF6B35; }
+      &.icon-green { background: rgba(34, 197, 94, 0.1); color: #22C55E; }
+      &.icon-blue { background: rgba(59, 130, 246, 0.1); color: #3B82F6; }
+      &.icon-purple { background: rgba(139, 92, 246, 0.1); color: #8B5CF6; }
+    }
+
+    .card-body {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+
+      .value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: $navy;
+      }
+
+      .label {
+        font-size: 0.85rem;
+        color: $text-muted;
+        font-weight: 500;
+      }
+
+      .trend {
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-top: 0.4rem;
+        &.trend-up { color: #22C55E; }
+      }
+
+      .status-text { color: $text-muted; font-size: 0.75rem; }
+      .ml-tag { color: #8B5CF6; font-size: 0.75rem; font-weight: 600; }
+    }
+
+    .value-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      .status-dot {
+        width: 8px; height: 8px;
+        background: #22C55E;
+        border-radius: 50%;
+        box-shadow: 0 0 8px #22C55E;
+      }
+    }
+  }
+}
+
+// Styles partagés pour les en-têtes de graphiques
+%chart-header-style {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 2rem;
+
+  h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: $navy;
+    margin: 0;
+  }
+
+  .chart-badge {
+    background: #FFF0EB;
+    color: $orange;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+}
+
+.dashboard-charts-row {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+
   .chart-container {
     background: white;
     padding: 1.5rem;
     border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-    
-    h2 {
-      font-family: 'Syne', sans-serif;
-      margin-bottom: 1rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+
+    .chart-header {
+      @extend %chart-header-style;
     }
-    
-    canvas {
-      max-height: 300px; // Évite que le graphique ne devienne géant
+
+    .canvas-wrapper {
+      height: 300px;
+      width: 100%;
     }
   }
 }
-.admin-dashboard {
-  padding: 2rem;
-  background-color: $bg-color;
-  min-height: 100vh;
 
-  .admin-header {
+.recent-orders-card {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  overflow: hidden;
+  margin-bottom: 2rem; /* <-- AJOUTÉ : Espace sous le tableau */
+
+  .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 2rem;
+    padding: 1.5rem 1.8rem;
+    border-bottom: 1px solid $border-color;
+    background: #F8FAFC;
 
-    h1 {
-      font-family: 'Syne', sans-serif;
-      font-weight: 800;
+    h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
       color: $navy;
-      font-size: 1.8rem;
       margin: 0;
     }
 
-    .date-picker {
-      background: white;
-      padding: 0.5rem 1rem;
-      border-radius: 10px;
-      font-weight: 500;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-      color: $navy;
+    .view-all {
+      color: $orange;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      &:hover { text-decoration: underline; }
     }
   }
 
-  // Grille de statistiques
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 3rem;
-
-    .stat-card {
-      background: white;
-      padding: 1.5rem;
-      border-radius: 16px;
-      border-left: 5px solid transparent;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-      transition: transform 0.3s ease;
-
-      &:hover { transform: translateY(-5px); }
-
-      .label {
-        color: #6b7a90;
-        font-size: 0.9rem;
-        font-weight: 600;
-        text-transform: uppercase;
-      }
-
-      .value {
-        font-size: 2.2rem;
-        font-weight: 800;
-        color: $navy;
-        margin: 0.5rem 0;
-      }
-
-      .trend {
-        font-size: 0.85rem;
-        font-weight: 600;
-      }
-
-      &.orange { 
-        border-color: $orange; 
-        .trend { color: $orange; }
-      }
-      &.purple { 
-        border-color: $purple; 
-        .trend { color: $purple; }
-      }
-      &.green { 
-        border-color: $green; 
-        .trend { color: $green; }
-      }
-    }
-  }
-
-  // Table des avis
-  .recent-reviews {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-
-    h2 {
-      font-family: 'Syne', sans-serif;
-      margin-bottom: 1.5rem;
-      color: $navy;
-    }
-
+  .table-responsive {
+    overflow-x: auto;
+    
     .admin-table {
       width: 100%;
       border-collapse: collapse;
+      text-align: left;
 
       th {
-        text-align: left;
-        padding: 1rem;
-        background: #f8f9fb;
-        color: #6b7a90;
-        font-weight: 600;
-        font-size: 0.85rem;
+        padding: 1rem 1.8rem;
+        color: $text-muted;
+        font-size: 0.75rem;
+        font-weight: 700;
         text-transform: uppercase;
+        letter-spacing: 0.5px;
       }
 
       td {
-        padding: 1.2rem 1rem;
-        border-bottom: 1px solid #f0f3f8;
-        color: $navy;
-        font-size: 0.95rem;
+        padding: 1rem 1.8rem;
+        font-size: 0.9rem;
+        color: #475569;
+        border-top: 1px solid $border-color;
+        vertical-align: middle;
       }
 
-      tr:last-child td { border-bottom: none; }
+      .fw-bold { font-weight: 700; }
+      .text-navy { color: $navy; }
+
+      .action-btn {
+        background: none;
+        border: none;
+        color: $text-muted;
+        cursor: pointer;
+        padding: 5px;
+        transition: color 0.2s;
+        &:hover { color: $navy; }
+      }
+
+      .badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        display: inline-block;
+        text-align: center;
+        min-width: 80px;
+
+        &.badge-green { background: #DCFCE7; color: #16A34A; }
+        &.badge-orange { background: #FFEDD5; color: #EA580C; }
+        &.badge-blue { background: #DBEAFE; color: #2563EB; }
+        &.badge-red { background: #FEE2E2; color: #DC2626; }
+        &.badge-gray { background: #F1F5F9; color: #64748B; }
+      }
+    }
+  }
+
+  .table-pagination {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 1.2rem 1.8rem;
+    border-top: 1px solid $border-color;
+
+    .page-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid $border-color;
+      background: white;
+      border-radius: 6px;
+      color: $text-muted;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover { background: #F8FAFC; border-color: #CBD5E1; }
+      
+      &.active {
+        background: $orange;
+        color: white;
+        border-color: $orange;
+      }
+    }
+  }
+}
+
+.revenue-chart-row {
+  margin-bottom: 2rem;
+  /* margin-top: 2rem; au cas où tu en aurais besoin si tu changes encore l'ordre */
+
+  .chart-container {
+    background: white;
+    padding: 1.5rem 1.8rem;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+
+    .chart-header {
+      @extend %chart-header-style;
+      .chart-badge {
+        background: #F8FAFC;
+        color: #64748B;
+        border: 1px solid $border-color;
+      }
+    }
+
+    .revenue-canvas {
+      height: 350px;
+      width: 100%;
     }
   }
 }

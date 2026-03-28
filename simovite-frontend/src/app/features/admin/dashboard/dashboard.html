@@ -1,55 +1,132 @@
 <div class="admin-dashboard">
   <header class="admin-header">
-    <h1>Tableau de bord de gestion</h1>
-    <div class="date-picker">{{ today | date:'fullDate' }}</div>
+    <div class="header-left">
+      <h1>Dashboard</h1>
+      <p class="subtitle">Real-time overview of SimoVite operations</p>
+    </div>
+    <div class="date-badge">{{ today | date:'EEEE, MMMM d, y' }}</div>
   </header>
 
   <div class="stats-grid">
-    <div class="stat-card orange">
-      <span class="label">Commandes du jour</span>
-      <div class="value">154</div>
-      <span class="trend">+12% vs hier</span>
+    <div class="stat-card">
+      <div class="card-icon icon-orange">📦</div>
+      <div class="card-body">
+        <span class="value">247</span>
+        <span class="label">Total Orders Today</span>
+        <span class="trend trend-up">↑ 12% vs yesterday</span>
+      </div>
     </div>
-    <div class="stat-card purple">
-      <span class="label">Revenu Total</span>
-      <div class="value">{{ 12450 | dhCurrency }}</div>
-      <span class="trend">+5% ce mois</span>
+
+    <div class="stat-card">
+      <div class="card-icon icon-green">🛵</div>
+      <div class="card-body">
+        <div class="value-row">
+          <span class="value">38</span>
+          <span class="status-dot"></span>
+        </div>
+        <span class="label">Active Deliveries</span>
+        <span class="status-text">Live tracking enabled</span>
+      </div>
     </div>
-    <div class="stat-card green">
-      <span class="label">Livreurs Actifs</span>
-      <div class="value">28</div>
+
+    <div class="stat-card">
+      <div class="card-icon icon-blue">💰</div>
+      <div class="card-body">
+        <span class="value">12,840</span>
+        <span class="label">Revenue Today (DH)</span>
+        <span class="trend trend-up">↑ 8.3% vs yesterday</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="card-icon icon-purple">⏱️</div>
+      <div class="card-body">
+        <span class="value">23 min</span>
+        <span class="label">Average ETA</span>
+        <span class="ml-tag">via ML Model</span>
+      </div>
     </div>
   </div>
 
-  <section class="recent-reviews">
-    <h2>Derniers Avis & Analyse de Sentiment</h2>
-    <table class="admin-table">
-      <thead>
-        <tr>
-          <th>Client</th>
-          <th>Commentaire</th>
-          <th>Score</th>
-          <th>Sentiment</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let review of reviews">
-          <td>{{ review.clientName }}</td>
-          <td>{{ review.comment }}</td>
-          <td><app-star-rating [rating]="review.rating"></app-star-rating></td>
-          <td>
-            <app-badge [color]="review.sentiment | sentimentColor">
-              {{ review.sentiment }}
-            </app-badge>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </section>
-  <section class="charts-section">
-  <div class="chart-container">
-    <h2>Aperçu des revenus</h2>
-    <canvas id="revenueChart"></canvas>
+  <div class="dashboard-charts-row">
+    <div class="chart-container main-chart">
+      <div class="chart-header">
+        <h2>Orders Over Time</h2>
+        <span class="chart-badge">Last 7 days</span>
+      </div>
+      <div class="canvas-wrapper">
+        <canvas id="ordersTimeChart"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-container side-chart">
+      <div class="chart-header">
+        <h2>Orders by Category</h2>
+        <span class="chart-badge">This week</span>
+      </div>
+      <div class="canvas-wrapper">
+        <canvas id="categoryDonutChart"></canvas>
+      </div>
+    </div>
   </div>
-</section>
+
+  <div class="recent-orders-card">
+    <div class="card-header">
+      <h2>Recent Orders</h2>
+      <a routerLink="/admin/orders" class="view-all">View All &rarr;</a>
+    </div>
+
+    <div class="table-responsive">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>ORDER REF</th>
+            <th>CLIENT</th>
+            <th>STORE</th>
+            <th>TOTAL</th>
+            <th>PAYMENT</th>
+            <th>STATUS</th>
+            <th>DATE</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let order of recentOrders">
+            <td class="fw-bold text-navy">{{ order.ref }}</td>
+            <td>{{ order.client }}</td>
+            <td>{{ order.store }}</td>
+            <td class="fw-bold text-navy">{{ order.total }}</td>
+            <td><span class="badge" [ngClass]="order.paymentClass">{{ order.payment }}</span></td>
+            <td><span class="badge" [ngClass]="order.statusClass">{{ order.status }}</span></td>
+            <td>{{ order.date }}</td>
+            <td>
+              <button class="action-btn" title="View Order">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-pagination">
+      <button class="page-btn active">1</button>
+      <button class="page-btn">2</button>
+      <button class="page-btn">3</button>
+      <button class="page-btn">&rsaquo;</button>
+    </div>
+  </div>
+
+    <div class="revenue-chart-row">
+    <div class="chart-container">
+      <div class="chart-header">
+        <h2>Aperçu des revenus</h2>
+        <span class="chart-badge">Year 2026</span>
+      </div>
+      <div class="canvas-wrapper revenue-canvas">
+        <canvas id="revenueChart"></canvas>
+      </div>
+    </div>
+  </div>
+
 </div>

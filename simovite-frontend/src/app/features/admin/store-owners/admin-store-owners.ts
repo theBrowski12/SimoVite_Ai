@@ -1,15 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-
 interface StoreOwner { id:string; name:string; email:string; storeName:string; storeCategory:string; productCount:number; rating:number; storeOpen:boolean; joinedAt:string; }
-
-@Component({ selector:'app-admin-store-owners', 
-  standalone:false, 
-  templateUrl:'./store-owners.html', 
-  styleUrls:['./store-owners.scss'] })
-
+@Component({ selector:'app-admin-store-owners', standalone:false, templateUrl:'./admin-store-owners.html', styleUrls:['./admin-store-owners.scss'] })
 export class AdminStoreOwners implements OnInit {
   owners:StoreOwner[]=[]; filtered:StoreOwner[]=[];
-  
   loading=true; filterCategory=''; searchTerm='';
   private mock:StoreOwner[]=[
     { id:'5ef2c3dd', name:'Ahmed Mansouri', email:'ahmed.m@simovite.com', storeName:'Pizza Maarif',       storeCategory:'RESTAURANT',       productCount:18, rating:4.8, storeOpen:true,  joinedAt:'2025-11-01' },

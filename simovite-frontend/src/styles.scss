@@ -20,7 +20,7 @@ body{font-family:'Satoshi',sans-serif;background:var(--white);color:var(--text);
 h1,h2,h3,.display{font-family:'Clash Display',sans-serif}
 
 /* ── NAVBAR ── */
-nav{
+.main-nav{
   position:fixed;top:0;left:0;right:0;z-index:100;
   background:rgba(13,27,42,0.96);backdrop-filter:blur(12px);
   border-bottom:1px solid rgba(255,255,255,0.06);

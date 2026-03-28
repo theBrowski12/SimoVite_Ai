@@ -1,0 +1,152 @@
+.admin-wrapper {
+  display: flex;
+  width: 100vw;       /* Utilise toute la largeur de l'écran */
+  height: 100vh;      /* Utilise toute la hauteur */
+  background: #F0F3F8;
+  overflow: hidden;   /* Empêche le scroll sur le parent principal */
+}
+app-sidebar {
+  display: block; /* Très important pour un composant sidebar */
+  width: 260px;
+  flex-shrink: 0;
+}
+
+.sidebar-aside {
+  width: 260px;
+  height: 100vh;
+  flex-shrink: 0;     /* Force la sidebar à garder sa largeur */
+  background-color: #0D1B2A; /* Navy du sidebar */
+  z-index: 1000;
+}
+
+.main {
+  flex: 1;            /* Occupe tout l'espace restant à droite */
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  min-width: 0;       /* Empêche le contenu de pousser la sidebar */
+}
+
+/* VARIABLES (Si tu ne les as pas déjà définies en global) */
+$topbar-bg: #ffffff;
+$orange: #FF6B35; // La couleur vive de l'image 1
+$text-dark: #2d3748;
+$text-muted: #718096;
+$border-color: #edf2f7;
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; // 👈 Pousse greeting à gauche et actions à droite
+  padding: 15px 30px;            // Espace intérieur
+  background: $topbar-bg;
+  border-bottom: 1px solid $border-color;
+  height: 70px;                  // Hauteur fixe propre
+  z-index: 100;
+
+  // GAUCHE
+  &-greeting {
+    font-size: 15px;
+    color: $text-dark;
+    font-weight: 500;
+
+    span {
+      color: $orange;            // 👈 Le nom "Admin" en orange vibrant
+      font-weight: 700;
+    }
+  }
+
+  // DROITE (Le groupe d'éléments)
+  &-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;                   // 👈 Espace régulier entre recherche, cloche et avatar
+  }
+
+  // BARRE DE RECHERCHE
+  &-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    svg {
+      position: absolute;
+      left: 14px;
+      width: 17px;  /* TAILLE FIXE POUR L'ICÔNE */
+      height: 17px;
+      color: #a0aec0; // Gris clair pour l'icône
+      pointer-events: none;
+    }
+
+    input {
+      width: 320px;              // 👈 Plus large, comme sur l'image 1
+      background: #f7fafc;       // Fond gris très clair
+      border: 1px solid #e2e8f0; // Bordure discrète
+      border-radius: 12px;       // Coins arrondis prononcés
+      padding: 10px 15px 10px 42px; // Padding à gauche pour laisser place à l'icône
+      font-size: 13.5px;
+      color: $text-dark;
+      outline: none;
+      transition: all 0.2s ease;
+
+      &::placeholder { color: #a0aec0; }
+
+      &:focus {
+        background: #ffffff;
+        border-color: $orange;  // 👈 Bordure orange au focus
+        box-shadow: 0 0 0 3px rgba($orange, 0.1); // Halo orange
+      }
+    }
+  }
+
+  // CLOCHE DE NOTIFICATION
+  .notif-btn {
+    position: relative;
+    padding: 10px;
+    background: #f7fafc;
+    border-radius: 10px;
+    cursor: pointer;
+    color: #4a5568;
+    transition: background 0.2s;
+
+    &:hover { background: rgba($orange, 0.05); color: $orange; }
+
+    .notif-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 8px;   // 👈 Petit point rouge d'alerte
+      height: 8px;
+      background: #ef4444; // Rouge
+      border-radius: 50%;
+      border: 2px solid #ffffff; // Bordure blanche pour le faire ressortir
+    }
+  }
+
+  // AVATAR ORANGE (L'élément clé)
+  &-avatar {
+    width: 38px;
+    height: 38px;
+    background: $orange;         // 👈 FOND ORANGE VIF
+    color: #ffffff;
+    border-radius: 10px;         // Coins arrondis
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba($orange, 0.2); // Légère ombre orange
+  }
+}
+.content {
+  flex: 1;            /* La zone de contenu prend le reste de la hauteur */
+  padding: 30px;
+  overflow-y: auto;   /* SEULE cette zone doit scroller */
+  background: #F0F3F8;
+}
+$topbar-bg: #ffffff;
+$orange: #FF6B35; // La couleur vive de l'image 1
+$text-dark: #2d3748;
+$text-muted: #718096;
+$border-color: #edf2f7;

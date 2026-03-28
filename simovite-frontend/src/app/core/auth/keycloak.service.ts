@@ -2,7 +2,7 @@
 import { Injectable } from '@angular/core';
 import Keycloak from 'keycloak-js';
 import { environment } from '@env/environment';
-
+import { KeycloakProfile } from 'keycloak-js';
 @Injectable({ providedIn: 'root' })
 export class KeycloakService {
 
@@ -20,12 +20,19 @@ export class KeycloakService {
       checkLoginIframe: false
     });
   }
-
+  async loadUserProfile(): Promise<KeycloakProfile> {
+    return await this.keycloak.loadUserProfile();
+}
   login():  void { this.keycloak.login(); }
   logout(): void { this.keycloak.logout({ redirectUri: window.location.origin }); }
-
+  register(): void {
+    this.keycloak.register();
+  }
   getToken():   string  { return this.keycloak.token ?? ''; }
-  isLoggedIn(): boolean { return !!this.keycloak.authenticated; }
+
+  isLoggedIn(): boolean {
+    return this.keycloak && this.keycloak.authenticated ? true : false;
+  }
 
   getRoles(): string[] {
     return this.keycloak.tokenParsed?.['realm_access']?.['roles'] ?? [];
@@ -35,6 +42,9 @@ export class KeycloakService {
     return this.getRoles().includes(role);
   }
 
+  getDecodedToken(): any {
+    return this.keycloak?.tokenParsed || {};
+  }
   getUserId():   string { return this.keycloak.tokenParsed?.['sub']         ?? ''; }
   getEmail():    string { return this.keycloak.tokenParsed?.['email']        ?? ''; }
   getFullName(): string {

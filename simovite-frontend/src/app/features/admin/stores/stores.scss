@@ -1,0 +1,245 @@
+/* ── STORES GRID ── */
+.stores-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+/* ── CARD STRUCTURE ── */
+.store-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+  }
+}
+
+/* ── IMAGE / ICON SECTION ── */
+.store-img {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 42px;
+  
+  // Gradients basés sur les catégories
+  &.restaurant { background: linear-gradient(135deg, #fff4ed, #ffe0cc); }
+  &.pharmacy { background: linear-gradient(135deg, #f0fdf4, #dcfce7); }
+  &.supermarket { background: linear-gradient(135deg, #eff6ff, #dbeafe); }
+  &.special_delivery { background: linear-gradient(135deg, #f5f3ff, #ede9fe); }
+}
+
+/* ── BODY SECTION ── */
+.store-body {
+  padding: 18px;
+
+  .store-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--navy);
+  }
+}
+
+/* ── BADGES ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 15px;
+
+  &-orange { background: rgba(255, 107, 53, 0.1); color: var(--orange); }
+  &-green { background: rgba(34, 197, 94, 0.1); color: var(--green); }
+  &-blue { background: rgba(59, 130, 246, 0.1); color: var(--blue); }
+  &-purple { background: rgba(139, 92, 246, 0.1); color: var(--purple); }
+  &-gray { background: rgba(107, 114, 128, 0.1); color: var(--muted); }
+}
+
+/* ── META & RATING ── */
+.store-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border);
+  padding-top: 15px;
+
+  .store-rating {
+    font-size: 13px;
+    color: #F59E0B; // Amber
+    font-weight: 600;
+    
+    span {
+      margin-left: 4px;
+    }
+  }
+}
+
+/* ── CUSTOM TOGGLE SWITCH ── */
+.toggle {
+  position: relative;
+  width: 42px;
+  height: 22px;
+  background: #e5e7eb;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+  }
+
+  &.on {
+    background: var(--green);
+    
+    &::after {
+      transform: translateX(20px);
+    }
+  }
+}
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center;
+  padding: 60px;
+  background: var(--card);
+  border-radius: var(--radius);
+  color: var(--muted);
+  font-style: italic;
+}
+.topbar-search svg, 
+.filter-bar svg,
+.search-input-wrapper svg {
+  width: 16px;  /* Taille fixe */
+  height: 16px; /* Taille fixe */
+  min-width: 16px;
+  color: var(--muted);
+  flex-shrink: 0; /* Empêche l'icône de s'écraser */
+}
+
+/* Assure-toi que le conteneur est en flex pour aligner l'icône et l'input */
+.topbar-search, .filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+/* ── FILTER BAR ── */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  background: var(--card);
+  padding: 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+
+  .filter-group {
+    display: flex;
+    gap: 8px;
+  }
+
+  .filter-select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: white;
+    font-size: 14px;
+    color: var(--navy);
+    outline: none;
+    cursor: pointer;
+    &:focus { border-color: var(--orange); }
+  }
+}
+
+/* ── SEARCH WRAPPER (Fix pour l'icône géante) ── */
+.search-wrapper {
+  position: relative;
+  flex: 1; // Prend l'espace disponible
+  display: flex;
+  align-items: center;
+
+  svg {
+    position: absolute;
+    left: 12px;
+    width: 16px;  /* TAILLE FIXE */
+    height: 16px; /* TAILLE FIXE */
+    color: var(--muted);
+    pointer-events: none;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 8px 12px 8px 36px; // Padding à gauche pour laisser place à l'icône
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+
+    &:focus {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+    }
+  }
+}
+
+.btn-reset {
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  cursor: pointer;
+  font-weight: 500;
+  &:hover { background: #f9fafb; color: var(--navy); }
+}
+/* Force la taille du conteneur de l'icône */
+.search-icon {
+  position: absolute;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;  /* Largeur du conteneur */
+  height: 18px; /* Hauteur du conteneur */
+  z-index: 1;
+
+  svg {
+    width: 100% !important;  /* Prend 100% des 18px du parent */
+    height: 100% !important;
+    color: var(--muted);
+    display: block;
+  }
+}
+
+/* Ajuste l'input pour laisser la place à gauche */
+.search-input {
+  position: relative;
+  width: 100%;
+  padding: 10px 12px 10px 40px !important; // 40px de padding-left minimum
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 14px;
+  outline: none;
+}

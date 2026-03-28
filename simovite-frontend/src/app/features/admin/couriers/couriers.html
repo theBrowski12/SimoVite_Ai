@@ -1,1 +1,30 @@
-<p>couriers works!</p>
+<div class="admin-couriers">
+  <header class="page-header"><h1>Couriers Performance</h1><p class="page-sub">Monitor courier activity and earnings</p></header>
+  <div class="table-card">
+    <div class="filter-bar">
+      <select class="filter-sel" [(ngModel)]="filterStatus" (change)="applyFilters()"><option value="">All Status</option><option value="online">Online</option><option value="offline">Offline</option></select>
+      <select class="filter-sel" [(ngModel)]="filterVehicle" (change)="applyFilters()"><option value="">All Vehicles</option><option value="MOTORCYCLE">MOTORCYCLE</option><option value="CAR">CAR</option><option value="BICYCLE">BICYCLE</option><option value="TRUCK">TRUCK</option></select>
+      <input class="search-in" [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="Search courier name...">
+      <button class="btn-reset" (click)="reset()">Reset</button>
+    </div>
+    <div class="loading-wrap" *ngIf="loading"><div class="spinner"></div></div>
+    <div class="table-wrap" *ngIf="!loading">
+      <table>
+        <thead><tr><th>Courier</th><th>Deliveries</th><th>Rating</th><th>Completion</th><th>Vehicle</th><th>Earnings</th><th>Status</th><th>Last Seen</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let c of filtered">
+            <td><div class="courier-cell"><div class="cav">{{ getInitials(c.name) }}</div><div><b>{{ c.name }}</b><div class="cid">{{ c.id }}</div></div></div></td>
+            <td><b>{{ c.totalDeliveries }}</b></td>
+            <td><span style="color:#F59E0B">★</span> <b>{{ c.rating }}</b></td>
+            <td [style.color]="c.completionRate >= 90 ? '#22C55E' : '#F59E0B'"><b>{{ c.completionRate }}%</b></td>
+            <td><span class="badge {{ getVehicleClass(c.vehicleType) }}">{{ getVehicleIcon(c.vehicleType) }} {{ c.vehicleType }}</span></td>
+            <td><b>{{ c.earnings | number:'1.0-0' }} DH</b></td>
+            <td><div class="status-cell"><span class="dot" [class.online]="c.online" [class.offline]="!c.online"></span>{{ c.online ? 'Online' : 'Offline' }}</div></td>
+            <td>{{ c.lastSeen }}</td>
+          </tr>
+          <tr *ngIf="filtered.length===0"><td colspan="8" class="empty-row">No couriers found</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

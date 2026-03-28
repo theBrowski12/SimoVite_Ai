@@ -1,0 +1,14 @@
+.kc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.jwt-pre {
+  background: #1e1e1e;
+  color: #dcdcdc;
+  padding: 1rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-family: 'Courier New', Courier, monospace;
+}

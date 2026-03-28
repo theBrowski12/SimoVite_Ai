@@ -1,5 +1,5 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { KeycloakService } from 'keycloak-angular';
+import { ChangeDetectorRef, Component, Inject, OnInit } from '@angular/core';
+import { KeycloakService } from '@core/auth/keycloak.service';
 import { KeycloakProfile } from 'keycloak-js'; // 👈 Import important
 
 @Component({
@@ -15,12 +15,17 @@ export class Navbar implements OnInit {
   userProfile: KeycloakProfile | null = null;
 
   constructor(
-    private readonly keycloak: KeycloakService,
+    @Inject(KeycloakService) private readonly keycloak: KeycloakService, // 👈 Force l'injection
     private cdr: ChangeDetectorRef
   ) {}
 
   async ngOnInit() {
   // On vérifie l'état
+  if (!this.keycloak) {
+        console.error("KeycloakService n'est pas injecté correctement");
+        return;
+    }
+
   this.isLoggedIn = await this.keycloak.isLoggedIn();
   
   if (this.isLoggedIn) {
@@ -35,9 +40,6 @@ export class Navbar implements OnInit {
 }
 
   login() { this.keycloak.login(); }
-  
-  // 👈 Cette fonction va ouvrir la page d'inscription de Keycloak
   register() { this.keycloak.register(); } 
-
   logout() { this.keycloak.logout(); }
 }

@@ -1,1 +1,74 @@
-<p>deliveries works!</p>
+<div class="admin-deliveries">
+  <header class="page-header">
+    <div><h1>Deliveries</h1><p class="page-sub">Track all active and completed deliveries</p></div>
+  </header>
+
+  <!-- KPI Row -->
+  <div class="kpi-row">
+    <div class="kpi-card"><div class="kpi-icon gray">⏳</div><div><div class="kpi-val">{{ kpis('PENDING') }}</div><div class="kpi-lbl">Pending</div></div></div>
+    <div class="kpi-card"><div class="kpi-icon orange">🛵</div><div><div class="kpi-val live-wrap">{{ kpis('ASSIGNED') }} <span class="live-dot"></span></div><div class="kpi-lbl">Assigned</div></div></div>
+    <div class="kpi-card"><div class="kpi-icon blue">📦</div><div><div class="kpi-val">{{ kpis('PICKED_UP') }}</div><div class="kpi-lbl">In Transit</div></div></div>
+    <div class="kpi-card"><div class="kpi-icon green">✅</div><div><div class="kpi-val">{{ kpis('DELIVERED') }}</div><div class="kpi-lbl">Delivered</div></div></div>
+  </div>
+
+  <div class="table-card">
+    <div class="filter-bar">
+      <select class="filter-sel" [(ngModel)]="filterStatus" (change)="applyFilters()">
+        <option value="">All Status</option>
+        <option value="PENDING">PENDING</option>
+        <option value="ASSIGNED">ASSIGNED</option>
+        <option value="PICKED_UP">PICKED_UP</option>
+        <option value="DELIVERED">DELIVERED</option>
+      </select>
+      <select class="filter-sel" [(ngModel)]="filterVehicle" (change)="applyFilters()">
+        <option value="">All Vehicles</option>
+        <option value="MOTORCYCLE">MOTORCYCLE</option>
+        <option value="CAR">CAR</option>
+        <option value="BICYCLE">BICYCLE</option>
+        <option value="TRUCK">TRUCK</option>
+      </select>
+      <input class="search-in" [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="Search by ref or courier...">
+      <button class="btn-reset" (click)="reset()">Reset</button>
+    </div>
+
+    <div class="loading-wrap" *ngIf="loading"><div class="spinner"></div></div>
+
+    <div class="table-wrap" *ngIf="!loading">
+      <table>
+        <thead>
+          <tr>
+            <th>Order Ref</th><th>Courier</th><th>Vehicle</th>
+            <th>Distance</th><th>Cost</th><th>ETA</th>
+            <th>COD</th><th>Pickup</th><th>Drop-off</th>
+            <th>Status</th><th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let d of paginated">
+            <td><strong class="order-ref">{{ d.orderRef }}</strong></td>
+            <td>{{ d.courierName }}</td>
+            <td>{{ getVehicleIcon(d.vehicleType) }} {{ d.vehicleType }}</td>
+            <td>{{ d.distanceInKm | number:'1.1-1' }} km</td>
+            <td>{{ d.deliveryCost | number:'1.2-2' }} DH</td>
+            <td>{{ d.estimatedTimeInMinutes > 0 ? (d.estimatedTimeInMinutes + ' min') : '—' }}</td>
+            <td>
+              <span *ngIf="d.cashOnDelivery" class="badge badge-amber">{{ d.amountToCollect | number:'1.2-2' }} DH</span>
+              <span *ngIf="!d.cashOnDelivery" class="badge badge-green">Paid</span>
+            </td>
+            <td>{{ d.pickupCity }}</td>
+            <td>{{ d.dropoffCity }}</td>
+            <td><span class="badge {{ getStatusClass(d.status) }}">{{ d.status }}</span></td>
+            <td>{{ d.createdAt | date:'dd MMM, HH:mm' }}</td>
+          </tr>
+          <tr *ngIf="paginated.length === 0"><td colspan="11" class="empty-row">No deliveries found</td></tr>
+        </tbody>
+      </table>
+      <div class="pagination" *ngIf="totalPages > 1">
+        <button class="page-btn" [disabled]="currentPage === 1" (click)="currentPage = currentPage - 1">‹</button>
+        <button class="page-btn" *ngFor="let p of pages" [class.active]="p === currentPage" (click)="currentPage = p">{{ p }}</button>
+        <button class="page-btn" [disabled]="currentPage === totalPages" (click)="currentPage = currentPage + 1">›</button>
+        <span class="page-info">{{ filtered.length }} results</span>
+      </div>
+    </div>
+  </div>
+</div>

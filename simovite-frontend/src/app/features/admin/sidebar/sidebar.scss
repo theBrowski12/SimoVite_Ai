@@ -1,0 +1,146 @@
+/* VARIABLES */
+$navy-dark: #0D1B2A; // Le fond très foncé de l'image 1
+$orange-vibrant: #FF6B35; // L'orange vif de l'image 1
+$text-muted: rgba(255, 255, 255, 0.5);
+$text-light: #ffffff;
+
+.admin-sidebar {
+  height: 100vh;
+  width: 260px; // Légèrement plus large pour l'aération
+  display: flex;
+  flex-direction: column;
+  background-color: $navy-dark;
+  color: $text-light;
+  font-family: 'Inter', sans-serif; // Ou DM Sans, comme sur l'image
+  border-right: 1px solid rgba(255, 255, 255, 0.03);
+
+  /* ── BRANDING (Logo) ── */
+  .sidebar-brand {
+    padding: 25px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
+    margin-bottom: 10px;
+    .logo-icon {
+      width: 34px; height: 34px;
+      background-color: $orange-vibrant;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+
+    .logo-text {
+      font-family: 'Syne', sans-serif; // Comme ton code original
+      font-weight: 800;
+      font-size: 1.15rem;
+      color: $text-light;
+      
+      span { color: $orange-vibrant; } // Le "Vite" en orange
+    }
+  }
+
+  /* ── MENU NAVIGATION ── */
+  .sidebar-menu {
+    flex: 1;
+    overflow-y: auto; // Permet de scroller si le menu est long
+    padding: 0 15px; // Espace sur les côtés pour l'élément actif
+
+    /* Styles pour la scrollbar (optionnel mais recommandé) */
+    &::-webkit-scrollbar { 
+      width: 4px; // Très fine
+    }
+    &::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.01);
+    }
+    &::-webkit-scrollbar-thumb { 
+      background: rgba(255, 255, 255, 0.1); // Visible mais discret
+      border-radius: 10px; 
+    }
+
+    .menu-section {
+      color: $text-muted;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-weight: 700;
+      margin: 25px 0 10px 15px;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 12px 18px;
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      border-radius: 14px; // GRANDS coins arrondis
+      transition: all 0.2s ease;
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+
+      .icon {
+        width: 19px; height: 19px;
+        color: rgba(255, 255, 255, 0.5);
+        transition: color 0.2s;
+      }
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.03);
+        color: $text-light;
+        .icon { color: $text-light; }
+      }
+
+      /* ÉTAT ACTIF (L'élément orange) */
+      &.active {
+        background-color: $orange-vibrant;
+        color: $text-light;
+        font-weight: 600;
+        border-left: none; // On enlève la bordure gauche de l'image 3
+
+        .icon {
+          color: $text-light; // Icône blanche sur fond orange
+        }
+      }
+    }
+  }
+
+  /* ── USER FOOTER (Nouveau) ── */
+  .sidebar-user {
+    padding: 20px 25px;
+    border-top: 1px solid rgba(255, 255, 255, 0.03);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(0,0,0,0.1); // Légère distinction de fond
+
+    .user-avatar {
+      width: 42px; height: 42px;
+      background-color: $orange-vibrant;
+      border-radius: 50%; // Avatar rond
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 16px; color: white;
+    }
+
+    .user-info {
+      flex: 1;
+      .user-name { font-weight: 600; font-size: 0.9rem; color: $text-light; }
+      .user-role { font-size: 0.75rem; color: $text-muted; }
+    }
+
+    .btn-logout {
+      background: transparent;
+      border: none;
+      color: $text-muted;
+      cursor: pointer;
+      padding: 5px;
+      transition: color 0.2s;
+
+      svg { width: 18px; height: 18px; }
+
+      &:hover {
+        color: #ef4444; // Rouge au hover
+      }
+    }
+  }
+}

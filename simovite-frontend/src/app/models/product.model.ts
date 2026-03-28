@@ -5,6 +5,8 @@ export interface Product {
   basePrice: number;
   storeId: string;
   available: boolean;
+  storeName: string;     // 👈 Ajouté
+  storeCategory: string;
   itemType: string;
   rating?: number;
   imageUrl?: string;

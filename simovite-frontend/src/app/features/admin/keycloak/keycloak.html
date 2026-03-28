@@ -1,1 +1,29 @@
-<p>keycloak works!</p>
+<div class="admin-keycloak">
+  <header class="page-header"><h1>Keycloak IAM</h1><p class="page-sub">Identity and Access Management — Realm: {{ realm }}</p></header>
+  <div class="kc-grid">
+    <div class="kc-card">
+      <h3>⚙️ Realm Configuration</h3>
+      <div class="kc-row"><span>Realm Name</span><strong>{{ realm }}</strong></div>
+      <div class="kc-row"><span>Keycloak URL</span><code>{{ url }}</code></div>
+      <div class="kc-row"><span>Client ID</span><code>{{ client }}</code></div>
+      <div class="kc-row"><span>Token Algorithm</span><strong>{{ tokenAlgo }}</strong></div>
+      <div class="kc-row"><span>Token Expiry</span><strong>{{ tokenExpiry }}</strong></div>
+      <div class="kc-row"><span>Total Users</span><strong>{{ totalUsers | number }}</strong></div>
+      <div class="kc-row"><span>Session Status</span><span class="badge badge-green">{{ sessionStatus }}</span></div>
+    </div>
+    <div class="kc-card">
+      <h3>🔑 Roles & Permissions</h3>
+      <div *ngFor="let r of roles" class="role-card">
+        <div class="role-header">
+          <span class="badge {{ r.colorClass }}">{{ r.name }}</span>
+          <span class="role-count">{{ r.userCount }} users</span>
+        </div>
+        <p class="role-desc">{{ r.description }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="jwt-card">
+    <h3>🔐 JWT Token Structure (decoded)</h3>
+    <pre class="jwt-pre">{{ jwtExample }}</pre>
+  </div>
+</div>

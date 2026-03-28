@@ -1,1 +1,39 @@
-<p>products works!</p>
+<div class="admin-products">
+  <header class="page-header"><h1>Products Management</h1><p class="page-sub">Manage all catalogue items across stores</p></header>
+  <div class="table-card">
+    <div class="filter-bar">
+      <select class="filter-sel" [(ngModel)]="filterCategory" (change)="applyFilters()"><option value="">All Categories</option><option value="RESTAURANT">RESTAURANT</option><option value="PHARMACY">PHARMACY</option><option value="SUPERMARKET">SUPERMARKET</option></select>
+      <select class="filter-sel" [(ngModel)]="filterAvailability" (change)="applyFilters()"><option value="">All Status</option><option value="available">Available</option><option value="unavailable">Unavailable</option></select>
+      <input class="search-in" [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="Search products...">
+      <button class="btn-reset" (click)="reset()">Reset</button>
+    </div>
+    <div class="loading-wrap" *ngIf="loading"><div class="spinner"></div></div>
+    <div class="table-wrap" *ngIf="!loading">
+      <table>
+        <thead><tr><th>Product</th><th>Store</th><th>Category</th><th>Type</th><th>Price</th><th>Rating</th><th>Available</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let p of paginated">
+            <td><strong>{{ p.name }}</strong></td>
+            <td>{{ p.storeName }}</td>
+            <td><span class="badge {{ getCategoryClass(p.storeCategory) }}">{{ p.storeCategory }}</span></td>
+            <td><span class="badge badge-gray">{{ p.itemType }}</span></td>
+            <td><strong>{{ p.basePrice | number:'1.2-2' }} DH</strong></td>
+            <td>
+            <span style="color:#F59E0B">{{ getStars(p.rating ?? 0) }}</span> 
+            {{ p.rating ?? 'N/A' }}
+            </td>            <td>
+              <label class="sw"><input type="checkbox" [checked]="p.available" (change)="toggle(p.id)"><span class="slider"></span></label>
+            </td>
+          </tr>
+          <tr *ngIf="paginated.length===0"><td colspan="7" class="empty-row">No products found</td></tr>
+        </tbody>
+      </table>
+      <div class="pagination" *ngIf="totalPages > 1">
+        <button class="page-btn" [disabled]="currentPage===1" (click)="currentPage=currentPage-1">‹</button>
+        <button class="page-btn" *ngFor="let p of pages" [class.active]="p===currentPage" (click)="currentPage=p">{{ p }}</button>
+        <button class="page-btn" [disabled]="currentPage===totalPages" (click)="currentPage=currentPage+1">›</button>
+        <span class="page-info">{{ filtered.length }} products</span>
+      </div>
+    </div>
+  </div>
+</div>

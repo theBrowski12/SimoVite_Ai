@@ -1,1 +1,106 @@
-<p>reviews works!</p>
+<div class="admin-reviews">
+  <header class="page-header">
+    <div><h1>Reviews & Sentiment</h1><p class="page-sub">Customer feedback with AI sentiment analysis</p></div>
+  </header>
+
+  <!-- Summary Cards -->
+  <div class="kpi-row">
+    <div class="kpi-card"><div class="kpi-icon orange">💬</div><div><div class="kpi-val">{{ totalCount }}</div><div class="kpi-lbl">Total Reviews</div></div></div>
+    <div class="kpi-card"><div class="kpi-icon amber">⭐</div><div><div class="kpi-val">{{ avgRating }}</div><div class="kpi-lbl">Avg Rating</div></div></div>
+    <div class="kpi-card"><div class="kpi-icon green">😊</div><div><div class="kpi-val" style="color:#16a34a">{{ positiveCount }}</div><div class="kpi-lbl">Positive</div></div></div>
+    <div class="kpi-card"><div class="kpi-icon red">😞</div><div>
+      <div class="kpi-val" style="color:#dc2626">{{ negativeCount }}</div>
+      <div class="kpi-lbl">Negative</div>
+    </div></div>
+  </div>
+
+  <!-- Incoherence Alert -->
+  <div class="alert-box" *ngIf="incoherentCount > 0">
+    <span>⚠️</span>
+    <span><strong>{{ incoherentCount }} incoherent review(s) detected</strong> — High rating with negative comment or vice versa. Please review.</span>
+  </div>
+
+  <div class="table-card">
+    <div class="filter-bar">
+      <select class="filter-sel" [(ngModel)]="filterType" (change)="applyFilters()">
+        <option value="">All Targets</option>
+        <option value="STORE">STORE</option>
+        <option value="PRODUCT">PRODUCT</option>
+      </select>
+      <select class="filter-sel" [(ngModel)]="filterSentiment" (change)="applyFilters()">
+        <option value="">All Sentiments</option>
+        <option value="POSITIVE">POSITIVE</option>
+        <option value="NEGATIVE">NEGATIVE</option>
+        <option value="MIXED">MIXED</option>
+      </select>
+      <select class="filter-sel" [(ngModel)]="filterRating" (change)="applyFilters()">
+        <option value="">All Ratings</option>
+        <option value="5">5 ★</option>
+        <option value="4">4 ★</option>
+        <option value="3">3 ★</option>
+        <option value="2">2 ★</option>
+        <option value="1">1 ★</option>
+      </select>
+      <input class="search-in" [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="Search comment or client...">
+      <button class="btn-reset" (click)="reset()">Reset</button>
+    </div>
+
+    <div class="loading-wrap" *ngIf="loading"><div class="spinner"></div></div>
+
+    <div class="table-wrap" *ngIf="!loading">
+      <table>
+        <thead>
+          <tr>
+            <th>Client</th><th>Target</th><th>Type</th>
+            <th>Rating</th><th>Comment</th>
+            <th>Sentiment</th><th>Score</th>
+            <th>Date</th><th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of paginated" [class.incoherent-row]="r.incoherent">
+            <td>
+              <div class="client-cell">
+                <div class="avatar">{{ r.clientName.slice(0,2).toUpperCase() }}</div>
+                <strong>{{ r.clientName }}</strong>
+                <span *ngIf="r.incoherent" class="incoherent-badge" title="Rating and sentiment don't match">⚠️</span>
+              </div>
+            </td>
+            <td>{{ r.targetName }}</td>
+            <td><span class="badge {{ r.targetType === 'STORE' ? 'badge-orange' : 'badge-blue' }}">{{ r.targetType }}</span></td>
+            <td>
+              <div class="rating-cell">
+                <span class="stars">{{ getStars(r.rating) }}</span>
+                <strong>{{ r.rating }}</strong>
+              </div>
+            </td>
+            <td class="comment-cell">{{ r.comment }}</td>
+            <td>
+              <span *ngIf="r.sentimentAnalyzed" class="badge {{ getSentimentClass(r.sentiment) }}">
+                {{ getSentimentIcon(r.sentiment) }} {{ r.sentiment }}
+              </span>
+              <span *ngIf="!r.sentimentAnalyzed" class="badge badge-gray">Pending...</span>
+            </td>
+            <td>
+              <div *ngIf="r.sentimentScore !== undefined" class="score-bar">
+                <div class="score-fill" [style.width.%]="r.sentimentScore * 100" [style.background]="r.sentiment === 'POSITIVE' ? '#22C55E' : r.sentiment === 'NEGATIVE' ? '#EF4444' : '#F59E0B'"></div>
+                <span class="score-text">{{ (r.sentimentScore! * 100) | number:'1.0-0' }}%</span>
+              </div>
+            </td>
+            <td>{{ r.createdAt | date:'dd MMM' }}</td>
+            <td>
+              <button class="del-btn" (click)="deleteReview(r.id)" title="Delete">🗑️</button>
+            </td>
+          </tr>
+          <tr *ngIf="paginated.length === 0"><td colspan="9" class="empty-row">No reviews found</td></tr>
+        </tbody>
+      </table>
+      <div class="pagination" *ngIf="totalPages > 1">
+        <button class="page-btn" [disabled]="currentPage === 1" (click)="currentPage = currentPage - 1">‹</button>
+        <button class="page-btn" *ngFor="let p of pages" [class.active]="p === currentPage" (click)="currentPage = p">{{ p }}</button>
+        <button class="page-btn" [disabled]="currentPage === totalPages" (click)="currentPage = currentPage + 1">›</button>
+        <span class="page-info">{{ filtered.length }} results</span>
+      </div>
+    </div>
+  </div>
+</div>

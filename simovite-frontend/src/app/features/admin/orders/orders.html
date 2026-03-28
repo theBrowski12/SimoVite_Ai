@@ -1,1 +1,104 @@
-<p>orders works!</p>
+<div class="admin-orders">
+  <header class="page-header">
+    <div>
+      <h1>Orders Management</h1>
+      <p class="page-sub">Monitor and manage all customer orders</p>
+    </div>
+  </header>
+
+  <!-- KPI Row -->
+  <div class="kpi-row">
+    <div class="kpi-card">
+        <div class="kpi-icon orange">📦</div>
+        <div><div class="kpi-val">{{ orders.length }}</div><div class="kpi-lbl">Total Orders</div></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon green">✅</div>
+        <div><div class="kpi-val">{{ countByStatus('DELIVERED') }}</div><div class="kpi-lbl">Delivered</div></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon blue">🔄</div>
+        <div><div class="kpi-val">{{ countByStatus('ACCEPTED') }}</div><div class="kpi-lbl">In Progress</div></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon gray">⏳</div>
+        <div><div class="kpi-val">{{ countByStatus('PENDING') }}</div><div class="kpi-lbl">Pending</div></div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="table-card">
+    <div class="filter-bar">
+      <select class="filter-sel" [(ngModel)]="filterStatus" (change)="applyFilters()">
+        <option value="">All Status</option>
+        <option value="PENDING">PENDING</option>
+        <option value="ACCEPTED">ACCEPTED</option>
+        <option value="DELIVERED">DELIVERED</option>
+        <option value="CANCELLED">CANCELLED</option>
+      </select>
+      <select class="filter-sel" [(ngModel)]="filterPayment" (change)="applyFilters()">
+        <option value="">All Payment</option>
+        <option value="COD">COD</option>
+        <option value="ONLINE">ONLINE</option>
+      </select>
+      <select class="filter-sel" [(ngModel)]="filterCategory" (change)="applyFilters()">
+        <option value="">All Categories</option>
+        <option value="RESTAURANT">RESTAURANT</option>
+        <option value="PHARMACY">PHARMACY</option>
+        <option value="SUPERMARKET">SUPERMARKET</option>
+      </select>
+      <div class="search-wrap">
+        <input class="search-in" [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="Search by ref or client...">
+      </div>
+      <button class="btn-reset" (click)="reset()">Reset</button>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-wrap" *ngIf="loading">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap" *ngIf="!loading">
+      <table>
+        <thead>
+          <tr>
+            <th>Order Ref</th>
+            <th>Client</th>
+            <th>Store</th>
+            <th>Category</th>
+            <th>Total</th>
+            <th>Delivery</th>
+            <th>Payment</th>
+            <th>Status</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let o of paginated">
+            <td><strong class="order-ref">{{ o.orderRef }}</strong></td>
+            <td>{{ o.clientName }}</td>
+            <td>{{ o.storeName }}</td>
+            <td><span class="badge {{ getCategoryClass(o.storeCategory) }}">{{ o.storeCategory }}</span></td>
+            <td><strong>{{ o.totalAmount | number:'1.2-2' }} DH</strong></td>
+            <td>{{ o.deliveryCost | number:'1.2-2' }} DH</td>
+            <td><span class="badge {{ getPaymentClass(o.paymentMethod) }}">{{ o.paymentMethod }}</span></td>
+            <td><span class="badge {{ getStatusClass(o.status) }}">{{ o.status }}</span></td>
+            <td>{{ o.createdAt | date:'dd MMM, HH:mm' }}</td>
+          </tr>
+          <tr *ngIf="paginated.length === 0">
+            <td colspan="9" class="empty-row">No orders found</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Pagination -->
+      <div class="pagination" *ngIf="totalPages > 1">
+        <button class="page-btn" [disabled]="currentPage === 1" (click)="currentPage = currentPage - 1">‹</button>
+        <button class="page-btn" *ngFor="let p of pages" [class.active]="p === currentPage" (click)="currentPage = p">{{ p }}</button>
+        <button class="page-btn" [disabled]="currentPage === totalPages" (click)="currentPage = currentPage + 1">›</button>
+        <span class="page-info">{{ filtered.length }} results</span>
+      </div>
+    </div>
+  </div>
+</div>

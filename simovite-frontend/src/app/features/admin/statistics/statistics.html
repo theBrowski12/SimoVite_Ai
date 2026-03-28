@@ -1,1 +1,17 @@
-<p>statistics works!</p>
+<div class="admin-statistics">
+  <header class="page-header"><h1>Statistics</h1><p class="page-sub">Platform analytics and performance metrics</p></header>
+  <div class="kpi-row">
+    <div class="kpi-card"><div class="kpi-icon orange">📦</div><div><div class="kpi-val">{{ kpis.monthOrders | number }}</div><div class="kpi-lbl">Orders this month</div></div></div>
+    <div class="kpi-card"><div class="kpi-icon green">💰</div><div><div class="kpi-val">{{ kpis.monthRevenue | number:'1.0-0' }} DH</div><div class="kpi-lbl">Revenue this month</div></div></div>
+    <div class="kpi-card"><div class="kpi-icon blue">⏱️</div><div><div class="kpi-val">{{ kpis.avgDeliveryTime }} min</div><div class="kpi-lbl">Avg delivery time</div></div></div>
+    <div class="kpi-card"><div class="kpi-icon purple">🔄</div><div><div class="kpi-val">{{ kpis.repeatRate }}%</div><div class="kpi-lbl">Repeat customers</div></div></div>
+  </div>
+  <div class="charts-row">
+    <div class="chart-card"><div class="chart-hd"><b>Monthly Revenue</b><span class="chip">Last 6 months</span></div><canvas id="revenueChart" height="200"></canvas></div>
+    <div class="chart-card"><div class="chart-hd"><b>Payment Method</b><span class="chip">All time</span></div><canvas id="paymentChart" height="200"></canvas></div>
+  </div>
+  <div class="charts-row">
+    <div class="chart-card"><div class="chart-hd"><b>Deliveries by Status</b><span class="chip">This month</span></div><canvas id="statusChart" height="200"></canvas></div>
+    <div class="chart-card"><div class="chart-hd"><b>New Clients Growth</b><span class="chip">Last 6 months</span></div><canvas id="clientsChart" height="200"></canvas></div>
+  </div>
+</div>
