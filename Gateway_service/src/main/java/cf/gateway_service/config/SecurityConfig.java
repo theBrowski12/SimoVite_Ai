@@ -1,5 +1,6 @@
 package cf.gateway_service.config;
 
+import jakarta.ws.rs.HttpMethod;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
@@ -25,13 +26,16 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/actuator/**").permitAll()
-                        .pathMatchers("/api/catalog/**").permitAll()
-                        .pathMatchers("/api/orders/**").hasAnyRole("CLIENT", "ADMIN")
-                        .pathMatchers("/api/deliveries/pending").hasRole("COURIER")
-                        .pathMatchers("/api/deliveries/*/accept").hasRole("COURIER")
-                        .pathMatchers("/api/deliveries/courier/location").hasRole("COURIER")
-                        .pathMatchers("/api/deliveries/*/complete").hasRole("COURIER")
+                        .pathMatchers("/v1/catalog/**").permitAll()
+                        .pathMatchers("/v1/orders/**").hasAnyRole("CLIENT", "ADMIN")
+                        .pathMatchers("/v1/deliveries/pending").hasRole("COURIER")
+                        .pathMatchers("/v1/deliveries/*/accept").hasRole("COURIER")
+                        .pathMatchers("/v1/deliveries/courier/location").hasRole("COURIER")
+                        .pathMatchers("/v1/deliveries/*/complete").hasRole("COURIER")
                         .pathMatchers("/api/deliveries/all").hasRole("ADMIN")
+                        .pathMatchers(HttpMethod.GET, "/CATALOG-SERVICE/v1/catalog/**", "/CATALOG-SERVICE/v1/catalog").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/CATALOG-SERVICE/v1/stores/**", "/CATALOG-SERVICE/v1/stores").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/CATALOG-SERVICE/v1/reviews/**", "/CATALOG-SERVICE/v1/reviews").permitAll()
                         .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

@@ -8,8 +8,8 @@ import java.util.List;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @TypeAlias("pharmacy_item")
 public class Pharmacy extends Catalog {
@@ -18,4 +18,5 @@ public class Pharmacy extends Catalog {
     private String dosage; // Ex: "500mg"
     private String activeIngredient; // Ex: "Paracétamol"
     private List<PharmacyCategory> pharmacyCategories;
+
 }

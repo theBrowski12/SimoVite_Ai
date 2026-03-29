@@ -19,4 +19,5 @@ public class RestaurantRequestDto extends CatalogRequestDto {
     private List<String> ingredients;
     private Boolean vegetarian;
     private String allergens;
+
 }

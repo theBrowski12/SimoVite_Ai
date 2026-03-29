@@ -8,8 +8,8 @@ import java.util.List;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true) // Hérite correctement de Catalog
 @TypeAlias("restaurant_item")
 public class Restaurant extends Catalog {

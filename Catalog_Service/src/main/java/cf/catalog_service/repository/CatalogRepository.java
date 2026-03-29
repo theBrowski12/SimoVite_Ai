@@ -63,4 +63,6 @@ public interface CatalogRepository extends MongoRepository<Catalog, String> {
     // Trouver les médicaments qui nécessitent une ordonnance
     @Query("{ 'requiresPrescription' : true }")
     List<Catalog> findPrescriptionDrugs();
+
+    List<Catalog> id(String id);
 }

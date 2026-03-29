@@ -12,4 +12,5 @@ public class SpecialDeliveryResponseDto extends CatalogResponseDto {
     private double pricePerKm;
     private double pricePerKg;
     private String requiredVehicleType;
+
 }

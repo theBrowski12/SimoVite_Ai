@@ -6,9 +6,7 @@ import cf.catalog_service.dto.pharmacy.PharmacyRequestDto;
 import cf.catalog_service.dto.resto.RestaurantRequestDto;
 import cf.catalog_service.dto.special.SpecialDeliveryRequestDto;
 import cf.catalog_service.dto.supermarket.SupermarketRequestDTO;
-import cf.catalog_service.entities.Catalog;
-import cf.catalog_service.entities.SpecialDelivery;
-import cf.catalog_service.entities.Store;
+import cf.catalog_service.entities.*;
 import cf.catalog_service.enums.FoodCategory;
 import cf.catalog_service.enums.PharmacyCategory;
 import cf.catalog_service.enums.SupermarketCategory;
@@ -21,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -92,12 +91,65 @@ public class CatalogServiceImpl implements CatalogService {
     @McpTool(description = "Update an existing product by ID")
     public CatalogResponseDto updateOffer(
             @McpToolParam(description = "MongoDB ObjectId of product to update") String id,
-            @McpToolParam(description = "Updated product data") CatalogRequestDto requestDto) {
-        catalogRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Produit introuvable : " + id));
-        Catalog updated = catalogMapper.toEntity(requestDto);
-        updated.setId(id);
-        return catalogMapper.toDto(catalogRepository.save(updated));
+            @McpToolParam(description = "Updated product data") CatalogRequestDto request) {
+
+        // 1. Récupération du produit existant
+        Catalog existingProduct = catalogRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Produit introuvable"));
+
+        System.out.println("Image reçue du Front : " + request.getImageURL());
+        System.out.println("StoreId reçu du Front : " + request.getStoreId());
+        // 2. Mise à jour des champs communs
+        existingProduct.setName(request.getName());
+        existingProduct.setDescription(request.getDescription());
+        existingProduct.setBasePrice(request.getBasePrice());
+        existingProduct.setAvailable(request.getAvailable());
+        existingProduct.setImageURL(request.getImageURL());
+
+        // 3. Mise à jour du magasin (Store)
+        if (request.getStoreId() != null && !request.getStoreId().isEmpty()) {
+            Store newStore = storeRepository.findById(request.getStoreId())
+                    .orElseThrow(() -> new RuntimeException("Store introuvable"));
+            existingProduct.setStore(newStore);
+        }
+
+        // ⚡️ 4. Mise à jour des champs SPÉCIFIQUES selon la catégorie
+        if (request instanceof RestaurantRequestDto && existingProduct instanceof Restaurant) {
+            RestaurantRequestDto restReq = (RestaurantRequestDto) request;
+            Restaurant restItem = (Restaurant) existingProduct;
+            restItem.setIngredients(restReq.getIngredients());
+            restItem.setFoodCategories(restReq.getFoodCategories());
+
+            // ✅ CORRECTION : On vérifie si c'est null, sinon on met false par défaut
+            restItem.setVegetarian(restReq.getVegetarian() != null ? restReq.getVegetarian() : false);
+            restItem.setAvailable(restReq.getAvailable() != null ? restReq.getAvailable() : false);
+
+            restItem.setAllergens(restReq.getAllergens());
+        } else if (request instanceof PharmacyRequestDto && existingProduct instanceof Pharmacy) {
+            PharmacyRequestDto pharmReq = (PharmacyRequestDto) request;
+            Pharmacy pharmItem = (Pharmacy) existingProduct;
+            pharmItem.setActiveIngredient(pharmReq.getActiveIngredient());
+            pharmItem.setDosage(pharmReq.getDosage());
+            pharmItem.setRequiresPrescription(pharmReq.getRequiresPrescription() != null ? pharmReq.getRequiresPrescription() : false);
+            pharmItem.setPharmacyCategories(pharmReq.getPharmacyCategories());
+
+        } else if (request instanceof SupermarketRequestDTO && existingProduct instanceof SuperMarket) {
+            SupermarketRequestDTO supReq = (SupermarketRequestDTO) request;
+            SuperMarket supItem = (SuperMarket) existingProduct;
+            supItem.setWeightInKg(supReq.getWeightInKg());
+            supItem.setSupermarketCategories(supReq.getSupermarketCategories());
+
+        } else if (request instanceof SpecialDeliveryRequestDto && existingProduct instanceof SpecialDelivery) {
+            SpecialDeliveryRequestDto delReq = (SpecialDeliveryRequestDto) request;
+            SpecialDelivery delItem = (SpecialDelivery) existingProduct;
+            delItem.setPricePerKm(delReq.getPricePerKm());
+            delItem.setPricePerKg(delReq.getPricePerKg());
+            delItem.setRequiredVehicleType(delReq.getRequiredVehicleType());
+        }
+
+        // 5. Sauvegarde PROPRE (une seule fois) et conversion en DTO
+        Catalog updated = catalogRepository.save(existingProduct);
+        return catalogMapper.toDto(updated);
     }
 
     @Override
@@ -125,7 +177,8 @@ public class CatalogServiceImpl implements CatalogService {
             if (!store.getOwnerId().equals(requestingOwnerId))
                 throw new RuntimeException("❌ Accès refusé !");
         }
-        catalog.setAvailable(!catalog.getAvailable());
+        boolean currentStatus = catalog.getAvailable() != null ? catalog.getAvailable() : false;
+        catalog.setAvailable(!currentStatus);
         return catalogMapper.toDto(catalogRepository.save(catalog));
     }
 

@@ -1,5 +1,6 @@
 package cf.catalog_service.entities;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,9 +22,13 @@ public class Catalog {
     private String name;
     private String description;
     private Double basePrice;
-    private Boolean available;
+    private Boolean available = true;
+
+    @JsonProperty("imageURL")
     private String imageURL;
+
     private String storeId;
+
     @Transient
     private Store store;
 }

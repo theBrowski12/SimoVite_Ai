@@ -16,10 +16,21 @@ import org.springframework.data.annotation.Transient;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = RestaurantRequestDto.class, name = "RESTAURANT"),
+        @JsonSubTypes.Type(value = PharmacyRequestDto.class, name = "PHARMACY"),
+        @JsonSubTypes.Type(value = SupermarketRequestDTO.class, name = "SUPERMARKET"),
+        @JsonSubTypes.Type(value = SpecialDeliveryRequestDto.class, name = "SPECIAL_DELIVERY")
+})
 public abstract class CatalogRequestDto {
     private String name;
     private String description;
     private Double basePrice;
     private Boolean available;
     private String storeId;
+
+    @JsonProperty("imageURL")
+    private String imageURL;
+
 }

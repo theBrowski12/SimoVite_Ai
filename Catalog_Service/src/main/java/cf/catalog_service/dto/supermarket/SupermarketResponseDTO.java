@@ -15,4 +15,5 @@ import java.util.List;
 public class SupermarketResponseDTO extends CatalogResponseDto {
     private Double weightInKg; // Poids du produit
     private List<SupermarketCategory> supermarketCategories;
+
 }

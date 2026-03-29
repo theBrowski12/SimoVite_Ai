@@ -43,7 +43,7 @@ public class CatalogMapper {
 
         // 2. On copie les propriétés
         BeanUtils.copyProperties(dto, entity);
-
+        dto.setImageURL(entity.getImageURL());
         return entity;
     }
 
@@ -73,10 +73,11 @@ public class CatalogMapper {
 
         // 2. On copie les propriétés simples
         BeanUtils.copyProperties(entity, dto);
-
+        dto.setId(entity.getId());
         // 3. Transformation du Store (si chargé)
         if (entity.getStore() != null) {
             dto.setStore(storeMapper.toDto(entity.getStore()));
+            dto.setStoreId(entity.getStore().getId()); // ⚡️ Très important pour tes filtres Angular !
         }
 
         return dto;

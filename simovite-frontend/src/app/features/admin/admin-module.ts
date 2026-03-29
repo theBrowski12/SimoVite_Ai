@@ -19,24 +19,39 @@ import { MlInsights } from './ml-insights/ml-insights';
 import { Config } from './config/config';
 import { AdminKeycloak } from './keycloak/keycloak';
 import { AdminClientsComponent } from './clients/clients';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { AdminProductDetailsComponent } from './admin-product-details/admin-product-details';
+import { ProductForm } from './product-form/product-form';
 // ... autres imports
 
 @NgModule({
   declarations: [
-    AdminDashboard, Sidebar, AdminLayout,
-    AdminOrders, AdminDeliveries, AdminReviews, AdminStores,
-    AdminProducts, AdminCouriers, AdminClientsComponent, AdminStoreOwners,
-    AdminStatistics, MlInsights, Config, AdminKeycloak
-  
+    AdminDashboard,
+    Sidebar,
+    AdminLayout,
+    AdminOrders,
+    AdminDeliveries,
+    AdminReviews,
+    AdminStores,
+    AdminProducts,
+    AdminCouriers,
+    AdminClientsComponent,
+    AdminStoreOwners,
+    AdminStatistics,
+    MlInsights,
+    Config,
+    AdminKeycloak,
+    AdminProductDetailsComponent,
+    ProductForm,
   ],
   imports: [
     CommonModule,
-    SharedModule, 
+    SharedModule,
     RouterModule,
     AdminRoutingModule,
     FormsModule,
+    ReactiveFormsModule,
     // ...
-  ]
+  ],
 })
 export class AdminModule {}

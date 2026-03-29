@@ -25,7 +25,6 @@ import lombok.*;
     private String description;
     private Double basePrice;
     private Boolean available;
-
   // On ajoute un champ type explicite pour aider le Front-end (React/Angular)
     private String type;
     private String storeId;

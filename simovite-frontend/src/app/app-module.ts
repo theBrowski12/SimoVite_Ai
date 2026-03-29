@@ -1,6 +1,6 @@
 import { NgModule, APP_INITIALIZER } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { KeycloakAngularModule } from 'keycloak-angular';
 
@@ -13,6 +13,7 @@ import { SharedModule } from './shared/shared.module';
 import { App } from './app'; 
 import { Navbar } from './shared/components/navbar/navbar';
 import { Sidebar } from './shared/components/sidebar/sidebar';
+import { JwtInterceptor } from '@core/interceptors/jwt.interceptor';
 
 // Fonction pour initialiser Keycloak
 function initializeKeycloak(keycloak: KeycloakService) {
@@ -40,6 +41,7 @@ function initializeKeycloak(keycloak: KeycloakService) {
     })
   ],
   providers: [
+    { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
     KeycloakService,
     {
       provide: APP_INITIALIZER,

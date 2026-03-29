@@ -17,4 +17,5 @@ import java.util.List;
 public class SuperMarket extends Catalog {
     private Double weightInKg; // Poids du produit
     private List<SupermarketCategory> supermarketCategories;
+
 }

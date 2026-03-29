@@ -1,0 +1,158 @@
+<form [formGroup]="productForm" (ngSubmit)="saveProduct()" class="custom-form">
+  
+  <div class="form-section">
+    <h3 class="section-title">Informations Générales</h3>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label>Magasin affilié *</label>
+        <select formControlName="storeId" (change)="onStoreChange($event)" [class.is-invalid]="productForm.get('storeId')?.invalid && productForm.get('storeId')?.touched">
+          <option value="" disabled>Sélectionnez un magasin</option>
+          <option *ngFor="let store of stores" [value]="store.id">{{ store.name }} ({{ store.category }})</option>
+        </select>
+        <small class="error-text" *ngIf="productForm.get('storeId')?.invalid && productForm.get('storeId')?.touched">Le magasin est requis.</small>
+      </div>
+
+      <div class="form-group">
+        <label>Nom du produit *</label>
+        <input type="text" formControlName="name" placeholder="Ex: Pizza Margherita" [class.is-invalid]="productForm.get('name')?.invalid && productForm.get('name')?.touched">
+        <small class="error-text" *ngIf="productForm.get('name')?.invalid && productForm.get('name')?.touched">Le nom est requis.</small>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Prix de base (€) *</label>
+        <input type="number" formControlName="basePrice" min="0" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>URL de l'image</label>
+        <input type="text" formControlName="imageURL" placeholder="https://...">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Description</label>
+      <textarea formControlName="description" rows="3" placeholder="Description courte du produit..."></textarea>
+    </div>
+
+    <div class="form-group checkbox-group">
+      <label class="checkbox-label">
+        <input type="checkbox" formControlName="available">
+        Produit disponible immédiatement à la vente
+      </label>
+    </div>
+  </div>
+
+  <div class="form-section dynamic-section" *ngIf="selectedStoreCategory === 'RESTAURANT'">
+    <h3 class="section-title badge-orange">Spécifique Restaurant</h3>
+    
+    <div class="form-group">
+      <label>Ingrédients (séparés par des virgules)</label>
+      <input type="text" formControlName="ingredients" placeholder="Ex: Tomate, Mozzarella, Basilic">
+      <small class="hint">Séparez chaque ingrédient par une virgule.</small>
+    </div>
+    
+    <div class="form-group">
+      <label>Catégories de nourriture</label>
+      <div class="checkbox-grid">
+        <label class="checkbox-label" *ngFor="let category of foodCategoryList">
+          <input 
+            type="checkbox" 
+            [value]="category"
+            [checked]="isCategoryChecked(category, 'foodCategories')"
+            (change)="onCategoryChange($event, category, 'foodCategories')">
+          {{ category }}
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section dynamic-section" *ngIf="selectedStoreCategory === 'PHARMACY'">
+    <h3 class="section-title badge-green">Spécifique Pharmacie</h3>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label>Principe actif</label>
+        <input type="text" formControlName="activeIngredient" placeholder="Ex: Paracétamol">
+      </div>
+      <div class="form-group">
+        <label>Dosage</label>
+        <input type="text" formControlName="dosage" placeholder="Ex: 500mg">
+      </div>
+    </div>
+
+    <div class="form-group mt-2">
+      <label>Catégories Pharmacie</label>
+      <div class="checkbox-grid">
+        <label class="checkbox-label" *ngFor="let category of pharmacyCategoryList">
+          <input 
+            type="checkbox" 
+            [value]="category"
+            [checked]="isCategoryChecked(category, 'pharmacyCategories')"
+            (change)="onCategoryChange($event, category, 'pharmacyCategories')">
+          {{ category }}
+        </label>
+      </div>
+    </div>
+
+    <div class="form-group checkbox-group mt-2">
+      <label class="checkbox-label text-danger">
+        <input type="checkbox" formControlName="requiresPrescription">
+        ⚠️ Nécessite une ordonnance médicale
+      </label>
+    </div>
+  </div>
+
+  <div class="form-section dynamic-section" *ngIf="selectedStoreCategory === 'SUPERMARKET'">
+    <h3 class="section-title badge-blue">Spécifique Supermarché</h3>
+    
+    <div class="form-group">
+      <label>Poids (en Kg)</label>
+      <input type="number" formControlName="weightInKg" step="0.1" min="0">
+    </div>
+
+    <div class="form-group mt-2">
+      <label>Catégories Supermarché</label>
+      <div class="checkbox-grid">
+        <label class="checkbox-label" *ngFor="let category of supermarketCategoryList">
+          <input 
+            type="checkbox" 
+            [value]="category"
+            [checked]="isCategoryChecked(category, 'supermarketCategories')"
+            (change)="onCategoryChange($event, category, 'supermarketCategories')">
+          {{ category }}
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section dynamic-section" *ngIf="selectedStoreCategory === 'SPECIAL_DELIVERY'">
+    <h3 class="section-title badge-purple">Spécifique Livraison Spéciale</h3>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label>Prix par Km (€)</label>
+        <input type="number" formControlName="pricePerKm" step="0.1" min="0">
+      </div>
+      <div class="form-group">
+        <label>Prix par Kg (€)</label>
+        <input type="number" formControlName="pricePerKg" step="0.1" min="0">
+      </div>
+      <div class="form-group">
+        <label>Poids Max (Kg)</label>
+        <input type="number" formControlName="maxWeightKg" step="1" min="0">
+      </div>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button type="button" class="btn-secondary" (click)="cancel.emit()" [disabled]="submitting">
+      Annuler
+    </button>
+    <button type="submit" class="btn-primary" [disabled]="submitting || productForm.invalid">
+      <span *ngIf="submitting" class="spinner">⏳</span>
+      {{ isEditMode ? 'Enregistrer les modifications' : 'Créer le produit' }}
+    </button>
+  </div>
+</form>

@@ -1,0 +1,80 @@
+.custom-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  padding: 24px;
+  box-sizing: border-box;
+
+  .form-section {
+    background: #ffffff;
+    padding: 15px 20px;
+    border-radius: 8px;
+    border: 1px solid #eef2f5;
+    margin-bottom: 10px;
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+      margin: 0 0 15px 0;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #eee;
+      
+      &.badge-orange { color: #d97706; border-bottom-color: #fde68a; }
+      &.badge-green { color: #059669; border-bottom-color: #a7f3d0; }
+      &.badge-blue { color: #2563eb; border-bottom-color: #bfdbfe; }
+      &.badge-purple { color: #7c3aed; border-bottom-color: #ddd6fe; }
+    }
+  }
+
+  /* --- LES BOUTONS FIXES EN BAS --- */
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    
+    position: sticky;      /* Reste collé */
+    bottom: -24px;         /* S'aligne sur le bord du padding */
+    z-index: 100;
+    
+    /* On l'étend sur toute la largeur de la modale */
+    margin: 20px -24px -24px -24px; 
+    padding: 16px 24px;
+    
+    background: #ffffff;   /* Fond blanc pour cacher le formulaire qui passe dessous */
+    border-top: 1px solid #e2e8f0;
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Tes autres styles (form-group, row, checkbox-grid) restent ici... */
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+    label { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+    input, select, textarea {
+      padding: 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+    }
+  }
+
+  .checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 12px;
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    padding: 12px;
+    border-radius: 6px;
+    max-height: 150px;
+    overflow-y: auto;
+  }
+}

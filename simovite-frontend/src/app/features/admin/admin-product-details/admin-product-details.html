@@ -1,0 +1,161 @@
+<div class="product-details-container" *ngIf="!loading && product">
+
+  <ng-container *ngIf="!isEditing">
+    <div class="page-header">
+      <button class="btn-back" (click)="goBack()">
+        <span class="icon">&#8592;</span> Retour au catalogue
+      </button>
+    </div>
+
+    <div class="product-main-card">
+      <div class="product-image-wrapper">
+        <img [src]="product.imageURL || 'assets/default-product.png'" alt="Image de {{ product.name }}" class="product-img">
+      </div>
+      
+      <div class="product-info-wrapper">
+        <div class="info-header">
+          <div class="badges-group">
+            <span class="badge" [ngClass]="product.available ? 'badge-success' : 'badge-danger'">
+              {{ product.available ? 'En Stock' : 'Indisponible' }}
+            </span>
+            <span class="category-tag">{{ product.type }}</span>
+            <span class="category-tag" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;">
+              {{ $any(product).foodCategories?.[0] || $any(product).pharmacyCategories?.[0] || $any(product).supermarketCategories?.[0] || 'Standard' }}
+            </span>
+            <span class="veg-tag" *ngIf="product.vegetarian !== undefined" [ngClass]="product.vegetarian ? 'veg-yes' : 'veg-no'">
+              {{ product.vegetarian ? '🌱 Végétarien' : '🥩 Non Végétarien' }}
+            </span>
+          </div>
+
+          <div class="action-buttons">
+            <button class="btn-action btn-edit" (click)="onUpdate()">
+              ✏️ Modifier
+            </button>
+            <button class="btn-action btn-delete" (click)="onDelete()">
+              🗑️ Supprimer
+            </button>
+          </div>
+        </div>
+        
+        <h1 class="product-title">{{ product.name }}</h1>
+        <p class="product-price">{{ product.basePrice }} <span class="currency">MAD</span></p>
+        
+        <div class="product-meta">
+          <p class="meta-item">
+            <strong>Boutique :</strong> 
+            <span class="store-name-highlight">{{ storeName }}</span> 
+            <span class="text-muted" style="font-size: 12px; margin-left: 8px;">(ID: {{ product.storeId }})</span>
+          </p>
+        </div>
+
+        <div class="product-description">
+          <h3>Description</h3>
+          <p class="desc-text text-break">{{ product.description || 'Aucune description disponible pour ce produit.' }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon sales-icon">📦</div>
+        <div class="stat-content">
+          <p class="stat-label">Ventes Totales</p>
+          <h3 class="stat-value">{{ statistics.totalSold }}</h3>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon revenue-icon">💰</div>
+        <div class="stat-content">
+          <p class="stat-label">Revenus Générés</p>
+          <h3 class="stat-value">{{ statistics.revenueGenerated }} <span class="currency">MAD</span></h3>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon rating-icon">⭐</div>
+        <div class="stat-content">
+          <p class="stat-label">Note Moyenne</p>
+          <h3 class="stat-value">{{ statistics.averageRating }} <span class="stat-sub">/ 5</span></h3>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon views-icon">👁️</div>
+        <div class="stat-content">
+          <p class="stat-label">Vues (7 jours)</p>
+          <h3 class="stat-value">{{ statistics.viewsThisWeek }}</h3>
+        </div>
+      </div>
+    </div>
+
+    <div class="details-grid">
+      <div class="dashboard-card">
+        <div class="card-header">
+          <h2>Dernières Commandes</h2>
+        </div>
+        <div class="table-responsive">
+          <table class="modern-table">
+            <thead>
+              <tr>
+                <th>ID Commande</th><th>Date</th><th>Client</th><th>Qté</th><th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let order of recentOrders">
+                <td class="fw-bold text-muted">{{ order.id }}</td>
+                <td>{{ order.date | date:'dd/MM/yyyy' }}</td>
+                <td>{{ order.customer }}</td>
+                <td>{{ order.quantity }}</td>
+                <td>
+                  <span class="status-dot" [ngClass]="order.status | lowercase"></span>
+                  {{ order.status }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="dashboard-card">
+        <div class="card-header">
+          <h2>Avis Clients</h2>
+        </div>
+        <div class="review-list">
+          <div class="review-item" *ngFor="let review of reviews">
+            <div class="review-top">
+              <div class="reviewer-info">
+                <div class="avatar">{{ review.user.charAt(0) }}</div>
+                <div>
+                  <strong>{{ review.user }}</strong>
+                  <span class="review-date">{{ review.date | date:'dd/MM/yyyy' }}</span>
+                </div>
+              </div>
+              <div class="review-stars">⭐ {{ review.rating }}.0</div>
+            </div>
+            <p class="review-comment">{{ review.comment }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <div class="edit-mode-container" *ngIf="isEditing">
+    <div class="page-header mb-4">
+      <button class="btn-back" (click)="onEditCancel()">
+        <span class="icon">&#8592;</span> Annuler l'édition
+      </button>
+      <h2 style="margin-left: 20px;">Modification du produit</h2>
+    </div>
+
+    <app-product-form 
+      [productToEdit]="product" 
+      [stores]="storesList"
+      (cancel)="onEditCancel()" 
+      (saved)="onEditSaved($event)">
+    </app-product-form>
+  </div>
+
+</div>
+
+<div class="loading-state" *ngIf="loading">
+  <div class="spinner"></div>
+  <p>Chargement des détails...</p>
+</div>

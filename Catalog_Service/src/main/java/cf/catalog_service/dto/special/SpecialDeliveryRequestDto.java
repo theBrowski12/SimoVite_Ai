@@ -12,4 +12,5 @@ public class SpecialDeliveryRequestDto extends CatalogRequestDto {
     private Double pricePerKm;
     private Double pricePerKg;
     private String requiredVehicleType;
+
 }

@@ -1,30 +1,51 @@
-import { Injectable } from "@angular/core";
-import { environment } from "@env/environment";
-import { HttpClient } from "@angular/common/http";
-import { Observable } from "rxjs";
-import { EtaRequest ,EtaResponse } from "@models/eta.model";
-import { PriceRequest, PriceResponse } from "@models/price.model";
-import { Delivery } from "@models/delivery.model";
-import { GpsPosition } from "@models/Gpsposition.model";
-import { Review } from "@models/review.model";
-import { CreateReviewDto } from "@models/review.model";
+// review.service.ts
 
-// services/review.service.ts
-@Injectable({ providedIn: 'root' })
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from 'src/environments/environment'; // Adapte le chemin
+import { ReviewRequestDto, ReviewResponseDto, ReviewTargetType } from '../models/review.model'; // Adapte le chemin
+
+@Injectable({
+  providedIn: 'root'
+})
 export class ReviewService {
-  private base = `${environment.apiGateway}/v1/reviews`;
 
-  constructor(private http: HttpClient) {}
+  private readonly apiUrl = `${environment.apiGateway}/v1/reviews`;
 
-  create(dto: CreateReviewDto): Observable<Review> {
-    return this.http.post<Review>(this.base, dto);
+  constructor(private http: HttpClient) { }
+
+  addReview(dto: ReviewRequestDto): Observable<ReviewResponseDto> {
+    return this.http.post<ReviewResponseDto>(this.apiUrl, dto);
   }
 
-  getByTarget(targetId: string, targetType: string): Observable<Review[]> {
-    return this.http.get<Review[]>(`${this.base}/${targetId}/${targetType}`);
+  updateReview(reviewId: string, dto: ReviewRequestDto): Observable<ReviewResponseDto> {
+    return this.http.put<ReviewResponseDto>(`${this.apiUrl}/${reviewId}`, dto);
   }
 
-  // ✅ Sentiment is returned automatically inside Review
-  // No separate call needed — CatalogService handles it
+  getReviews(targetId?: string, targetType?: ReviewTargetType): Observable<ReviewResponseDto[]> {
+    let params = new HttpParams();
+    
+    // Ajoute les paramètres de requête uniquement s'ils sont fournis
+    if (targetId) {
+      params = params.set('targetId', targetId);
+    }
+    if (targetType) {
+      params = params.set('targetType', targetType);
+    }
+
+    return this.http.get<ReviewResponseDto[]>(this.apiUrl, { params });
+  }
+
+  getAverageRating(targetId: string, targetType: ReviewTargetType): Observable<number> {
+    let params = new HttpParams()
+      .set('targetId', targetId)
+      .set('targetType', targetType);
+
+    return this.http.get<number>(`${this.apiUrl}/rating`, { params });
+  }
+
+  deleteReview(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
 }
-

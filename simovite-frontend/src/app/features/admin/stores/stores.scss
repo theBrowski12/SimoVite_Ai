@@ -1,4 +1,25 @@
 /* ── STORES GRID ── */
+/* ── PAGE HEADER ── */
+.page-header {
+  margin-bottom: 24px; /* Espace entre le header et la barre de recherche */
+}
+
+.page-title {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 26px;             /* Taille généreuse */
+  font-weight: 700;            /* Bien gras */
+  color: #0f172a;              /* Un bleu marine très foncé (presque noir) */
+  letter-spacing: -0.5px;      /* Rapproche très légèrement les lettres pour l'aspect moderne */
+  margin-bottom: 6px;          /* Petit espace au-dessus du sous-titre */
+}
+
+.page-subtitle {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 15px;             /* Plus petit */
+  font-weight: 400;            /* Poids normal */
+  color: #64748b;              /* Gris bleuté doux, parfait pour la lisibilité secondaire */
+  letter-spacing: 0;
+}
 .stores-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -242,4 +263,253 @@
   border: 1px solid var(--border);
   font-size: 14px;
   outline: none;
+}
+.store-img-container {
+  height: 120px;
+  overflow: hidden; // Empêche l'image de dépasser
+
+  .store-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; // L'image remplit le conteneur sans se déformer
+    object-position: center; // L'image est centrée
+
+    &.placeholder {
+      opacity: 0.5; // Rend l'image par défaut un peu transparente
+    }
+  }
+}
+/* ── FENÊTRE MODAL ── */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  width: 100%;
+  max-width: 600px; /* Un peu plus large pour que ça respire avec tous ces champs */
+  max-height: 90vh; /* Empêche la modal de dépasser de l'écran */
+  overflow-y: auto; /* Ajoute un scroll interne si l'écran est petit */
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  animation: modalSlideUp 0.3s ease-out;
+}
+
+@keyframes modalSlideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  
+  h2 { font-size: 20px; font-weight: 700; color: var(--navy); margin: 0; }
+  .close-btn { background: none; border: none; font-size: 20px; color: var(--muted); cursor: pointer; }
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &.full-width { grid-column: span 2; }
+
+  label { font-size: 13px; font-weight: 600; color: var(--navy); }
+
+  .form-input {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.2s;
+    &:focus { border-color: var(--orange); }
+  }
+  
+  textarea.form-input {
+    resize: vertical;
+    min-height: 60px;
+  }
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+/* ── ACTIONS SUR LA CARTE (EDIT / DELETE) ── */
+.card-actions-overlay {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.store-card:hover .card-actions-overlay {
+  opacity: 1;
+}
+
+/* Nouveaux boutons d'action plus grands avec SVG */
+.action-btn {
+  width: 38px;  /* Plus grand (avant 32px) */
+  height: 38px;
+  border-radius: 10px; /* Carré arrondi plus moderne qu'un rond parfait */
+  border: none;
+  background: rgba(255, 255, 255, 0.95);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  svg {
+    width: 18px;
+    height: 18px;
+    transition: color 0.2s;
+  }
+
+  /* Style par défaut des icônes */
+  &.edit svg { color: #64748b; }
+  &.delete svg { color: #64748b; }
+
+  /* Survol */
+  &:hover {
+    transform: translateY(-2px);
+  }
+  
+  &.edit:hover {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    svg { color: #3b82f6; } /* Bleu vif */
+  }
+
+  &.delete:hover {
+    background: #fef2f2;
+    border-color: #fecaca;
+    svg { color: #ef4444; } /* Rouge vif */
+  }
+}
+
+
+/* ── BOUTONS PRINCIPAUX ET MODAL ── */
+.btn-primary {
+  background: var(--orange, #ff6b35);
+  color: white;
+  padding: 12px 24px; /* Plus généreux */
+  border-radius: 8px;
+  border: none;
+  font-size: 15px; /* Texte plus lisible */
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgba(255, 107, 53, 0.2); /* Ombre colorée */
+  transition: all 0.2s;
+  
+  &:hover:not(:disabled) { 
+    background: #e85a25; 
+    transform: translateY(-1px);
+    box-shadow: 0 6px 8px -1px rgba(255, 107, 53, 0.3);
+  }
+  
+  &:disabled { 
+    background: #e2e8f0; 
+    color: #94a3b8;
+    box-shadow: none;
+    cursor: not-allowed; 
+  }
+}
+
+.btn-cancel {
+  background: #f1f5f9; /* Gris très clair au lieu de transparent */
+  color: #475569;
+  padding: 12px 24px; /* Même taille que le bouton primaire */
+  border-radius: 8px;
+  border: 1px solid transparent; /* Enlève la bordure dure */
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover { 
+    background: #e2e8f0; 
+    color: #1e293b; 
+  }
+}
+/* ── CARTE ET RECHERCHE D'ADRESSE ── */
+.map-search-wrapper {
+  position: relative;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+
+  .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
+  }
+
+  .search-input-map {
+    padding-left: 36px; /* Place pour l'icône */
+    flex-grow: 1;
+  }
+
+  .btn-search-map {
+    padding: 0 16px;
+    background: #f1f5f9;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #475569;
+    transition: background 0.2s;
+
+    &:hover { background: #e2e8f0; }
+  }
+}
+
+.map-container {
+  height: 220px; /* FIXE LA HAUTEUR DE LA CARTE ICI */
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--border, #e2e8f0);
+  z-index: 1; /* Empêche la carte de passer au-dessus des menus déroulants */
+}
+
+.readonly-input {
+  background-color: #f8fafc;
+  color: #64748b;
+  cursor: not-allowed;
 }

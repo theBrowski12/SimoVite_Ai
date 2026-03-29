@@ -16,4 +16,5 @@ public class PharmacyRequestDto extends CatalogRequestDto {
     private String dosage;
     private String activeIngredient;
     private List<PharmacyCategory> pharmacyCategories;
+
 }
