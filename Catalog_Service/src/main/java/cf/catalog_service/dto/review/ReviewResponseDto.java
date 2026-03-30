@@ -17,6 +17,7 @@ public class ReviewResponseDto {
     private String id;
     private String targetId;
     private ReviewTargetType targetType;
+    private String targetName;
     private String clientId;
     private String clientName;
     private String comment;

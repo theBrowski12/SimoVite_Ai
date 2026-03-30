@@ -1,5 +1,4 @@
 // review.service.ts
-
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -11,7 +10,7 @@ import { ReviewRequestDto, ReviewResponseDto, ReviewTargetType } from '../models
 })
 export class ReviewService {
 
-  private readonly apiUrl = `${environment.apiGateway}/v1/reviews`;
+  private readonly apiUrl = `${environment.apiGateway}/CATALOG-SERVICE/v1/reviews`;
 
   constructor(private http: HttpClient) { }
 

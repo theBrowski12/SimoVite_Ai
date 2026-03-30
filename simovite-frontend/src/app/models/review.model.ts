@@ -15,15 +15,16 @@ export interface ReviewRequestDto {
 export interface ReviewResponseDto {
   id: string;
   targetId: string;
+  targetName?: string;
   targetType: ReviewTargetType;
   clientId: string;
   clientName: string;
   comment: string;
   rating: number;          
-  sentiment: string;       
+  sentiment?: 'POSITIVE' | 'NEGATIVE' | 'MIXED';
   sentimentScore: number;  
   sentimentAnalyzed: boolean;
-  incoherent: boolean;
+  incoherent?: boolean;
   createdAt: string;       
   updatedAt: string;
 }

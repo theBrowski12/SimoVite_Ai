@@ -8,7 +8,9 @@ import cf.catalog_service.entities.Review;
 import cf.catalog_service.enums.ReviewTargetType;
 import cf.catalog_service.feignClients.SentimentFeignClient;
 import cf.catalog_service.mapper.ReviewMapper;
+import cf.catalog_service.repository.CatalogRepository;
 import cf.catalog_service.repository.ReviewRepository;
+import cf.catalog_service.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springaicommunity.mcp.annotation.McpTool;
@@ -29,6 +31,8 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewRepository reviewRepository;
     private final ReviewMapper reviewMapper;
     private final SentimentFeignClient sentimentFeignClient;
+    private final CatalogRepository productRepository;
+    private final StoreRepository storeRepository;
 
     @Override
     @Transactional
@@ -120,10 +124,35 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         return reviews.stream()
-                .map(reviewMapper::toDto)
+                .map(review -> {
+                    ReviewResponseDto dto = reviewMapper.toDto(review);
+                    // On va chercher le nom directement en base de données
+                    dto.setTargetName(fetchTargetName(review.getTargetId(), review.getTargetType()));
+                    return dto;
+                })
                 .toList();
     }
+    private String fetchTargetName(String targetId, ReviewTargetType type) {
+        if (targetId == null || type == null) return "—";
 
+        try {
+            if (type == ReviewTargetType.PRODUCT) {
+                return productRepository.findById(targetId)
+                        .map(product -> product.getName()) // ⚠️ Remplace getName() par le vrai nom de ton getter (ex: getTitle())
+                        .orElse("Produit supprimé");
+
+            } else if (type == ReviewTargetType.STORE) {
+                return storeRepository.findById(targetId)
+                        .map(store -> store.getName()) // ⚠️ Remplace getName() par le vrai nom de ton getter
+                        .orElse("Magasin fermé/supprimé");
+            }
+            return "—";
+
+        } catch (Exception e) {
+            log.error("Impossible de récupérer le nom pour targetId {} de type {}: {}", targetId, type, e.getMessage());
+            return "Erreur d'affichage";
+        }
+    }
     @Override
     @McpTool(description = "Get average rating (1.0-5.0) of a product or store")
     public Double getAverageRating(

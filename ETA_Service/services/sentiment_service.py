@@ -1,23 +1,26 @@
+import os
+
+# Force transformers to only look at the local cache. No network calls!
+os.environ["TRANSFORMERS_OFFLINE"] = "1"
+
 from transformers import pipeline
 from dtos.sentiment_dto import SentimentRequest, SentimentResponse
 
 _sentiment_pipeline = None
 
-def load_sentiment_model():
-    global _sentiment_pipeline
-    if _sentiment_pipeline is None:
-        print("⏳ Loading sentiment model...")
-        # Modèle multilingue — fonctionne en français et arabe
-        _sentiment_pipeline = pipeline(
-            "sentiment-analysis",
-            model="lxyuan/distilbert-base-multilingual-cased-sentiments-student",
-            top_k=None
-        )
-        print("✅ Sentiment model loaded")
+print("⏳ Starting Sentiment Service...")
+print("⏳ Loading sentiment model into memory...")
 
+# Load the pipeline immediately at the module level.
+# This happens exactly once when the server boots up.
+_sentiment_pipeline = pipeline(
+    "sentiment-analysis",
+    model="lxyuan/distilbert-base-multilingual-cased-sentiments-student",
+    top_k=None
+)
+
+print("✅ Sentiment model loaded successfully!")
 def analyze_sentiment(request: SentimentRequest) -> SentimentResponse:
-    load_sentiment_model()
-
     if not request.comment or len(request.comment.strip()) < 3:
         return SentimentResponse(
             sentiment="MIXED", score=0.5, confidence=0.0,
