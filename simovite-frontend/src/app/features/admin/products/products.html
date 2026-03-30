@@ -1,90 +1,154 @@
 <div class="admin-products">
+
+  <!-- ════════════════════════════════════════
+       HEADER
+       ════════════════════════════════════════ -->
   <header class="page-header">
     <div class="header-left">
       <h1>Products Management</h1>
       <div class="stats-row">
         <span class="stat-badge">
-          <span class="stat-label">Total:</span> <strong>{{ products.length }}</strong>
+          Total <strong>{{ products.length }}</strong>
         </span>
         <span class="stat-badge filtered" *ngIf="filtered.length !== products.length">
-          <span class="stat-label">Found:</span> <strong>{{ filtered.length }}</strong>
+          Filtered <strong>{{ filtered.length }}</strong>
         </span>
       </div>
     </div>
+
     <div class="header-actions">
+      <!-- Reset here — clearly visible, not buried in the filter bar -->
+      <button
+        class="btn-reset-header"
+        *ngIf="searchTerm || filterAvailability || filterMainType || filterStoreId"
+        (click)="reset()">
+        ↺ Reset Filters
+      </button>
       <button class="btn-primary" (click)="openAddModal()">+ Add Product</button>
     </div>
   </header>
 
+
+  <!-- ════════════════════════════════════════
+       MAIN CARD
+       ════════════════════════════════════════ -->
   <div class="table-card">
+
+    <!-- ── FILTER BAR ── -->
     <div class="filter-bar">
-      <div class="filter-top-row">
-        <div class="search-container">
-          <span class="search-icon">🔍</span>
-          <input class="search-in" [(ngModel)]="searchTerm" (keyup.enter)="onFilterChange()" placeholder="Search by name, brand...">
+
+      <!-- Row 1 : Search + quick selects -->
+      <div class="filter-row filter-row-1">
+        <div class="search-wrap">
+          <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            class="search-in"
+            [(ngModel)]="searchTerm"
+            (keyup.enter)="onFilterChange()"
+            placeholder="Search by name, brand…">
+          <button
+            class="search-clear"
+            *ngIf="searchTerm"
+            (click)="searchTerm = ''; onFilterChange()">
+            ×
+          </button>
         </div>
-        
-        <div class="quick-actions">
-          <select class="status-sel" [(ngModel)]="filterAvailability" (ngModelChange)="onFilterChange()">
-            <option value="">All Status</option>
-            <option value="available_api">✅ Available</option> 
-            <option value="unavailable">❌ Unavailable</option>
-          </select>
-          <button class="btn-reset-minimal" (click)="reset()">Reset Filters</button>
-        </div>
+
+        <select class="filter-sel" [(ngModel)]="filterStoreId" (ngModelChange)="onStoreChange()">
+          <option value="">All Stores</option>
+          <option *ngFor="let s of stores" [value]="s.id">{{ s.name }}</option>
+        </select>
+
+        <select class="filter-sel" [(ngModel)]="filterAvailability" (ngModelChange)="onFilterChange()">
+          <option value="">All Status</option>
+          <option value="available_api">✅ Available</option>
+          <option value="unavailable">❌ Unavailable</option>
+        </select>
       </div>
 
-      <div class="filter-divider-text">Store Type</div>
+      <!-- Divider -->
+      <div class="filter-divider">
+        <span class="divider-label">Filter by store type</span>
+      </div>
 
-      <div class="filter-section">
+      <!-- Row 2 : Main type chips -->
+      <div class="filter-row filter-row-2">
+        <span class="filter-row-label">Type</span>
         <div class="chips-list">
-          <button class="chip-main" [class.active]="filterMainType === ''" (click)="filterMainType = ''; onMainTypeChange()">
-            All
-          </button>
-          <button class="chip-main" [class.active]="filterMainType === 'RESTAURANT'" (click)="filterMainType = 'RESTAURANT'; onMainTypeChange()">
-            🍴 Restaurants
-          </button>
-          <button class="chip-main" [class.active]="filterMainType === 'PHARMACY'" (click)="filterMainType = 'PHARMACY'; onMainTypeChange()">
-            💊 Pharmacy
-          </button>
-          <button class="chip-main" [class.active]="filterMainType === 'SUPERMARKET'" (click)="filterMainType = 'SUPERMARKET'; onMainTypeChange()">
-            🛒 Supermarket
-          </button>
+          <button class="chip-main" [class.active]="filterMainType === ''"
+                  (click)="filterMainType = ''; onMainTypeChange()">All</button>
+          <button class="chip-main" [class.active]="filterMainType === 'RESTAURANT'"
+                  (click)="filterMainType = 'RESTAURANT'; onMainTypeChange()">🍴 Restaurants</button>
+          <button class="chip-main" [class.active]="filterMainType === 'PHARMACY'"
+                  (click)="filterMainType = 'PHARMACY'; onMainTypeChange()">💊 Pharmacy</button>
+          <button class="chip-main" [class.active]="filterMainType === 'SUPERMARKET'"
+                  (click)="filterMainType = 'SUPERMARKET'; onMainTypeChange()">🛒 Supermarket</button>
         </div>
       </div>
 
-      <div class="filter-section sub-section" *ngIf="filterMainType">
-        <div class="label-row">
-          <label>Sub-Categories</label>
-          <span class="selection-indicator" *ngIf="selectedFoodCategories.length || selectedPharmacyCategories.length || selectedSupermarketCategories.length">
-            Selection active
-          </span>
-        </div>
-        <div class="chips-list scrollable">
+      <!-- Row 3 : Sub-category chips — only when a type is selected -->
+      <div class="filter-row filter-row-3" *ngIf="filterMainType">
+        <span class="filter-row-label">Sub-type</span>
+        <div class="sub-chips-wrap">
+
           <ng-container *ngIf="filterMainType === 'RESTAURANT'">
-            <button class="chip-sub" *ngFor="let cat of foodCategoriesList" 
-                    [class.active]="selectedFoodCategories.includes(cat)" (click)="toggleCategory('FOOD', cat)">
-              <span class="icon">{{ selectedFoodCategories.includes(cat) ? '✓' : '+' }}</span> {{ cat }}
+            <button class="chip-sub"
+                    *ngFor="let cat of foodCategoriesList"
+                    [class.active]="selectedFoodCategories.includes(cat)"
+                    (click)="toggleCategory('FOOD', cat)">
+              <span class="chip-icon">{{ selectedFoodCategories.includes(cat) ? '✓' : '+' }}</span>
+              {{ cat }}
             </button>
           </ng-container>
 
           <ng-container *ngIf="filterMainType === 'PHARMACY'">
-            <button class="chip-sub" *ngFor="let cat of pharmacyCategoriesList" 
-                    [class.active]="selectedPharmacyCategories.includes(cat)" (click)="toggleCategory('PHARMACY', cat)">
-              <span class="icon">{{ selectedPharmacyCategories.includes(cat) ? '✓' : '+' }}</span> {{ cat }}
+            <button class="chip-sub"
+                    *ngFor="let cat of pharmacyCategoriesList"
+                    [class.active]="selectedPharmacyCategories.includes(cat)"
+                    (click)="toggleCategory('PHARMACY', cat)">
+              <span class="chip-icon">{{ selectedPharmacyCategories.includes(cat) ? '✓' : '+' }}</span>
+              {{ cat }}
             </button>
           </ng-container>
 
           <ng-container *ngIf="filterMainType === 'SUPERMARKET'">
-            <button class="chip-sub" *ngFor="let cat of supermarketCategoriesList" 
-                    [class.active]="selectedSupermarketCategories.includes(cat)" (click)="toggleCategory('SUPERMARKET', cat)">
-              <span class="icon">{{ selectedSupermarketCategories.includes(cat) ? '✓' : '+' }}</span> {{ cat }}
+            <button class="chip-sub"
+                    *ngFor="let cat of supermarketCategoriesList"
+                    [class.active]="selectedSupermarketCategories.includes(cat)"
+                    (click)="toggleCategory('SUPERMARKET', cat)">
+              <span class="chip-icon">{{ selectedSupermarketCategories.includes(cat) ? '✓' : '+' }}</span>
+              {{ cat }}
             </button>
           </ng-container>
+
         </div>
+
+        <!-- Active count indicator -->
+        <span class="active-hint"
+              *ngIf="selectedFoodCategories.length || selectedPharmacyCategories.length || selectedSupermarketCategories.length">
+          {{
+            (filterMainType === 'RESTAURANT' ? selectedFoodCategories.length :
+             filterMainType === 'PHARMACY'   ? selectedPharmacyCategories.length :
+             selectedSupermarketCategories.length)
+          }} selected
+        </span>
       </div>
-    </div> <div class="loading-wrap" *ngIf="loading"><div class="spinner"></div></div>
-    
+
+    </div>
+    <!-- /filter-bar -->
+
+
+    <!-- ── LOADING ── -->
+    <div class="loading-wrap" *ngIf="loading">
+      <div class="spinner"></div>
+      <span class="loading-text">Loading products…</span>
+    </div>
+
+
+    <!-- ── TABLE ── -->
     <div class="table-wrap" *ngIf="!loading">
       <table>
         <thead>
@@ -92,71 +156,128 @@
             <th>Product</th>
             <th>Store</th>
             <th>Category</th>
-            <th>Type</th> 
+            <th>Type</th>
             <th>Price</th>
             <th>Rating</th>
             <th>Available</th>
-            <th>Actions</th> 
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let p of paginated">
+
+            <!-- Product name + thumbnail -->
             <td>
-              <div style="display: flex; align-items: center; gap: 12px;">
-                <div class="product-img-wrapper" (click)="goToDetails(p.id)">
-                  <img *ngIf="p.imageURL" [src]="p.imageURL" class="prod-img">
-                  <div *ngIf="!p.imageURL" class="no-img">No Img</div>
+              <div class="prod-cell">
+                <div class="prod-thumb" (click)="goToDetails(p.id)">
+                  <img *ngIf="p.imageURL" [src]="p.imageURL" [alt]="p.name" class="prod-img">
+                  <span *ngIf="!p.imageURL" class="no-img-icon">📦</span>
+                  <div class="thumb-overlay"><span>View</span></div>
                 </div>
                 <strong>{{ p.name }}</strong>
               </div>
             </td>
+
             <td>{{ getStoreName(p.storeId) }}</td>
-            <td><span class="badge" [ngClass]="getCategoryClass(getStoreCategory(p.storeId))">{{ getStoreCategory(p.storeId) }}</span></td>
+
             <td>
-              <span class="badge badge-light">
-                {{ $any(p).foodCategories?.[0] || $any(p).pharmacyCategories?.[0] || $any(p).supermarketCategories?.[0] || 'Standard' }}
+              <span class="badge" [ngClass]="getCategoryClass(getStoreCategory(p.storeId))">
+                {{ getStoreCategory(p.storeId) }}
               </span>
             </td>
+
+            <td>
+              <span class="badge badge-light">
+                {{ $any(p).foodCategories?.[0]
+                   || $any(p).pharmacyCategories?.[0]
+                   || $any(p).supermarketCategories?.[0]
+                   || 'Standard' }}
+              </span>
+            </td>
+
             <td><strong>{{ p.basePrice | number:'1.2-2' }} DH</strong></td>
-            <td><span style="color:#F59E0B">{{ getStars(p['rating'] || 0) }}</span></td>
+
+            <td>
+              <div class="rating-cell">
+                <span class="stars">{{ getStars(p['rating'] || 0) }}</span>
+                <span class="rating-val">{{ (p['rating'] || 0) | number:'1.1-1' }}</span>
+              </div>
+            </td>
+
             <td>
               <label class="sw">
                 <input type="checkbox" [checked]="p.available" (change)="toggle(p)">
                 <span class="slider"></span>
               </label>
             </td>
+
             <td class="actions-cell">
-              <button class="btn-action edit" (click)="openEditModal(p)">✏️</button>
-              <button class="btn-action delete" (click)="deleteProduct(p)">🗑️</button>
+              <button class="btn-action btn-edit"  (click)="openEditModal(p)"  title="Edit">✏️</button>
+              <button class="btn-action btn-delete" (click)="deleteProduct(p)" title="Delete">🗑️</button>
+            </td>
+
+          </tr>
+
+          <tr *ngIf="paginated.length === 0">
+            <td colspan="8" class="empty-row">
+              <div class="empty-state">
+                <span class="empty-icon">🔍</span>
+                <strong>No products found</strong>
+                <span>Try adjusting your search or filters</span>
+              </div>
             </td>
           </tr>
         </tbody>
       </table>
-      
-      <div class="pagination" *ngIf="totalPages > 1">
-        <button class="page-btn" [disabled]="currentPage===1" (click)="currentPage=currentPage-1">‹</button>
-        <button class="page-btn" *ngFor="let p of pages" [class.active]="p===currentPage" (click)="currentPage=p">{{ p }}</button>
-        <button class="page-btn" [disabled]="currentPage===totalPages" (click)="currentPage=currentPage+1">›</button>
-      </div>
     </div>
-  </div> </div>
+    <!-- /table-wrap -->
 
-<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    
-    <div class="modal-header">
-      <h2>{{ productToEdit ? 'Edit Product' : 'Add New Product' }}</h2>
-      <button class="btn-close" (click)="closeModal()">×</button>
-    </div>
-    
-    <div class="modal-body">
-      <app-product-form 
-        [productToEdit]="productToEdit" 
-        [stores]="stores" 
-        (cancel)="closeModal()" 
-        (saved)="onProductSaved($event)">
-      </app-product-form>
+
+    <!-- ── PAGINATION ── -->
+    <div class="pagination" *ngIf="!loading && totalPages > 1">
+      <span class="page-info">
+        Showing {{ (currentPage - 1) * pageSize + 1 }}–{{ pageEnd }} of {{ filtered.length }}
+      </span>
+      <div class="page-btns">
+        <button class="page-btn" [disabled]="currentPage === 1"
+                (click)="currentPage = currentPage - 1">‹</button>
+        <button class="page-btn"
+                *ngFor="let p of pages"
+                [class.active]="p === currentPage"
+                (click)="currentPage = p">{{ p }}</button>
+        <button class="page-btn" [disabled]="currentPage === totalPages"
+                (click)="currentPage = currentPage + 1">›</button>
+      </div>
     </div>
 
   </div>
+  <!-- /table-card -->
+
+
+  <!-- ════════════════════════════════════════
+       MODAL
+       ════════════════════════════════════════ -->
+  <div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+        <div>
+          <h2>{{ productToEdit ? 'Edit Product' : 'Add New Product' }}</h2>
+          <p class="modal-sub">{{ productToEdit ? 'Update product details below' : 'Fill in the details to add a new product' }}</p>
+        </div>
+        <button class="btn-close" (click)="closeModal()">×</button>
+      </div>
+
+      <div class="modal-body">
+        <app-product-form
+          [productToEdit]="productToEdit"
+          [stores]="stores"
+          (cancel)="closeModal()"
+          (saved)="onProductSaved($event)">
+        </app-product-form>
+      </div>
+
+    </div>
+  </div>
+
 </div>

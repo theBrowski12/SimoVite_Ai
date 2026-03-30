@@ -5,265 +5,245 @@ import { StoreResponseDto } from '@models/store.model';
 import { StoreService } from '@services/store.service';
 import { Router } from '@angular/router';
 
-@Component({ 
-  selector: 'app-admin-products', 
-  standalone: false, 
-  templateUrl: './products.html', 
-  styleUrls: ['./products.scss'] 
+@Component({
+  selector: 'app-admin-products',
+  standalone: false,
+  templateUrl: './products.html',
+  styleUrls: ['./products.scss']
 })
 export class AdminProducts implements OnInit {
 
-  // Données du tableau
-products: CatalogResponseDto[] = [];
+  // ── Data ──────────────────────────────────────────────────
+  products: CatalogResponseDto[] = [];
   filtered: CatalogResponseDto[] = [];
-  stores: StoreResponseDto[] = [];
+  stores:   StoreResponseDto[]   = [];
   storesMap = new Map<string, StoreResponseDto>();
-  loading = true;
+  loading   = true;
 
-  // Filtres principaux
-  filterMainType = ''; 
-  filterAvailability = ''; 
-  searchTerm = ''; 
+  // ── Filters ───────────────────────────────────────────────
+  searchTerm         = '';
+  filterMainType     = '';
+  filterAvailability = '';
+  filterStoreId      = '';           // ← added; was missing in original
 
-  // Multi-sélections (Tableaux)
-  selectedFoodCategories: string[] = [];
-  selectedPharmacyCategories: string[] = [];
+  // Sub-category multi-select
+  selectedFoodCategories:        string[] = [];
+  selectedPharmacyCategories:    string[] = [];
   selectedSupermarketCategories: string[] = [];
 
-  // Listes pour l'UI
-  foodCategoriesList = Object.values(FoodCategory);
-  pharmacyCategoriesList = Object.values(PharmacyCategory);
-  supermarketCategoriesList = Object.values(SupermarketCategory);
+  // Enum lists for UI chips
+  foodCategoriesList:        string[] = Object.values(FoodCategory);
+  pharmacyCategoriesList:    string[] = Object.values(PharmacyCategory);
+  supermarketCategoriesList: string[] = Object.values(SupermarketCategory);
 
-  currentPage = 1; 
-  pageSize = 10;
-  showModal = false;
+  // ── Pagination ────────────────────────────────────────────
+  currentPage = 1;
+  pageSize    = 10;
+
+  // ── Modal ─────────────────────────────────────────────────
+  showModal      = false;
   productToEdit: any = null;
 
   constructor(
     private catalogService: CatalogService,
-    private storeService: StoreService,
-    private cdr: ChangeDetectorRef,
-    private router: Router
+    private storeService:   StoreService,
+    private cdr:            ChangeDetectorRef,
+    private router:         Router
   ) {}
 
-  ngOnInit(): void { 
+  // ── Lifecycle ─────────────────────────────────────────────
+
+  ngOnInit(): void {
     this.loadData();
   }
 
-  goToDetails(id: string) {
-    if (id) {
-      this.router.navigate(['/admin/products', id]);
-    }
+  // ── Navigation ────────────────────────────────────────────
+
+  goToDetails(id: string): void {
+    if (id) this.router.navigate(['/admin/products', id]);
   }
 
-  // --- CHARGEMENT DES DONNÉES ---
+  // ── Data loading ──────────────────────────────────────────
 
   loadData(): void {
     this.loading = true;
     this.storeService.getAllStores().subscribe({
-      next: (stores) => {
+      next: stores => {
         this.stores = stores;
-        stores.forEach(store => this.storesMap.set(store.id, store));
-        this.loadProducts(); // Charge tout par défaut au début
-      },
-      error: (err) => {
-        console.error('Erreur stores', err);
+        stores.forEach(s => this.storesMap.set(s.id, s));
         this.loadProducts();
-      }
+      },
+      error: () => this.loadProducts()
     });
   }
 
-  toggleCategory(type: 'FOOD' | 'PHARMACY' | 'SUPERMARKET', value: string) {
-  // 1. On récupère la liste actuelle
-  let list = type === 'FOOD' ? this.selectedFoodCategories : 
-             type === 'PHARMACY' ? this.selectedPharmacyCategories : 
-             this.selectedSupermarketCategories;
-
-  const index = list.indexOf(value);
-  
-  // 2. On crée une NOUVELLE instance de l'array (Immuabilité)
-  // C'est ce qui permet à Angular de détecter le changement instantanément
-  if (index > -1) {
-    list.splice(index, 1);
-  } else {
-    list.push(value);
-  }
-
-  // 3. IMPORTANT : On réassigne pour changer la référence
-  if (type === 'FOOD') this.selectedFoodCategories = [...list];
-  if (type === 'PHARMACY') this.selectedPharmacyCategories = [...list];
-  if (type === 'SUPERMARKET') this.selectedSupermarketCategories = [...list];
-
-  // 4. On applique les filtres et on force la détection
-  this.applyLocalFilters();
-}
-
-  // ⚡️ MÉTHODE DYNAMIQUE : Appelle la bonne API selon les filtres
-loadProducts(): void {
-  this.loading = true;
-  this.cdr.detectChanges();
-  if (this.searchTerm?.trim()) {
-    this.catalogService.searchOffersByName(this.searchTerm).subscribe(this.handleBackendResponse());
-  } 
-  else if (this.filterMainType) {
-    // On charge TOUS les produits du type (ex: Restaurant) 
-    // et on filtrera les sous-catégories localement pour la multi-sélection
-    this.catalogService.getProductsByMainType(this.filterMainType).subscribe(this.handleBackendResponse());
-  } 
-  else {
-    this.catalogService.getAllOffers().subscribe(this.handleBackendResponse());
-  }
-}
-
-applyLocalFilters(): void {
-    this.filtered = this.products.filter(p => {
-      // 1. Disponibilité
-      let matchAvailability = true;
-      if (this.filterAvailability === 'available_api') matchAvailability = p.available === true;
-      if (this.filterAvailability === 'unavailable') matchAvailability = p.available === false;
-
-      // 2. Multi-Catégories (On utilise (p as any) pour éviter l'erreur TS2339)
-      let matchSubCategory = true;
-      const product = p as any; 
-
-      if (this.filterMainType === 'RESTAURANT' && this.selectedFoodCategories.length > 0) {
-        matchSubCategory = product.foodCategories?.some((cat: string) => this.selectedFoodCategories.includes(cat)) ?? false;
-      }
-      else if (this.filterMainType === 'PHARMACY' && this.selectedPharmacyCategories.length > 0) {
-        matchSubCategory = product.pharmacyCategories?.some((cat: string) => this.selectedPharmacyCategories.includes(cat)) ?? false;
-      }
-      else if (this.filterMainType === 'SUPERMARKET' && this.selectedSupermarketCategories.length > 0) {
-        matchSubCategory = product.supermarketCategories?.some((cat: string) => this.selectedSupermarketCategories.includes(cat)) ?? false;
-      }
-
-      return matchAvailability && matchSubCategory;
-    });
-    
-    this.currentPage = 1;
-    this.cdr.markForCheck();
+  /**
+   * Calls the most targeted API endpoint available,
+   * then applies local secondary filters on the result.
+   */
+  loadProducts(): void {
+    this.loading = true;
     this.cdr.detectChanges();
+
+    let request$;
+
+    if (this.searchTerm?.trim()) {
+      request$ = this.catalogService.searchOffersByName(this.searchTerm);
+    } else if (this.filterMainType) {
+      request$ = this.catalogService.getProductsByMainType(this.filterMainType);
+    } else {
+      request$ = this.catalogService.getAllOffers();
+    }
+
+    request$.subscribe(this.handleResponse());
   }
 
-  // Factorisation de la réponse du backend pour éviter de répéter le code
-  private handleBackendResponse() {
+  private handleResponse() {
     return {
       next: (data: CatalogResponseDto[]) => {
-        this.products = data || [];
-        this.applyLocalFilters(); // Applique les filtres secondaires sur les résultats
+        this.products = data ?? [];
+        this.applyLocalFilters();
         this.loading = false;
         this.cdr.detectChanges();
       },
       error: (err: any) => {
-        console.error('Erreur lors du chargement des produits', err);
+        console.error('Error loading products', err);
         this.loading = false;
         this.cdr.detectChanges();
       }
     };
   }
 
-  // --- GESTION DE LA MODALE ---
+  /**
+   * Local filtering applied on top of the API result.
+   * Handles: availability, store, sub-categories.
+   */
+  applyLocalFilters(): void {
+    this.filtered = this.products.filter(p => {
+      const prod = p as any;
 
-  openAddModal(): void {
-    this.productToEdit = null;
-    this.showModal = true;
+      // Availability
+      const matchAvail =
+        !this.filterAvailability ||
+        (this.filterAvailability === 'available_api' ? p.available === true : p.available === false);
+
+      // Store
+      const matchStore = !this.filterStoreId || p.storeId === this.filterStoreId;
+
+      // Sub-category multi-select
+      let matchSub = true;
+      if (this.filterMainType === 'RESTAURANT' && this.selectedFoodCategories.length) {
+        matchSub = prod.foodCategories?.some((c: string) => this.selectedFoodCategories.includes(c)) ?? false;
+      } else if (this.filterMainType === 'PHARMACY' && this.selectedPharmacyCategories.length) {
+        matchSub = prod.pharmacyCategories?.some((c: string) => this.selectedPharmacyCategories.includes(c)) ?? false;
+      } else if (this.filterMainType === 'SUPERMARKET' && this.selectedSupermarketCategories.length) {
+        matchSub = prod.supermarketCategories?.some((c: string) => this.selectedSupermarketCategories.includes(c)) ?? false;
+      }
+
+      return matchAvail && matchStore && matchSub;
+    });
+
+    this.currentPage = 1;
+    this.cdr.detectChanges();
   }
 
-  openEditModal(product: CatalogResponseDto): void {
-    this.productToEdit = product;
-    this.showModal = true;
+  // ── Filter event handlers ─────────────────────────────────
+
+  onFilterChange(): void {
+    this.currentPage = 1;
+    this.loadProducts();
   }
 
-  closeModal(): void {
-    this.showModal = false;
-    this.productToEdit = null;
+  onStoreChange(): void {
+    this.currentPage = 1;
+    this.applyLocalFilters();          // store filter is always local
   }
 
-  onProductSaved(result: any): void {
-    console.log('Produit sauvegardé avec succès !', result);
-    this.closeModal();
-    this.loadProducts(); 
+  onMainTypeChange(): void {
+    this.selectedFoodCategories        = [];
+    this.selectedPharmacyCategories    = [];
+    this.selectedSupermarketCategories = [];
+    this.loadProducts();
   }
 
-  // --- ACTIONS SUR LE TABLEAU ---
+  toggleCategory(type: 'FOOD' | 'PHARMACY' | 'SUPERMARKET', value: string): void {
+    const list =
+      type === 'FOOD'      ? this.selectedFoodCategories :
+      type === 'PHARMACY'  ? this.selectedPharmacyCategories :
+                             this.selectedSupermarketCategories;
 
-  toggle(product: CatalogResponseDto): void { 
-    product.available = !product.available; 
+    const idx = list.indexOf(value);
+    if (idx > -1) list.splice(idx, 1);
+    else          list.push(value);
+
+    this.applyLocalFilters();
+  }
+
+  reset(): void {
+    this.searchTerm                    = '';
+    this.filterAvailability            = '';
+    this.filterMainType                = '';
+    this.filterStoreId                 = '';
+    this.selectedFoodCategories        = [];
+    this.selectedPharmacyCategories    = [];
+    this.selectedSupermarketCategories = [];
+    this.loadProducts();
+  }
+
+  // ── Product actions ───────────────────────────────────────
+
+  toggle(product: CatalogResponseDto): void {
+    const prev = product.available;
+    product.available = !prev;
+
     this.catalogService.toggleAvailability(product.id).subscribe({
-      next: () => console.log(`Disponibilité modifiée pour ${product.name}`),
-      error: (err) => {
-        product.available = !product.available; // rollback en cas d'erreur
-        console.error('Erreur lors du toggle', err);
+      next: () => {},
+      error: err => {
+        product.available = prev;   // rollback on error
+        console.error('Toggle failed', err);
       }
     });
   }
 
   deleteProduct(product: any): void {
-    if(confirm(`Es-tu sûr de vouloir supprimer ${product.name} ?`)) {
-      this.catalogService.deleteOffer(product.id).subscribe(() => {
-        this.loadProducts();
-      });
-    }
+    if (!confirm(`Delete "${product.name}"?`)) return;
+    this.catalogService.deleteOffer(product.id).subscribe(() => this.loadProducts());
   }
 
-  // --- FILTRES LOCAUX (Si la requête API ramène un peu trop de choses) ---
+  // ── Modal ─────────────────────────────────────────────────
 
-onMainTypeChange(): void {
-  this.selectedFoodCategories = [];
-  this.selectedPharmacyCategories = [];
-  this.selectedSupermarketCategories = [];
-  this.loadProducts();
-}
+  openAddModal(): void  { this.productToEdit = null; this.showModal = true; }
+  openEditModal(p: CatalogResponseDto): void { this.productToEdit = p; this.showModal = true; }
+  closeModal(): void    { this.showModal = false; this.productToEdit = null; }
+  onProductSaved(result?: any): void { this.closeModal(); this.loadProducts(); }
+  // ── Pagination getters ────────────────────────────────────
 
-  // ⚡️ DÉCLENCHEUR QUAND L'UTILISATEUR MODIFIE UN FILTRE DANS L'UI
-  onFilterChange(): void {
-    this.currentPage = 1;
-    this.loadProducts(); // Va refaire un appel API ciblé !
+  get paginated(): CatalogResponseDto[] {
+    const s = (this.currentPage - 1) * this.pageSize;
+    return this.filtered.slice(s, s + this.pageSize);
   }
 
-reset(): void { 
-    this.searchTerm = ''; 
-    this.filterAvailability = ''; 
-    this.filterMainType = '';
-    this.selectedFoodCategories = [];
-    this.selectedPharmacyCategories = [];
-    this.selectedSupermarketCategories = [];
-    this.currentPage = 1;
-    this.loadProducts(); 
-  }
+  get totalPages(): number { return Math.ceil(this.filtered.length / this.pageSize); }
+  get pages(): number[]    { return Array.from({ length: this.totalPages || 1 }, (_, i) => i + 1); }
+  get pageEnd(): number    { return Math.min(this.currentPage * this.pageSize, this.filtered.length); }
 
-  // --- GETTERS (Pagination et Utilitaires) ---
+  // ── Utility helpers ───────────────────────────────────────
 
-  get paginated(): CatalogResponseDto[] { 
-    return this.filtered.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize); 
-  }
-  get totalPages(): number { 
-    return Math.ceil(this.filtered.length / this.pageSize); 
-  }
-  get pages(): number[] { 
-    return Array.from({ length: this.totalPages || 1 }, (_, i) => i + 1); 
-  }
+  getStoreName(storeId: string):     string { return this.storesMap.get(storeId)?.name     ?? 'N/A'; }
+  getStoreCategory(storeId: string): string { return this.storesMap.get(storeId)?.category ?? ''; }
 
-  getStoreName(storeId: string): string {
-    return this.storesMap.get(storeId)?.name || 'N/A';
-  }
-  getStoreCategory(storeId: string): string {
-    return this.storesMap.get(storeId)?.category || '';
-  }
-
-  getCategoryClass(c: string | undefined): string {
-    if (!c) return 'badge-gray';
-    const m: Record<string, string> = { 
-      RESTAURANT: 'badge-orange', 
-      PHARMACY: 'badge-green', 
-      SUPERMARKET: 'badge-blue', 
-      SPECIAL_DELIVERY: 'badge-purple' 
+  getCategoryClass(c?: string): string {
+    const m: Record<string, string> = {
+      RESTAURANT:       'badge-orange',
+      PHARMACY:         'badge-green',
+      SUPERMARKET:      'badge-blue',
+      SPECIAL_DELIVERY: 'badge-purple'
     };
-    return m[c] ?? 'badge-gray';
+    return c ? (m[c] ?? 'badge-gray') : 'badge-gray';
   }
 
-  getStars(r: number | undefined): string { 
-    const rating = r ?? 0;
-    return '★'.repeat(Math.round(rating)) + '☆'.repeat(5 - Math.round(rating)); 
+  getStars(r = 0): string {
+    const n = Math.round(r);
+    return '★'.repeat(n) + '☆'.repeat(5 - n);
   }
 }
