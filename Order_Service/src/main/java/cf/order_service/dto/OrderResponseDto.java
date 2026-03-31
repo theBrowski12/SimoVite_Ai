@@ -31,6 +31,7 @@ public class OrderResponseDto {
     private OrderStatus status;
     private BigDecimal price;
     private String paymentMethod;
+    private double percentage;
     private List<OrderItemResponseDto> items;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

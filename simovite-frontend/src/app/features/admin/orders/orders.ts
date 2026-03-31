@@ -183,6 +183,12 @@ export class AdminOrders implements OnInit {
       .filter(o => o.status === 'DELIVERED')
       .reduce((s, o) => s + o.price, 0);
   }
+  // Revenu généré UNIQUEMENT par la livraison
+  get totalDeliveryRevenue(): number {
+    return this.orders
+      .filter(o => o.status === 'DELIVERED')
+      .reduce((s, o) => s + (o.deliveryCost || 0), 0);
+  }
   kpiCount(status: OrderStatus): number {
     return this.orders.filter(o => o.status === status).length;
   }

@@ -17,6 +17,7 @@ export interface Order {
   items: OrderItem[];
   deliveryAddress: Address;
   price: number;
+  percentage: number;
   deliveryCost: number;
   paymentMethod: PaymentMethod;
   status: OrderStatus;

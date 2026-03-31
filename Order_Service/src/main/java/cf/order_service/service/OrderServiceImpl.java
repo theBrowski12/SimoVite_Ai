@@ -117,6 +117,7 @@ public class OrderServiceImpl implements OrderService {
                 .order_total(order.getPrice().doubleValue())
                 .build();
         PriceResponseDto priceResp  = priceClient.calculatePrice(priceReq) ;
+        order.setPercentage(priceResp.getPrice_percentage());
         if (priceResp != null) {
             BigDecimal deliveryCost = BigDecimal.valueOf(priceResp.getDelivery_cost());
             order.setDeliveryCost(deliveryCost);

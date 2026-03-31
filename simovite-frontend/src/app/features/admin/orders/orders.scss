@@ -655,6 +655,37 @@ tr:hover .edit-status-btn { opacity: 1; }
   border-top: 1px dashed #e2e8f0;
   span:first-child { font-weight: 600; color: #1e293b; }
 }
+// ── Algorithm Fluctuation Row ──
+.algo-row {
+  margin-top: 4px;
+  padding: 8px 10px;
+  background: #f8fafc; // Un fond léger pour le distinguer
+  border-radius: 8px;
+  border: 1px dashed #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .algo-label {
+    font-size: 11px;
+    color: #64748b;
+    font-style: italic;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    
+    &::before { content: '⚡'; } // Petit éclair pour l'aspect "IA / Algo"
+  }
+
+  .algo-pct {
+    font-weight: 700;
+    font-size: 13px;
+    font-family: 'DM Mono', monospace;
+
+    &.positive { color: #ef4444; } // Rouge si ça augmente le prix
+    &.negative { color: #22c55e; } // Vert si c'est une réduction
+  }
+}
 
 .total-amount {
   font-size: 16px !important;

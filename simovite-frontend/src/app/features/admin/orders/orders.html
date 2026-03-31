@@ -355,12 +355,29 @@
         <!-- Pricing -->
         <div class="detail-section">
           <div class="section-label">💰 Pricing</div>
-          <div class="detail-row"><span>Subtotal</span><strong>{{ o.price - o.deliveryCost | number:'1.2-2' }} DH</strong></div>
-          <div class="detail-row"><span>Delivery</span><strong>{{ o.deliveryCost | number:'1.2-2' }} DH</strong></div>
+          
+          <div class="detail-row">
+            <span>Subtotal</span>
+            <strong>{{ o.price - (o.deliveryCost || 0) | number:'1.2-2' }} DH</strong>
+          </div>
+          
+          <div class="detail-row">
+            <span>Delivery</span>
+            <strong>{{ o.deliveryCost || 0 | number:'1.2-2' }} DH</strong>
+          </div>
+
+          <div class="algo-row" *ngIf="o.percentage !== undefined && o.percentage !== null">
+            <span class="algo-label">Algo Fluctuation</span>
+            <span class="algo-pct" [ngClass]="{'positive': o.percentage > 0, 'negative': o.percentage <= 0}">
+              {{ o.percentage > 0 ? '+' : '' }}{{ o.percentage }}%
+            </span>
+          </div>
+
           <div class="detail-row total-row">
             <span>Total</span>
             <strong class="total-amount">{{ o.price | number:'1.2-2' }} DH</strong>
           </div>
+          
           <div class="detail-row">
             <span>Payment</span>
             <span class="badge {{ getPaymentClass(o.paymentMethod) }}">{{ o.paymentMethod }}</span>

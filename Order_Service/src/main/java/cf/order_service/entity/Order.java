@@ -56,6 +56,7 @@ public class Order {
     private PaymentMethod paymentMethod;
     private boolean isPaid;
     private BigDecimal deliveryCost;
+    private double percentage;
     private String storeCategory;
     private String storeName;
     private LocalDateTime createdAt;
