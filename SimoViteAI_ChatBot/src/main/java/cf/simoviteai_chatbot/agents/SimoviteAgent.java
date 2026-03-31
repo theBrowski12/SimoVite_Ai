@@ -44,16 +44,16 @@ public class SimoviteAgent {
                 .build();
     }
 
-    public ResponseEntity<String> chat(String userMessage, String conversationId) {
-        // Now .prompt() and .advisors() will work because chatClient is a ChatClient
+    // Remplace ResponseEntity<String> par String
+    public String chat(String userMessage, String conversationId) {
         String resultResponse = this.chatClient
                 .prompt()
                 .user(userMessage)
-                // FIX 4: Correct parameter key for conversation ID
                 .advisors(a -> a.param("chat_memory_conversation_id", conversationId))
                 .call()
                 .content();
 
-        return ResponseEntity.ok(resultResponse);
+        // Renvoie directement le texte !
+        return resultResponse;
     }
 }

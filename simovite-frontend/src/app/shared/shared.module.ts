@@ -10,10 +10,11 @@ import { SentimentColorPipe } from './pipes/sentiment-color-pipe';
 import { FormatDatePipe } from './pipes/format-date-pipe';
 import { DhCurrencyPipe } from './pipes/dh-currency-pipe';
 import { HasRole } from './directives/has-role';
+import { ChatbotComponent } from './components/chatbot/chatbot';
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
-    // On déplace tous les composants partagés ici
     RouteMap,
     MapViewer,
     StarRating,
@@ -23,11 +24,10 @@ import { HasRole } from './directives/has-role';
     SentimentColorPipe,
     FormatDatePipe,
     DhCurrencyPipe,
-    HasRole
+    HasRole,
+    ChatbotComponent
   ],
-  imports: [
-    CommonModule
-  ],
+  imports: [CommonModule, FormsModule],
   exports: [
     // 🌟 TRÈS IMPORTANT : On les exporte pour qu'ils soient visibles ailleurs
     RouteMap,
@@ -40,7 +40,8 @@ import { HasRole } from './directives/has-role';
     FormatDatePipe,
     DhCurrencyPipe,
     HasRole,
-    CommonModule // On ré-exporte CommonModule pour éviter de l'importer partout
-  ]
+    CommonModule, 
+    ChatbotComponent// On ré-exporte CommonModule pour éviter de l'importer partout
+  ],
 })
-export class SharedModule { }
+export class SharedModule {}

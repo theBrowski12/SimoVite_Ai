@@ -47,4 +47,9 @@ export class ReviewService {
   deleteReview(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
+  getByClientId(clientId: string): Observable<ReviewResponseDto[]> {
+    //TODO: endpoint à créer côté backend
+    return this.http.get<ReviewResponseDto[]>(`${this.apiUrl}/client/${clientId}`);
+  }
+
 }
