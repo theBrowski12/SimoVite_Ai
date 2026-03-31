@@ -1,5 +1,6 @@
 package cf.order_service.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,4 +17,6 @@ public class OrderItemResponseDto {
     private String productName;
     private int quantity;
     private BigDecimal unitPrice;
+    private BigDecimal subTotal;
+
 }

@@ -1,104 +1,400 @@
 <div class="admin-orders">
+
+  <!-- ════════════════════════════════════════
+       HEADER
+       ════════════════════════════════════════ -->
   <header class="page-header">
-    <div>
-      <h1>Orders Management</h1>
-      <p class="page-sub">Monitor and manage all customer orders</p>
+    <div class="header-left">
+      <h1>Orders</h1>
+      <div class="stats-row">
+        <span class="stat-badge">Total <strong>{{ orders.length }}</strong></span>
+        <span class="stat-badge filtered" *ngIf="filtered.length !== orders.length">
+          Filtered <strong>{{ filtered.length }}</strong>
+        </span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-reset"
+              *ngIf="searchTerm || filterStatus || filterPayment || filterDate !== 'all'"
+              (click)="reset()">
+        ↺ Reset
+      </button>
+      <button class="btn-refresh" (click)="load()" [disabled]="loading">
+        <span [class.spinning]="loading">↻</span> Refresh
+      </button>
     </div>
   </header>
 
-  <!-- KPI Row -->
+
+  <!-- ════════════════════════════════════════
+       KPI ROW
+       ════════════════════════════════════════ -->
   <div class="kpi-row">
     <div class="kpi-card">
-        <div class="kpi-icon orange">📦</div>
-        <div><div class="kpi-val">{{ orders.length }}</div><div class="kpi-lbl">Total Orders</div></div>
+      <div class="kpi-icon orange">📦</div>
+      <div>
+        <div class="kpi-val">{{ orders.length }}</div>
+        <div class="kpi-lbl">Total Orders</div>
+      </div>
     </div>
     <div class="kpi-card">
-        <div class="kpi-icon green">✅</div>
-        <div><div class="kpi-val">{{ countByStatus('DELIVERED') }}</div><div class="kpi-lbl">Delivered</div></div>
+      <div class="kpi-icon amber">⏳</div>
+      <div>
+        <div class="kpi-val">{{ kpiCount('PENDING') }}</div>
+        <div class="kpi-lbl">Pending</div>
+      </div>
     </div>
     <div class="kpi-card">
-        <div class="kpi-icon blue">🔄</div>
-        <div><div class="kpi-val">{{ countByStatus('ACCEPTED') }}</div><div class="kpi-lbl">In Progress</div></div>
+      <div class="kpi-icon blue">🔄</div>
+      <div>
+        <div class="kpi-val">{{ kpiCount('ACCEPTED') }}</div>
+        <div class="kpi-lbl">Accepted</div>
+      </div>
     </div>
     <div class="kpi-card">
-        <div class="kpi-icon gray">⏳</div>
-        <div><div class="kpi-val">{{ countByStatus('PENDING') }}</div><div class="kpi-lbl">Pending</div></div>
+      <div class="kpi-icon green">✅</div>
+      <div>
+        <div class="kpi-val">{{ kpiCount('DELIVERED') }}</div>
+        <div class="kpi-lbl">Delivered</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon purple">💰</div>
+      <div>
+        <div class="kpi-val">{{ totalRevenue | number:'1.0-0' }} DH</div>
+        <div class="kpi-lbl">Revenue</div>
+      </div>
     </div>
   </div>
 
-  <!-- Filters -->
+
+  <!-- ════════════════════════════════════════
+       TABLE CARD
+       ════════════════════════════════════════ -->
   <div class="table-card">
+
+    <!-- ── Filters ── -->
     <div class="filter-bar">
-      <select class="filter-sel" [(ngModel)]="filterStatus" (change)="applyFilters()">
-        <option value="">All Status</option>
-        <option value="PENDING">PENDING</option>
-        <option value="ACCEPTED">ACCEPTED</option>
-        <option value="DELIVERED">DELIVERED</option>
-        <option value="CANCELLED">CANCELLED</option>
-      </select>
-      <select class="filter-sel" [(ngModel)]="filterPayment" (change)="applyFilters()">
-        <option value="">All Payment</option>
-        <option value="COD">COD</option>
-        <option value="ONLINE">ONLINE</option>
-      </select>
-      <select class="filter-sel" [(ngModel)]="filterCategory" (change)="applyFilters()">
-        <option value="">All Categories</option>
-        <option value="RESTAURANT">RESTAURANT</option>
-        <option value="PHARMACY">PHARMACY</option>
-        <option value="SUPERMARKET">SUPERMARKET</option>
-      </select>
+
+      <!-- Search -->
       <div class="search-wrap">
-        <input class="search-in" [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="Search by ref or client...">
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input class="search-in"
+               [(ngModel)]="searchTerm"
+               (ngModelChange)="applyFilters()"
+               placeholder="Search by ref, client, store…">
+        <button class="search-clear" *ngIf="searchTerm"
+                (click)="searchTerm = ''; applyFilters()">×</button>
       </div>
-      <button class="btn-reset" (click)="reset()">Reset</button>
+
+      <!-- Status -->
+      <select class="filter-sel" [(ngModel)]="filterStatus" (ngModelChange)="applyFilters()">
+        <option value="">All Status</option>
+        <option value="PENDING">⏳ Pending</option>
+        <option value="ACCEPTED">🔄 Accepted</option>
+        <option value="DELIVERED">✅ Delivered</option>
+        <option value="CANCELLED">❌ Cancelled</option>
+      </select>
+
+      <!-- Payment -->
+      <select class="filter-sel" [(ngModel)]="filterPayment" (ngModelChange)="applyFilters()">
+        <option value="">All Payments</option>
+        <option value="CASH_ON_DELIVERY">💵 CASH_ON_DELIVERY</option>
+        <option value="ONLINE_PAYMENT">💳 Online</option>
+      </select>
+
+      <!-- Date -->
+      <div class="date-chips">
+        <button class="date-chip" [class.active]="filterDate === 'all'"
+                (click)="filterDate = 'all'; applyFilters()">All</button>
+        <button class="date-chip" [class.active]="filterDate === 'today'"
+                (click)="filterDate = 'today'; applyFilters()">Today</button>
+        <button class="date-chip" [class.active]="filterDate === 'week'"
+                (click)="filterDate = 'week'; applyFilters()">7 days</button>
+        <button class="date-chip" [class.active]="filterDate === 'month'"
+                (click)="filterDate = 'month'; applyFilters()">30 days</button>
+      </div>
+
+    </div>
+    <!-- /filter-bar -->
+
+
+    <!-- ── Error ── -->
+    <div class="error-banner" *ngIf="error">
+      <span>⚠️</span> {{ error }}
+      <button (click)="load()">Retry</button>
     </div>
 
-    <!-- Loading -->
+
+    <!-- ── Loading ── -->
     <div class="loading-wrap" *ngIf="loading">
       <div class="spinner"></div>
+      <span>Loading orders…</span>
     </div>
 
-    <!-- Table -->
-    <div class="table-wrap" *ngIf="!loading">
+
+    <!-- ── Table ── -->
+    <div class="table-wrap" *ngIf="!loading && !error">
       <table>
         <thead>
           <tr>
             <th>Order Ref</th>
             <th>Client</th>
             <th>Store</th>
-            <th>Category</th>
+            <th>Items</th>
             <th>Total</th>
-            <th>Delivery</th>
             <th>Payment</th>
             <th>Status</th>
             <th>Date</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let o of paginated">
-            <td><strong class="order-ref">{{ o.orderRef }}</strong></td>
-            <td>{{ o.clientName }}</td>
-            <td>{{ o.storeName }}</td>
-            <td><span class="badge {{ getCategoryClass(o.storeCategory) }}">{{ o.storeCategory }}</span></td>
-            <td><strong>{{ o.totalAmount | number:'1.2-2' }} DH</strong></td>
-            <td>{{ o.deliveryCost | number:'1.2-2' }} DH</td>
-            <td><span class="badge {{ getPaymentClass(o.paymentMethod) }}">{{ o.paymentMethod }}</span></td>
-            <td><span class="badge {{ getStatusClass(o.status) }}">{{ o.status }}</span></td>
-            <td>{{ o.createdAt | date:'dd MMM, HH:mm' }}</td>
+
+          <tr *ngFor="let o of paginated" [class.selected-row]="selectedOrder?.id === o.id">
+
+            <!-- Order ref -->
+            <td>
+              <button class="ref-btn" (click)="openDetail(o)">
+                {{ o.orderRef }}
+              </button>
+            </td>
+
+            <!-- Client -->
+            <td>
+              <div class="client-cell">
+                <div class="avatar">{{ o.fullName | slice:0:2 | uppercase }}</div>
+                <div>
+                  <div class="client-name">{{ o.fullName }}</div>
+                  <div class="client-email">{{ o.email }}</div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Store -->
+            <td>
+              <div class="store-cell">
+                <span>{{ o.storeName }}</span>
+                <span class="badge {{ getCategoryClass(o.storeCategory) }}">{{ o.storeCategory }}</span>
+              </div>
+            </td>
+
+            <!-- Items count -->
+            <td>
+              <span class="items-count">{{ o.items.length || 0 }} items</span>
+            </td>
+
+            <!-- Total -->
+            <td>
+              <div class="amount-cell">
+                <strong>{{ o.price | number:'1.2-2' }} DH</strong>
+                <span class="delivery-cost">+{{ o.deliveryCost | number:'1.2-2' }} delivery</span>
+              </div>
+            </td>
+
+            <!-- Payment -->
+            <td>
+              <span class="badge {{ getPaymentClass(o.paymentMethod) }}">
+                {{ o.paymentMethod === 'CASH_ON_DELIVERY' ? '💵 CASH_ON_DELIVERY' : '💳 ONLINE_PAYMENT' }}
+              </span>
+            </td>
+
+            <!-- Status — inline edit -->
+            <td>
+              <div class="status-cell">
+
+                <!-- View mode -->
+                <ng-container *ngIf="editingStatusId !== +o.id">
+                  <span class="badge {{ getStatusClass(o.status) }}">
+                    {{ getStatusIcon(o.status) }} {{ o.status }}
+                  </span>
+                  <button class="edit-status-btn" (click)="startEditStatus(+o.id)" title="Change status">
+                    ✏️
+                  </button>
+                </ng-container>
+
+                <!-- Edit mode -->
+                <ng-container *ngIf="editingStatusId === +o.id">
+                  <select class="status-sel-inline"
+                          [ngModel]="o.status"
+                          (ngModelChange)="confirmStatusChange(o, $event)"
+                          (blur)="cancelEditStatus()">
+                    <option *ngFor="let s of statusOptions" [value]="s">{{ s }}</option>
+                  </select>
+                  <button class="cancel-status-btn" (click)="cancelEditStatus()">✕</button>
+                </ng-container>
+
+              </div>
+            </td>
+
+            <!-- Date -->
+            <td>
+              <div class="date-cell">
+                <span>{{ o.createdAt | date:'dd MMM yyyy' }}</span>
+                <span class="date-time">{{ o.createdAt | date:'HH:mm' }}</span>
+              </div>
+            </td>
+
+            <!-- Actions -->
+            <td class="actions-cell">
+              <button class="btn-action" (click)="openDetail(o)" title="View details">👁️</button>
+              <button class="btn-action"
+                      *ngIf="o.paymentMethod === 'ONLINE_PAYMENT' && o.status === 'PENDING'"
+                      (click)="confirmPayment(o)" title="Confirm payment">
+                💳
+              </button>
+              <button class="btn-action btn-delete" (click)="deleteOrder(o)" title="Delete">🗑️</button>
+            </td>
+
           </tr>
+
+          <!-- Empty state -->
           <tr *ngIf="paginated.length === 0">
-            <td colspan="9" class="empty-row">No orders found</td>
+            <td colspan="9">
+              <div class="empty-state">
+                <span class="empty-icon">📭</span>
+                <strong>No orders found</strong>
+                <span>Try adjusting your filters</span>
+              </div>
+            </td>
           </tr>
+
         </tbody>
       </table>
+    </div>
+    <!-- /table-wrap -->
 
-      <!-- Pagination -->
-      <div class="pagination" *ngIf="totalPages > 1">
-        <button class="page-btn" [disabled]="currentPage === 1" (click)="currentPage = currentPage - 1">‹</button>
-        <button class="page-btn" *ngFor="let p of pages" [class.active]="p === currentPage" (click)="currentPage = p">{{ p }}</button>
-        <button class="page-btn" [disabled]="currentPage === totalPages" (click)="currentPage = currentPage + 1">›</button>
-        <span class="page-info">{{ filtered.length }} results</span>
+
+    <!-- ── Pagination ── -->
+    <div class="pagination" *ngIf="!loading && totalPages > 1">
+      <span class="page-info">
+        Showing {{ (currentPage - 1) * pageSize + 1 }}–{{ pageEnd }} of {{ filtered.length }}
+      </span>
+      <div class="page-btns">
+        <button class="page-btn" [disabled]="currentPage === 1"
+                (click)="currentPage = currentPage - 1">‹</button>
+        <button class="page-btn"
+                *ngFor="let p of pages"
+                [class.active]="p === currentPage"
+                (click)="currentPage = p">{{ p }}</button>
+        <button class="page-btn" [disabled]="currentPage === totalPages"
+                (click)="currentPage = currentPage + 1">›</button>
       </div>
     </div>
+
   </div>
+  <!-- /table-card -->
+
+
+  <!-- ════════════════════════════════════════
+       DETAIL PANEL (slide-in)
+       ════════════════════════════════════════ -->
+  <div class="detail-overlay" *ngIf="selectedOrder" (click)="closeDetail()"></div>
+
+  <div class="detail-panel" [class.open]="selectedOrder">
+    <ng-container *ngIf="selectedOrder as o">
+
+      <div class="detail-header">
+        <div>
+          <div class="detail-ref">{{ o.orderRef }}</div>
+          <span class="badge {{ getStatusClass(o.status) }}">
+            {{ getStatusIcon(o.status) }} {{ o.status }}
+          </span>
+        </div>
+        <button class="detail-close" (click)="closeDetail()">✕</button>
+      </div>
+
+      <div class="detail-body">
+
+        <!-- Client info -->
+        <div class="detail-section">
+          <div class="section-label">👤 Client</div>
+          <div class="detail-row"><span>Name</span><strong>{{ o.fullName }}</strong></div>
+          <div class="detail-row"><span>Email</span><strong>{{ o.email }}</strong></div>
+          <div class="detail-row"><span>ID</span><code>{{ o.userId }}</code></div>
+        </div>
+
+        <!-- Store info -->
+        <div class="detail-section">
+          <div class="section-label">🏪 Store</div>
+          <div class="detail-row"><span>Name</span><strong>{{ o.storeName }}</strong></div>
+          <div class="detail-row">
+            <span>Category</span>
+            <span class="badge {{ getCategoryClass(o.storeCategory) }}">{{ o.storeCategory }}</span>
+          </div>
+        </div>
+
+        <!-- Delivery address -->
+        <div class="detail-section">
+          <div class="section-label">📍 Delivery Address</div>
+          <div class="detail-row">
+            <span>Street</span>
+            <strong>{{ o.deliveryAddress.street }}, {{ o.deliveryAddress.buildingNumber }}</strong>
+          </div>
+          <div class="detail-row">
+            <span>City</span>
+            <strong>{{ o.deliveryAddress.city }}</strong>
+          </div>
+        </div>
+
+        <!-- Items -->
+        <div class="detail-section">
+          <div class="section-label">🛍️ Items ({{ o.items.length || 0 }})</div>
+          <div class="items-list">
+            <div *ngFor="let item of o.items" class="item-row">
+              <span class="item-qty">×{{ item.quantity }}</span>
+              <span class="item-name">{{ item.productName }}</span>
+              <span class="item-price">{{ item.subTotal | number:'1.2-2' }} DH</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pricing -->
+        <div class="detail-section">
+          <div class="section-label">💰 Pricing</div>
+          <div class="detail-row"><span>Subtotal</span><strong>{{ o.price - o.deliveryCost | number:'1.2-2' }} DH</strong></div>
+          <div class="detail-row"><span>Delivery</span><strong>{{ o.deliveryCost | number:'1.2-2' }} DH</strong></div>
+          <div class="detail-row total-row">
+            <span>Total</span>
+            <strong class="total-amount">{{ o.price | number:'1.2-2' }} DH</strong>
+          </div>
+          <div class="detail-row">
+            <span>Payment</span>
+            <span class="badge {{ getPaymentClass(o.paymentMethod) }}">{{ o.paymentMethod }}</span>
+          </div>
+        </div>
+
+        <!-- Dates -->
+        <div class="detail-section">
+          <div class="section-label">📅 Timeline</div>
+          <div class="detail-row">
+            <span>Created</span>
+            <strong>{{ o.createdAt | date:'dd MMM yyyy, HH:mm' }}</strong>
+          </div>
+          <div class="detail-row" *ngIf="o.updatedAt">
+            <span>Updated</span>
+            <strong>{{ o.updatedAt | date:'dd MMM yyyy, HH:mm' }}</strong>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Panel actions -->
+      <div class="detail-footer">
+        <button class="btn-confirm-pay"
+                *ngIf="o.paymentMethod === 'ONLINE_PAYMENT' && o.status === 'PENDING'"
+                (click)="confirmPayment(o)">
+          💳 Confirm Payment
+        </button>
+        <button class="btn-delete-order" (click)="deleteOrder(o)">
+          🗑️ Delete Order
+        </button>
+      </div>
+
+    </ng-container>
+  </div>
+
 </div>

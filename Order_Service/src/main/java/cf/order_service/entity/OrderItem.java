@@ -29,4 +29,6 @@ public class OrderItem {
     private int quantity;
 
     private BigDecimal unitPrice;
+    private BigDecimal subTotal;
+
 }

@@ -22,7 +22,9 @@ public class OrderMapper {
 
         Order order = new Order();
         BeanUtils.copyProperties(dto, order);
-
+        if (dto.getPaymentMethod() != null) {
+            order.setPaymentMethod(dto.getPaymentMethod());
+        }
         if (dto.getItems() != null) {
             List<OrderItem> items = dto.getItems().stream()
                     .map(itemDto -> {
@@ -42,7 +44,11 @@ public class OrderMapper {
 
         OrderResponseDto dto = new OrderResponseDto();
         BeanUtils.copyProperties(entity, dto);
-
+        if (entity.getPaymentMethod() != null) {
+            dto.setPaymentMethod(String.valueOf(entity.getPaymentMethod()));
+            // ⚠️ NOTE : Si 'paymentMethod' dans ton OrderResponseDto est de type String
+            // au lieu de l'Enum, utilise plutôt : dto.setPaymentMethod(entity.getPaymentMethod().name());
+        }
         if (entity.getItems() != null) {
             dto.setItems(itemMapper.toResponseDtoList(entity.getItems()));
         }

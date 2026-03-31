@@ -28,6 +28,8 @@ public class Order {
     private String userId;
     @Column(nullable = false)
     private String fullName;
+    @Column(nullable = false)
+    private String email;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OrderStatus status;
@@ -49,11 +51,13 @@ public class Order {
     private Double discountPercentage = 0.0; // Par défaut 0%
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> items;
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
     private boolean isPaid;
-    //private StoreResponseDto store;
+    private BigDecimal deliveryCost;
+    private String storeCategory;
+    private String storeName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     @PrePersist

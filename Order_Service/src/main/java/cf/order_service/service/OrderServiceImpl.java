@@ -28,6 +28,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static cf.order_service.enums.PaymentMethod.CASH_ON_DELIVERY;
+import static cf.order_service.enums.PaymentMethod.ONLINE_PAYMENT;
+
 @Service
 @RequiredArgsConstructor
 @Transactional // Garantit que si une erreur survient, rien n'est enregistré en base
@@ -50,6 +53,8 @@ public class OrderServiceImpl implements OrderService {
         String userIdFromJwt = JwtUtils.getUserId();
         order.setUserId(userIdFromJwt);      // ✅ depuis JWT, pas depuis dto
         order.setFullName(nameFromJwt);      // ✅ depuis JWT, pas depuis dto
+        order.setEmail(emailFromJwt);
+        order.setPaymentMethod(dto.getPaymentMethod());
         if (dto.getDeliveryAddress() != null) {
             Address address = Address.builder()
                     .city(dto.getDeliveryAddress().getCity())
@@ -64,8 +69,11 @@ public class OrderServiceImpl implements OrderService {
         }
         // Initialisation du statut de paiement
         order.setPaid(false); // Par défaut, non payé
-
+        StoreResponseDto storeInfo = storeClient.getStoreById(dto.getStoreId());
+        order.setStoreName(storeInfo.getName());
+        order.setStoreCategory(storeInfo.getCategory());
         order.setItems(new ArrayList<>());
+
         BigDecimal totalOrderPrice = BigDecimal.ZERO;
 
         for (var itemDto : dto.getItems()) {
@@ -81,10 +89,16 @@ public class OrderServiceImpl implements OrderService {
 
             BigDecimal subTotal = item.getUnitPrice().multiply(new BigDecimal(item.getQuantity()));
             totalOrderPrice = totalOrderPrice.add(subTotal);
+
+            item.setOrder(order);
+            item.setSubTotal(subTotal);
             order.addItem(item);
         }
         order.setPrice(totalOrderPrice);
         order.setStoreId(dto.getStoreId());
+        if (order.getPaymentMethod() == null) {
+            order.setPaymentMethod(PaymentMethod.CASH_ON_DELIVERY); // ou ONLINE_PAYMENT selon ton choix
+        }
         Order savedOrder = orderRepository.save(order);
 
         // 🔀 LA BIFURCATION EST ICI
@@ -112,7 +126,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Commande non trouvée avec l'ID: " + id));
 
-        if (order.getPaymentMethod() == PaymentMethod.CASH_ON_DELIVERY) {
+        if (order.getPaymentMethod() == CASH_ON_DELIVERY) {
             throw new RuntimeException("Cette commande est configurée pour un paiement en espèce.");
         }
 
@@ -155,7 +169,7 @@ public class OrderServiceImpl implements OrderService {
                 storeCategory = "UNKNOWN"; // Fallback value
             }
             // 🚨 NOUVEAU POUR LE DELIVERY SERVICE :
-            event.setCashOnDelivery(order.getPaymentMethod() == PaymentMethod.CASH_ON_DELIVERY);
+            event.setCashOnDelivery(order.getPaymentMethod() == CASH_ON_DELIVERY);
             event.setStoreCategory(storeCategory);
 
             List<OrderEvent.OrderItemEvent> itemEvents = order.getItems().stream()

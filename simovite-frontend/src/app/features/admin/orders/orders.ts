@@ -1,91 +1,220 @@
 import { Component, OnInit } from '@angular/core';
-import { Order } from '@models/order.model';
+import { OrderService }      from '../../../services/order.service';
+import { NotificationService } from '../../../services/notification.service';
+import { Order, OrderStatus, DateFilter, PaymentMethod } from '../../../models/order.model';
 
 @Component({
-  selector: 'app-admin-orders',
-  standalone: false,
+  selector:    'app-admin-orders',
+  standalone:  false,
   templateUrl: './orders.html',
-  styleUrls: ['./orders.scss']
+  styleUrls:   ['./orders.scss']
 })
 export class AdminOrders implements OnInit {
 
-  orders: Order[] = [];
+  // ── Data ─────────────────────────────────────────────────
+  orders:   Order[] = [];
   filtered: Order[] = [];
-  loading = true;
+  loading  = true;
+  error    = '';
 
+  // ── Filters ───────────────────────────────────────────────
+  searchTerm       = '';
   filterStatus     = '';
   filterPayment    = '';
-  filterCategory   = '';
-  searchTerm       = '';
+  filterDate: DateFilter = 'all';
 
-  // Pagination
+  // ── Pagination ────────────────────────────────────────────
   currentPage = 1;
   pageSize    = 10;
 
-  // Mock data — remplace par this.orderService.getAll().subscribe(...)
-  private mockOrders: Order[] = [
-    {id: '1', 
-    orderRef: 'SV20260320001', 
-    clientId: 'c1',
-    clientName: 'Mohamed B.', 
-    storeId: 's1',
-    storeName: 'Pizza Maarif', 
-    storeCategory: 'RESTAURANT', 
-    items: [], // Ajouté pour l'interface
-    deliveryAddress: { street: 'Rue 1', city: 'Casablanca' } as any, // Mock rapide
-    totalAmount: 87.50, 
-    deliveryCost: 20.22, 
-    paymentMethod: 'COD', 
-    status: 'DELIVERED', 
-    createdAt: '2026-03-20T09:14:00' 
-  },
-    {id: '2', orderRef: 'SV20260320002', clientId: 'c2', clientName: 'Yassine A.', storeId: 's2', storeName: 'PharmaPlus', storeCategory: 'PHARMACY', items: [], deliveryAddress: { street: 'Rue 2', city: 'Casablanca' } as any, totalAmount: 45.00, deliveryCost: 16.80, paymentMethod: 'ONLINE', status: 'ACCEPTED', createdAt: '2026-03-20T09:32:00' },
-    {id: '3', orderRef: 'SV20260320003', clientId: 'c3', clientName: 'Karim S.', storeId: 's3', storeName: 'SuperMarket Central', storeCategory: 'SUPERMARKET', items: [], deliveryAddress: { street: 'Rue 3', city: 'Casablanca' } as any, totalAmount: 120.00, deliveryCost: 24.40, paymentMethod: 'COD', status: 'PENDING', createdAt: '2026-03-20T09:45:00' },
-    {id: '4', orderRef: 'SV20260320004', clientId: 'c4', clientName: 'Sara L.', storeId: 's4', storeName: 'Express Delivery', storeCategory: 'SPECIAL_DELIVERY', items: [], deliveryAddress: { street: 'Rue 4', city: 'Casablanca' } as any, totalAmount: 200.00, deliveryCost: 30.00, paymentMethod: 'ONLINE', status: 'CANCELLED', createdAt: '2026-03-20T10:02:00' },
-  ];
+  // ── Detail panel ─────────────────────────────────────────
+  selectedOrder: Order | null = null;
 
-  ngOnInit(): void {
-    // TODO: inject OrderService and replace mock
-    // this.orderService.getAll().subscribe(o => { this.orders = o; this.applyFilters(); this.loading = false; });
-    setTimeout(() => {
-      this.orders   = this.mockOrders;
-      this.filtered = this.mockOrders;
-      this.loading  = false;
-    }, 400);
+  // ── Inline status edit ────────────────────────────────────
+  editingStatusId: number | null = null;
+  statusOptions: OrderStatus[] = ['PENDING', 'ACCEPTED', 'DELIVERED', 'CANCELLED'];
+
+  constructor(
+    private orderSvc: OrderService,
+    private notif:    NotificationService,
+  ) {}
+
+  ngOnInit(): void { this.load(); }
+
+  // ── Load ──────────────────────────────────────────────────
+
+  load(): void {
+    this.loading = true;
+    this.error   = '';
+    this.orderSvc.getAll().subscribe({
+      next: orders => {
+        this.orders  = orders;
+        this.applyFilters();
+        this.loading = false;
+      },
+      error: () => {
+        this.error   = 'Failed to load orders.';
+        this.loading = false;
+      }
+    });
   }
 
+  // ── Filters ───────────────────────────────────────────────
+
+  // ── Filters ───────────────────────────────────────────────
+
   applyFilters(): void {
+    // 1. On sécurise le searchTerm au cas où il serait null
+    const term = this.searchTerm?.toLowerCase() || '';
+
     this.filtered = this.orders.filter(o => {
-      const matchStatus   = !this.filterStatus   || o.status          === this.filterStatus;
-      const matchPayment  = !this.filterPayment  || o.paymentMethod   === this.filterPayment;
-      const matchCategory = !this.filterCategory || o.storeCategory   === this.filterCategory;
-      const matchSearch   = !this.searchTerm     ||
-        o.orderRef.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        o.clientName.toLowerCase().includes(this.searchTerm.toLowerCase());
-      return matchStatus && matchPayment && matchCategory && matchSearch;
+
+      // 2. On ajoute les fameux "?." pour éviter le crash "Cannot read properties of null"
+      const matchSearch =
+        !term ||
+        o.orderRef?.toLowerCase().includes(term)  ||
+        o.fullName?.toLowerCase().includes(term)  ||
+        o.storeName?.toLowerCase().includes(term) ||
+        o.email?.toLowerCase().includes(term);
+
+      const matchStatus  = !this.filterStatus  || o.status === this.filterStatus;
+      const matchPayment = !this.filterPayment || o.paymentMethod === this.filterPayment;
+      const matchDate    = this.matchesDateFilter(o.createdAt);
+
+      return matchSearch && matchStatus && matchPayment && matchDate;
     });
+
     this.currentPage = 1;
   }
 
-  get paginated(): Order[] {
-    const start = (this.currentPage - 1) * this.pageSize;
-    return this.filtered.slice(start, start + this.pageSize);
+  private matchesDateFilter(createdAt: string): boolean {
+    if (this.filterDate === 'all') return true;
+    const date  = new Date(createdAt);
+    const now   = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    if (this.filterDate === 'today') return date >= today;
+    if (this.filterDate === 'week') {
+      const weekAgo = new Date(today); weekAgo.setDate(weekAgo.getDate() - 7);
+      return date >= weekAgo;
+    }
+    if (this.filterDate === 'month') {
+      const monthAgo = new Date(today); monthAgo.setMonth(monthAgo.getMonth() - 1);
+      return date >= monthAgo;
+    }
+    return true;
   }
 
+  reset(): void {
+    this.searchTerm    = '';
+    this.filterStatus  = '';
+    this.filterPayment = '';
+    this.filterDate    = 'all';
+    this.applyFilters();
+  }
+
+  // ── Status update ─────────────────────────────────────────
+
+  startEditStatus(orderId: number): void  { this.editingStatusId = orderId; }
+  cancelEditStatus(): void                { this.editingStatusId = null; }
+
+  confirmStatusChange(order: Order, newStatus: OrderStatus): void {
+    if (order.status === newStatus) { this.editingStatusId = null; return; }
+
+    const prev = order.status;
+    order.status = newStatus;         // optimistic update
+    this.editingStatusId = null;
+
+    this.orderSvc.updateStatus(+order.id, newStatus).subscribe({
+      next:  updated => {
+        Object.assign(order, updated);
+        this.notif.success(`Order ${order.orderRef} → ${newStatus}`);
+      },
+      error: () => {
+        order.status = prev;          // rollback
+        this.notif.error('Status update failed.');
+      }
+    });
+  }
+
+  // ── Delete ────────────────────────────────────────────────
+
+  deleteOrder(order: Order): void {
+    if (!confirm(`Delete order ${order.orderRef}?`)) return;
+    this.orderSvc.delete(+order.id).subscribe({
+      next:  () => {
+        this.orders  = this.orders.filter(o => o.id !== order.id);
+        this.applyFilters();
+        if (this.selectedOrder?.id === order.id) this.selectedOrder = null;
+        this.notif.success(`Order ${order.orderRef} deleted.`);
+      },
+      error: () => this.notif.error('Delete failed.')
+    });
+  }
+
+  // ── Confirm payment ───────────────────────────────────────
+
+  confirmPayment(order: Order): void {
+    this.orderSvc.confirmPayment(+order.id).subscribe({
+      next:  updated => { Object.assign(order, updated); this.notif.success('Payment confirmed ✓'); },
+      error: ()      => this.notif.error('Payment confirmation failed.')
+    });
+  }
+
+  // ── Detail panel ─────────────────────────────────────────
+
+  openDetail(order: Order): void  { this.selectedOrder = order; }
+  closeDetail(): void             { this.selectedOrder = null; }
+
+  // ── Pagination ────────────────────────────────────────────
+
+  get paginated(): Order[] {
+    const s = (this.currentPage - 1) * this.pageSize;
+    return this.filtered.slice(s, s + this.pageSize);
+  }
   get totalPages(): number { return Math.ceil(this.filtered.length / this.pageSize); }
-  get pages(): number[]    { return Array.from({ length: this.totalPages }, (_, i) => i + 1); }
+  get pages():      number[]{ return Array.from({ length: this.totalPages }, (_, i) => i + 1); }
+  get pageEnd():    number  { return Math.min(this.currentPage * this.pageSize, this.filtered.length); }
+
+  // ── KPIs ──────────────────────────────────────────────────
+
+  get totalRevenue(): number {
+    return this.orders
+      .filter(o => o.status === 'DELIVERED')
+      .reduce((s, o) => s + o.price, 0);
+  }
+  kpiCount(status: OrderStatus): number {
+    return this.orders.filter(o => o.status === status).length;
+  }
+
+  // ── Style helpers ─────────────────────────────────────────
 
   getStatusClass(s: string): string {
-    const m: Record<string, string> = { PENDING:'badge-gray', ACCEPTED:'badge-blue', DELIVERED:'badge-green', CANCELLED:'badge-red' };
+    const m: Record<string, string> = {
+      PENDING:   'badge-gray',
+      ACCEPTED:  'badge-blue',
+      DELIVERED: 'badge-green',
+      CANCELLED: 'badge-red',
+    };
     return m[s] ?? 'badge-gray';
   }
-  getPaymentClass(p: string): string { return p === 'COD' ? 'badge-orange' : 'badge-blue'; }
+
+  getStatusIcon(s: string): string {
+    const m: Record<string, string> = {
+      PENDING: '⏳', ACCEPTED: '🔄', DELIVERED: '✅', CANCELLED: '❌'
+    };
+    return m[s] ?? '';
+  }
+
+  getPaymentClass(p: PaymentMethod): string {
+    return p === 'CASH_ON_DELIVERY' ? 'badge-amber' : 'badge-blue';
+  }
+
   getCategoryClass(c: string): string {
-    const m: Record<string, string> = { RESTAURANT:'badge-orange', PHARMACY:'badge-green', SUPERMARKET:'badge-blue', SPECIAL_DELIVERY:'badge-purple' };
+    const m: Record<string, string> = {
+      RESTAURANT: 'badge-orange', PHARMACY: 'badge-green',
+      SUPERMARKET: 'badge-blue',  SPECIAL_DELIVERY: 'badge-purple'
+    };
     return m[c] ?? 'badge-gray';
   }
-  countByStatus(status: string): number {
-  return this.orders.filter(o => o.status === status).length;
-}
-  reset(): void { this.filterStatus = ''; this.filterPayment = ''; this.filterCategory = ''; this.searchTerm = ''; this.applyFilters(); }
 }
