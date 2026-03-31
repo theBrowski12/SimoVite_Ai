@@ -3,6 +3,8 @@ package cf.order_service.service;
 import cf.order_service.dto.OrderRequestDto;
 import cf.order_service.dto.OrderResponseDto;
 import cf.order_service.dto.catalogDto.CatalogResponseDto;
+import cf.order_service.dto.priceDto.PriceRequestDto;
+import cf.order_service.dto.priceDto.PriceResponseDto;
 import cf.order_service.dto.storeDto.StoreResponseDto;
 import cf.order_service.entity.Address;
 import cf.order_service.entity.Order;
@@ -10,6 +12,7 @@ import cf.order_service.entity.OrderItem;
 import cf.order_service.enums.OrderStatus;
 import cf.order_service.enums.PaymentMethod;
 import cf.order_service.feignClient.CatalogClient;
+import cf.order_service.feignClient.PriceFeignClient;
 import cf.order_service.feignClient.StoreClient;
 import cf.order_service.kafkaEvents.OrderEvent;
 import cf.order_service.mapper.OrderItemMapper;
@@ -30,6 +33,7 @@ import java.util.stream.Collectors;
 
 import static cf.order_service.enums.PaymentMethod.CASH_ON_DELIVERY;
 import static cf.order_service.enums.PaymentMethod.ONLINE_PAYMENT;
+import static cf.order_service.utils.DistanceCalculator.calculateDistance;
 
 @Service
 @RequiredArgsConstructor
@@ -43,6 +47,7 @@ public class OrderServiceImpl implements OrderService {
     private final KafkaProducerService kafkaProducerService ;
     private final CatalogClient catalogRestClient;
     private final StoreClient storeClient;
+    private final PriceFeignClient priceClient;
 
     @Override
     public OrderResponseDto createOrder(OrderRequestDto dto) {
@@ -98,6 +103,28 @@ public class OrderServiceImpl implements OrderService {
         order.setStoreId(dto.getStoreId());
         if (order.getPaymentMethod() == null) {
             order.setPaymentMethod(PaymentMethod.CASH_ON_DELIVERY); // ou ONLINE_PAYMENT selon ton choix
+        }
+        double distanceKm = calculateDistance(
+                storeInfo.getAddress().getLatitude(), storeInfo.getAddress().getLongitude(),
+                dto.getDeliveryAddress().getLatitude(), dto.getDeliveryAddress().getLongitude()
+        );
+        PriceRequestDto priceReq = PriceRequestDto.builder()
+                .distance_km(distanceKm)
+                .vehicle_type("MOTORCYCLE") // 👈 Ton bypass est ici !
+                .category(storeInfo.getCategory())
+                .pickup_latitude(storeInfo.getAddress().getLatitude())
+                .pickup_longitude(storeInfo.getAddress().getLongitude())
+                .order_total(order.getPrice().doubleValue())
+                .build();
+        PriceResponseDto priceResp  = priceClient.calculatePrice(priceReq) ;
+        if (priceResp != null) {
+            BigDecimal deliveryCost = BigDecimal.valueOf(priceResp.getDelivery_cost());
+            order.setDeliveryCost(deliveryCost);
+            // On ajoute la livraison au total de la commande !
+            order.setPrice(order.getPrice().add(deliveryCost));
+        } else {
+            order.setDeliveryCost(BigDecimal.ZERO);
+            // Le prix reste le même car la livraison est à 0
         }
         Order savedOrder = orderRepository.save(order);
 
