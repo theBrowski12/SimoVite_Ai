@@ -20,6 +20,7 @@ public interface CatalogRepository extends MongoRepository<Catalog, String> {
     // 3. Trouver uniquement les produits actuellement disponibles
     List<Catalog> findByAvailableTrue();
 
+
     // 4. Filtre "Budget"
     List<Catalog> findByBasePriceLessThanEqual(double maxPrice);
 

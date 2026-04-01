@@ -4,6 +4,7 @@ import { AuthGuard } from './core/guards/auth-guard';
 import { RoleGuard } from './core/guards/role-guard';
 import { GuestGuard } from './core/guards/guest-guard';
 import { Home } from './features/client/home/home';
+import { StoreDetailComponent } from './features/client/store-detail/store-detail';
 
 
 // Supprime tous les imports de AdminDashboard, AdminOrders, etc. ici !
@@ -18,7 +19,7 @@ const routes: Routes = [
     loadChildren: () => import('./features/admin/admin-module').then(m => m.AdminModule)
   },
   {
-    path: 'client',
+    path: '',
     loadChildren: () => import('./features/client/client-module').then(m => m.ClientModule)
   },
   

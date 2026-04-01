@@ -163,7 +163,7 @@
   </div>
 
   <div class="stores-grid">
-    <div class="store-card" *ngFor="let store of stores" [routerLink]="['/client/store-detail', store.id]">
+    <div class="store-card" *ngFor="let store of stores" [routerLink]="['/stores', store.id]">
       
       <div class="store-img" 
            [ngClass]="{
@@ -304,7 +304,11 @@
     </div>
   </div>
   <div class="reviews-cta">
-    <button class="btn-primary" style="margin:0 auto">Leave a Review ✍️</button>
+    <button class="btn-primary" 
+            style="margin: 0 auto; display: block;" 
+            routerLink="/my-reviews">
+      Manage My Reviews ✍️
+    </button>
   </div>
 </section>
 
@@ -381,6 +385,7 @@
       <a href="#">Careers</a>
       <a href="#">Blog</a>
       <a href="#">Press</a>
+      
     </div>
     <div class="footer-col">
       <h4>Support</h4>
@@ -388,6 +393,7 @@
       <a href="#">Help Center</a>
       <a href="#">Track Order</a>
       <a href="#">Returns</a>
+      <a href="/my-reviews">My Reviews</a>
     </div>
     <div class="footer-col">
       <h4>Legal</h4>

@@ -51,5 +51,10 @@ export class ReviewService {
     //TODO: endpoint à créer côté backend
     return this.http.get<ReviewResponseDto[]>(`${this.apiUrl}/client/${clientId}`);
   }
+  // Ajoute ou remplace l'ancienne méthode par celle-ci
+  getMyReviews(): Observable<ReviewResponseDto[]> {
+    // Fait un GET sur l'URL de base + /my-reviews
+    return this.http.get<ReviewResponseDto[]>(`${this.apiUrl}/my-reviews`);
+  }
 
 }

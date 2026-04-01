@@ -1,0 +1,154 @@
+.reviews-wrapper {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+  h2 {
+    color: #1f2937;
+    margin-bottom: 24px;
+    font-size: 1.75rem;
+  }
+
+  .state-message {
+    text-align: center;
+    padding: 48px;
+    color: #6b7280;
+    background: #f9fafb;
+    border-radius: 12px;
+    border: 1px dashed #d1d5db;
+  }
+
+  .review-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+
+      .target-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        h3 {
+          margin: 0;
+          font-size: 1.15rem;
+          color: #111827;
+        }
+
+        .badge {
+          font-size: 0.7rem;
+          text-transform: uppercase;
+          padding: 4px 10px;
+          border-radius: 9999px;
+          font-weight: 700;
+          letter-spacing: 0.5px;
+          color: white;
+
+          &.product { background-color: #3b82f6; } // Blue
+          &.store { background-color: #10b981; }   // Green
+        }
+      }
+
+      .date {
+        font-size: 0.85rem;
+        color: #9ca3af;
+      }
+    }
+
+    .stars {
+      margin-bottom: 16px;
+      
+      .star {
+        font-size: 1.75rem;
+        color: #e5e7eb; // Empty star color
+        margin-right: 4px;
+        
+        &.filled { color: #f59e0b; } // Gold
+      }
+
+      &.edit-mode .star.interactive {
+        cursor: pointer;
+        transition: transform 0.1s;
+        
+        &:hover { transform: scale(1.2); }
+      }
+    }
+
+    .comment-text {
+      color: #4b5563;
+      line-height: 1.6;
+      margin-bottom: 24px;
+      white-space: pre-wrap; // Preserves line breaks
+    }
+
+    .ai-warning {
+      background-color: #fef2f2;
+      color: #991b1b;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      margin-bottom: 20px;
+      border-left: 4px solid #ef4444;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      resize: vertical;
+      font-family: inherit;
+      font-size: 1rem;
+      margin-bottom: 20px;
+      box-sizing: border-box;
+      
+      &:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      }
+      
+      &:disabled { background-color: #f3f4f6; cursor: not-allowed; }
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+
+      button {
+        padding: 8px 18px;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+      }
+
+      // Button Variants
+      .btn-edit { background: #f3f4f6; color: #374151; &:hover:not(:disabled) { background: #e5e7eb; } }
+      .btn-delete { background: #fee2e2; color: #dc2626; &:hover:not(:disabled) { background: #fca5a5; } }
+      .btn-cancel { background: white; border: 1px solid #d1d5db; color: #4b5563; &:hover:not(:disabled) { background: #f9fafb; } }
+      .btn-save { background: #2563eb; color: white; &:hover:not(:disabled) { background: #1d4ed8; } }
+    }
+  }
+}

@@ -22,7 +22,7 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
 
     long countByTargetIdAndClientId(String targetId, String clientId);
 
-
+    List<Review> findByClientId(String clientId);
     boolean existsByTargetIdAndClientId(String targetId, String clientId);
 
     // ✅ Correction de la méthode pour la moyenne des notes

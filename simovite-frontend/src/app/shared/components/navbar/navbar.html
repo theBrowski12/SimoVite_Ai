@@ -9,6 +9,12 @@
     <a href="#categories">Categories</a>
     <a href="#stores">Stores</a>
     <a href="#track">Track Order</a>
+    <button *ngIf="isAdmin" 
+            routerLink="/admin/dashboard" 
+            class="btn-admin-pill">
+      <span class="icon">⚙️</span>
+      <span class="text">Admin Dashboard</span>
+    </button>
   </div>
 
   <div class="nav-search">

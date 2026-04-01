@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { ClientRoutingModule } from './client-routing-module';
 import { Home } from './home/home';
 import { Categories } from './categories/categories';
-import { StoreDetail } from './store-detail/store-detail';
+import { StoreDetailComponent } from './store-detail/store-detail';
 import { ProductDetail } from './product-detail/product-detail';
 import { Cart } from './cart/cart';
 import { Checkout } from './checkout/checkout';
@@ -13,11 +13,12 @@ import { OrderTracking } from './order-tracking/order-tracking';
 import { Reviews } from './reviews/reviews';
 import { SharedModule } from '../../shared/shared.module'; // 🌟 On importe le SharedModule pour les composants partagés
 import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 @NgModule({
   declarations: [
     Home,
     Categories,
-    StoreDetail,
+    StoreDetailComponent,
     ProductDetail,
     Cart,
     Checkout,
@@ -26,7 +27,7 @@ import { RouterModule } from '@angular/router';
     Reviews,
   ],
   imports: [CommonModule, ClientRoutingModule, SharedModule,
-    RouterModule
+    RouterModule, FormsModule
   ],
 })
 export class ClientModule {}

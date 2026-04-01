@@ -12,6 +12,7 @@ import { KeycloakProfile } from 'keycloak-js'; // 👈 Import important
 
 export class Navbar implements OnInit {
   isLoggedIn = false;
+  isAdmin = false;
   userProfile: KeycloakProfile | null = null;
 
   constructor(
@@ -30,7 +31,10 @@ export class Navbar implements OnInit {
   
   if (this.isLoggedIn) {
     try {
+      const roles = this.keycloak.getRoles();
+      console.log("Mes rôles détectés :", roles);
       this.userProfile = await this.keycloak.loadUserProfile();
+      this.isAdmin = roles.includes('ADMIN');
       this.cdr.detectChanges();
       console.log('User loaded:', this.userProfile);
     } catch (error) {

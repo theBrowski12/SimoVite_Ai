@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -183,6 +184,20 @@ public class ReviewServiceImpl implements ReviewService {
 
         reviewRepository.deleteById(reviewId);
         log.info("🗑️ Review {} deleted by {}", reviewId, clientId);
+    }
+
+    @Override
+    public List<ReviewResponseDto> getReviewsByClientId(String clientId) {
+        List<Review> reviews = reviewRepository.findByClientId(clientId);
+
+        return reviews.stream()
+                .map(review -> {
+                    ReviewResponseDto dto = reviewMapper.toDto(review);
+                    // On ajoute manuellement le nom car il n'est pas stocké dans la collection Review (MongoDB)
+                    dto.setTargetName(fetchTargetName(review.getTargetId(), review.getTargetType()));
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 
     /**

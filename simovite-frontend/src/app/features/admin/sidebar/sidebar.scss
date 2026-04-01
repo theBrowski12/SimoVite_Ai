@@ -66,7 +66,21 @@ $text-light: #ffffff;
       font-weight: 700;
       margin: 25px 0 10px 15px;
     }
+    .menu-item.switch-view {
+      color: var(--accent); // Utilise ta couleur orange/électrique
+      font-weight: 600;
+      background: rgba(255, 107, 53, 0.05); // Un léger fond coloré
+      
+      &:hover {
+        background: rgba(255, 107, 53, 0.1);
+      }
+    }
 
+.menu-divider {
+  height: 1px;
+  background: #eee;
+  margin: 10px 20px;
+}
     .menu-item {
       display: flex;
       align-items: center;

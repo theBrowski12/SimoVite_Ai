@@ -73,4 +73,15 @@ public class ReviewController {
         reviewService.deleteReview(id, clientId);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/my-reviews")
+    @PreAuthorize("hasRole('CLIENT')")
+    @Operation(summary = "Récupérer tous les avis du client connecté")
+    public ResponseEntity<List<ReviewResponseDto>> getMyReviews() {
+        // On récupère l'ID en toute sécurité depuis le token JWT
+        String clientId = JwtUtils.getUserId();
+
+        // Assure-toi d'avoir cette méthode dans ton ReviewService !
+        return ResponseEntity.ok(reviewService.getReviewsByClientId(clientId));
+    }
 }

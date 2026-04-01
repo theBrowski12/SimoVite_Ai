@@ -1,1 +1,72 @@
-<p>reviews works!</p>
+<div class="reviews-wrapper">
+  <h2>My Reviews</h2>
+
+  <div *ngIf="isLoading" class="state-message">Loading your reviews...</div>
+  
+  <div *ngIf="!isLoading && reviews.length === 0" class="state-message">
+    You haven't posted any reviews yet.
+  </div>
+
+  <div class="review-list" *ngIf="!isLoading && reviews.length > 0">
+    <div class="review-card" *ngFor="let review of reviews">
+      
+      <ng-container *ngIf="editingReviewId !== review.id">
+        <div class="card-header">
+          <div class="target-info">
+            <span class="badge" [ngClass]="review.targetType | lowercase">
+              {{ review.targetType }}
+            </span>
+            <h3>{{ review.targetName || 'Unknown Item' }}</h3>
+          </div>
+          <span class="date">{{ review.updatedAt | date:'mediumDate' }}</span>
+        </div>
+
+        <div class="stars">
+          <span *ngFor="let star of [1,2,3,4,5]" 
+                class="star" 
+                [class.filled]="star <= review.rating">★</span>
+        </div>
+
+        <p class="comment-text">{{ review.comment }}</p>
+
+        <div class="ai-warning" *ngIf="review.incoherent">
+          ⚠️ This review was flagged as potentially incoherent.
+        </div>
+
+        <div class="actions">
+          <button class="btn-edit" (click)="startEdit(review)">Edit</button>
+          <button class="btn-delete" (click)="deleteReview(review.id)">Delete</button>
+        </div>
+      </ng-container>
+
+
+      <ng-container *ngIf="editingReviewId === review.id">
+        <div class="card-header">
+          <h3>Editing Review for {{ review.targetName || 'Item' }}</h3>
+        </div>
+
+        <div class="stars edit-mode">
+          <span *ngFor="let star of [1,2,3,4,5]" 
+                class="star interactive" 
+                [class.filled]="star <= editRating"
+                (click)="setEditRating(star)">★</span>
+        </div>
+
+        <textarea 
+          [(ngModel)]="editComment" 
+          rows="4" 
+          placeholder="Update your comment..."
+          [disabled]="isUpdating">
+        </textarea>
+
+        <div class="actions edit-actions">
+          <button class="btn-cancel" (click)="cancelEdit()" [disabled]="isUpdating">Cancel</button>
+          <button class="btn-save" (click)="saveEdit(review)" [disabled]="isUpdating || editRating === 0 || !editComment.trim()">
+            {{ isUpdating ? 'Saving...' : 'Save Changes' }}
+          </button>
+        </div>
+      </ng-container>
+
+    </div>
+  </div>
+</div>
