@@ -1,0 +1,116 @@
+/* ==========================================================================
+   VARIABLES DU DESIGN SYSTEM SIMOVITE
+   (Définies ici pour que le composant soit autonome)
+   ========================================================================== */
+.ml-dashboard {
+  --orange: #FF6B35;
+  --orange-light: #FF8C5A;
+  --orange-dim: rgba(255,107,53,0.12);
+  --navy: #0D1B2A;
+  --navy-light: #162435;
+  --bg: #F0F3F8;
+  --card: #ffffff;
+  --text: #1a2332;
+  --muted: #6b7a90;
+  --border: rgba(0,0,0,0.07);
+  --green: #22C55E;
+  --blue: #3B82F6;
+  --purple: #8B5CF6;
+  --red: #EF4444;
+  --amber: #F59E0B;
+  --radius: 14px;
+
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  padding: 10px 0;
+}
+
+/* ── HEADER ── */
+.page-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+.page-subtitle { font-size: 13.5px; color: var(--muted); margin-bottom: 24px; }
+
+/* ── KPI CARDS ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.kpi-card {
+  background: var(--card); border-radius: var(--radius); padding: 20px;
+  border: 1px solid var(--border); position: relative; overflow: hidden;
+}
+.kpi-card::before {
+  content: ''; position: absolute; top: 0; right: 0; width: 80px; height: 80px;
+  border-radius: 50%; transform: translate(20px, -20px); opacity: 0.08;
+}
+.kpi-card.orange::before { background: var(--orange); }
+.kpi-card.green::before { background: var(--green); }
+.kpi-card.blue::before { background: var(--blue); }
+.kpi-card.purple::before { background: var(--purple); }
+
+.kpi-icon {
+  width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center;
+  justify-content: center; font-size: 18px; margin-bottom: 14px;
+}
+.kpi-card.orange .kpi-icon { background: rgba(255,107,53,0.1); }
+.kpi-card.green .kpi-icon { background: rgba(34,197,94,0.1); }
+.kpi-card.blue .kpi-icon { background: rgba(59,130,246,0.1); }
+.kpi-card.purple .kpi-icon { background: rgba(139,92,246,0.1); }
+
+.kpi-value { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+.kpi-label { font-size: 12.5px; color: var(--muted); margin-bottom: 10px; }
+.kpi-trend { font-size: 12px; display: flex; align-items: center; gap: 4px; }
+.kpi-trend.up { color: var(--green); }
+.kpi-trend.down { color: var(--red); }
+.kpi-trend.neutral { color: var(--muted); }
+
+.live-dot { width: 7px; height: 7px; background: var(--green); border-radius: 50%; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%, 100% {opacity:1; transform:scale(1)} 50% {opacity:0.6; transform:scale(1.3)} }
+
+/* ── CHARTS ── */
+.charts-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; margin-bottom: 24px; }
+.chart-card { background: var(--card); border-radius: var(--radius); padding: 20px; border: 1px solid var(--border); }
+.chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.chart-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 600; }
+.chart-badge { font-size: 11px; padding: 4px 10px; border-radius: 20px; background: var(--orange-dim); color: var(--orange); font-weight: 500; }
+
+/* ── ML INSIGHTS SPECIFIC (Jauges et Facteurs) ── */
+.ml-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+.ml-card { background: var(--card); border-radius: var(--radius); padding: 20px; border: 1px solid var(--border); }
+.ml-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 600; margin-bottom: 16px; }
+
+/* Barres de progression (Feature Importance) */
+.bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.bar-label { font-size: 12px; color: var(--muted); width: 90px; flex-shrink: 0; font-weight: 500;}
+.bar-track { flex: 1; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; transition: width 1s; }
+
+/* Liste Facteurs Dynamiques */
+.dynamic-factor-row {
+  display: flex; justify-content: space-between; align-items: center; 
+  padding: 10px 0; border-bottom: 1px dashed var(--border);
+  &:last-child { border-bottom: none; }
+  .factor-name { font-size: 13.5px; font-weight: 500; color: var(--text); }
+}
+
+/* Jauge SVG */
+.gauge-wrap { position: relative; width: 120px; height: 60px; margin: 0 auto 12px; }
+.gauge-bg { fill: none; stroke: var(--bg); stroke-width: 10; }
+.gauge-fill { fill: none; stroke-width: 10; stroke-linecap: round; transition: stroke-dasharray 1s; }
+.gauge-val { text-anchor: middle; font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; fill: var(--text); }
+
+/* ── TABLES ── */
+.table-card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; margin-bottom: 24px; }
+.table-header { padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+.table-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 600; }
+.view-all { font-size: 12.5px; color: var(--orange); text-decoration: none; font-weight: 500; cursor: pointer; }
+table { width: 100%; border-collapse: collapse; }
+th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 500; padding: 10px 16px; text-align: left; background: rgba(0,0,0,0.01); border-bottom: 1px solid var(--border); }
+td { padding: 13px 16px; font-size: 13.5px; border-bottom: 1px solid rgba(0,0,0,0.04); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(0,0,0,0.015); }
+
+/* ── BADGES ── */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 500; }
+.badge-green { background: rgba(34,197,94,0.1); color: #16a34a; }
+.badge-orange { background: rgba(255,107,53,0.1); color: var(--orange); }
+.badge-blue { background: rgba(59,130,246,0.1); color: #2563eb; }
+.badge-red { background: rgba(239,68,68,0.1); color: #dc2626; }
+.badge-gray { background: rgba(107,114,128,0.1); color: #6b7280; }
+.badge-purple { background: rgba(139,92,246,0.1); color: #7c3aed; }

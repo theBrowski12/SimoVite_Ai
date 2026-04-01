@@ -1,0 +1,131 @@
+// =====================================================
+// ADMIN STATISTICS DASHBOARD
+// =====================================================
+.admin-statistics {
+  display: block;
+  font-family: 'DM Sans', 'Inter', -apple-system, sans-serif;
+}
+
+.page-header {
+  margin-bottom: 24px;
+  
+  h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -.3px;
+    margin: 0 0 4px;
+  }
+  
+  .page-sub {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
+  }
+}
+
+// ── KPI ROW ──
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.kpi-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: transform .15s, box-shadow .15s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0,0,0,.07);
+  }
+}
+
+.kpi-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+
+  &.orange { background: rgba(249,115,22,.1); color: #f97316; }
+  &.green  { background: rgba(34,197,94,.1); color: #22c55e; }
+  &.blue   { background: rgba(59,130,246,.1); color: #3b82f6; }
+  &.purple { background: rgba(168,85,247,.1); color: #a855f7; }
+}
+
+.kpi-val {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+.kpi-lbl {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+// ── CHARTS ROW ──
+.charts-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+
+&.asymmetric {
+    grid-template-columns: 2fr 1fr; 
+  }
+}
+// (Garde tout ton SCSS précédent intact, assure-toi juste d'avoir ceci à la fin)
+
+.chart-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  display: flex;
+  flex-direction: column;
+}
+
+// Le wrapper magique qui empêche l'agrandissement
+.chart-wrapper {
+  position: relative;
+  height: 250px; // C'est cette hauteur fixe qui stoppe le bug
+  width: 100%;
+}
+
+.chart-hd {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+
+  b {
+    font-size: 15px;
+    color: #0f172a;
+    font-weight: 600;
+  }
+
+  .chip {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+}

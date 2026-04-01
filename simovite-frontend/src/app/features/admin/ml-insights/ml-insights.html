@@ -1,29 +1,162 @@
-<div class="ml-page">
-  <header class="page-header"><h1>ML Insights</h1><p class="page-sub">ETA · Price Prediction · Sentiment Analysis</p></header>
-  <div class="model-grid">
-    <div class="model-card"><div class="model-header"><span>⏱️</span><div><b>ETA Model</b><div class="sub">GradientBoosting · {{etaMetrics.samples}} samples</div></div></div>
-      <div class="gauge"><svg width="120" height="70" viewBox="0 0 120 70"><path d="M10 65 A50 50 0 0 1 110 65" fill="none" stroke="#F0F3F8" stroke-width="10"/><path d="M10 65 A50 50 0 0 1 110 65" fill="none" stroke="#FF6B35" stroke-width="10" stroke-linecap="round" [attr.stroke-dasharray]="gaugeArc(etaMetrics.accuracy/100)"/><text x="60" y="62" text-anchor="middle" style="font-size:16px;font-weight:700;font-family:Syne;fill:#1a2332">{{etaMetrics.accuracy}}%</text></svg></div>
-      <div class="mrow"><span>MAE</span><b>{{etaMetrics.mae}} min</b></div><div class="mrow"><span>R²</span><b style="color:#22C55E">{{etaMetrics.r2}}</b></div></div>
-    <div class="model-card"><div class="model-header"><span>💰</span><div><b>Price Model</b><div class="sub">GradientBoosting · {{priceMetrics.samples}} samples</div></div></div>
-      <div class="gauge"><svg width="120" height="70" viewBox="0 0 120 70"><path d="M10 65 A50 50 0 0 1 110 65" fill="none" stroke="#F0F3F8" stroke-width="10"/><path d="M10 65 A50 50 0 0 1 110 65" fill="none" stroke="#22C55E" stroke-width="10" stroke-linecap="round" [attr.stroke-dasharray]="gaugeArc(priceMetrics.accuracy/100)"/><text x="60" y="62" text-anchor="middle" style="font-size:16px;font-weight:700;font-family:Syne;fill:#1a2332">{{priceMetrics.accuracy}}%</text></svg></div>
-      <div class="mrow"><span>MAE</span><b>{{priceMetrics.mae}} DH</b></div><div class="mrow"><span>R²</span><b style="color:#22C55E">{{priceMetrics.r2}}</b></div></div>
-    <div class="model-card"><div class="model-header"><span>🧠</span><div><b>Sentiment Model</b><div class="sub">distilbert-multilingual</div></div></div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin:12px 0">
-        <span class="ltag">🇫🇷 French</span><span class="ltag">🇲🇦 Arabic</span><span class="ltag">🇬🇧 English</span>
+<div class="ml-dashboard">
+  
+  <div class="page-title">Machine Learning Insights</div>
+  <div class="page-subtitle">Surveillance en temps réel des modèles d'IA, ETA, Pricing et NLP</div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card green">
+      <div class="kpi-icon">⏱️</div>
+      <div class="kpi-value">{{ etaMetrics.accuracy }}%</div>
+      <div class="kpi-label">Précision Modèle ETA</div>
+      <div class="kpi-trend up">MAE: {{ etaMetrics.mae }} min ({{ etaMetrics.samples }} trajets)</div>
+    </div>
+
+    <div class="kpi-card blue">
+      <div class="kpi-icon">💰</div>
+      <div class="kpi-value">{{ priceMetrics.accuracy }}%</div>
+      <div class="kpi-label">Précision Modèle Prix</div>
+      <div class="kpi-trend up">MAE: {{ priceMetrics.mae }} DH ({{ priceMetrics.samples }} courses)</div>
+    </div>
+
+    <div class="kpi-card orange">
+      <div class="kpi-icon">🧠</div>
+      <div class="kpi-value">{{ sentimentMetrics.incoherentPercentage }}%</div>
+      <div class="kpi-label">Incohérence Sentiment (NLP)</div>
+      <div class="kpi-trend down">{{ sentimentMetrics.incoherentCount }} signalés / {{ sentimentMetrics.totalAnalyzed }} avis</div>
+    </div>
+
+    <div class="kpi-card purple">
+      <div class="kpi-icon">⚡</div>
+      <div class="kpi-value" style="display:flex;align-items:center;gap:8px">En ligne <div class="live-dot"></div></div>
+      <div class="kpi-label">Statut API Inférence</div>
+      <div class="kpi-trend neutral" style="color:var(--purple)">Latence moy: {{ apiHealth.latency }}ms</div>
+    </div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">Prédictions ETA vs Temps Réel</div>
+        <div class="chart-badge">Derniers 30 jours</div>
       </div>
-      <div class="mrow"><span>Outputs</span><b>POSITIVE / NEGATIVE / MIXED</b></div>
-      <div class="mrow"><span>Incoherence detection</span><b style="color:#FF6B35">✅ Active</b></div></div>
+      <div style="position: relative; height: 250px; width: 100%;">
+        <canvas id="etaChart"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">Répartition Flotte (Véhicules)</div>
+        <div class="chart-badge">Temps réel</div>
+      </div>
+      <div *ngIf="!vehicleData || vehicleData.length === 0" style="text-align: center; padding: 20px; color: var(--muted);">
+        Chargement des données véhicules...
+      </div>
+      <div [style.display]="vehicleData && vehicleData.length > 0 ? 'block' : 'none'" style="position: relative; height: 250px; width: 100%;">
+        <canvas id="vehicleChart"></canvas>
+      </div>
+    </div>
   </div>
-  <div class="charts-row">
-    <div class="chart-card"><div class="chart-hd"><b>ETA Predicted vs Actual</b><span class="chip">Last 30 deliveries</span></div><canvas id="etaChart" height="200"></canvas></div>
-    <div class="chart-card"><div class="chart-hd"><b>Vehicle Distribution</b><span class="chip">Active couriers</span></div><canvas id="vehicleChart" height="200"></canvas></div>
+
+  <div class="ml-grid">
+    
+    <div class="ml-card">
+      <div class="ml-title">Facteurs Dynamiques (Live)</div>
+      
+      <div class="dynamic-factor-row" *ngFor="let rush of rushData">
+        <span class="factor-name">Trafic: {{ rush.period }}</span>
+        <span class="badge" 
+              [ngClass]="{'badge-red': rush.factor > 1.3, 'badge-orange': rush.factor > 1.1 && rush.factor <= 1.3, 'badge-green': rush.factor <= 1.1}">
+          x{{ rush.factor | number:'1.2-2' }}
+        </span>
+      </div>
+
+      <div class="dynamic-factor-row" *ngIf="weatherData">
+        <span class="factor-name">Météo ({{ weatherData.condition }})</span>
+        <span class="badge" [ngClass]="weatherData.impact > 1.0 ? 'badge-blue' : 'badge-green'">
+          x{{ weatherData.impact | number:'1.1-2' }}
+        </span>
+      </div>
+    </div>
+
+    <div class="ml-card">
+      <div class="ml-title">Poids des Variables (ETA Model)</div>
+      
+      <div *ngIf="!featureImportance || featureImportance.length === 0" style="color: var(--muted); font-size: 12px;">
+        Chargement des poids du modèle...
+      </div>
+
+      <div class="bar-row" *ngFor="let feature of featureImportance">
+        <div class="bar-label">{{ feature.name }}</div>
+        <div class="bar-track">
+          <div class="bar-fill" 
+               [style.width]="feature.value + '%'" 
+               [style.background]="feature.color">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ml-card">
+      <div class="ml-title">Confiance Modèle NLP</div>
+      <div class="gauge-wrap">
+        <svg viewBox="0 0 100 50">
+          <path class="gauge-bg" d="M 10 50 A 40 40 0 0 1 90 50"></path>
+          <path class="gauge-fill" 
+                d="M 10 50 A 40 40 0 0 1 90 50" 
+                [style.stroke-dasharray]="(nlpConfidence / 100 * 125.6) + ', 125.6'" 
+                [style.stroke]="nlpConfidence >= 90 ? 'var(--green)' : (nlpConfidence >= 75 ? 'var(--amber)' : 'var(--red)')">
+          </path>
+          <text class="gauge-val" x="50" y="45">{{ nlpConfidence }}%</text>
+        </svg>
+      </div>
+      <div style="text-align: center; font-size: 12px; color: var(--muted);">Certitude moyenne DistilBERT</div>
+    </div>
+
   </div>
-  <div class="chart-card" style="margin-bottom:20px"><div class="chart-hd"><b>Weather Impact on ETA</b><span class="chip">Average minutes</span></div><canvas id="weatherChart" height="150" style="padding:0 20px 16px"></canvas></div>
-  <div class="table-card"><div class="table-hd"><b>Rush Hour Factors</b></div>
-    <table><thead><tr><th>Period</th><th>Factor</th><th>Impact</th><th>Bar</th></tr></thead>
-    <tbody><tr *ngFor="let r of rushData">
-      <td>{{r.period}}</td><td><b>{{r.factor}}x</b></td>
-      <td><span [style.color]="getRushColor(r.factor)">{{ r.factor >= 1.2 ? '🟢 Faster' : r.factor >= 1 ? '🔵 Normal' : r.factor >= 0.75 ? '🟡 Slower' : '🔴 Very slow' }}</span></td>
-      <td><div class="fbar"><div class="ffill" [style.width.%]="r.factor*80" [style.background]="getRushColor(r.factor)"></div></div></td>
-    </tr></tbody></table></div>
+
+  <div class="table-card">
+    <div class="table-header">
+      <div class="table-title">⚠️ Les commentaires incohérants (note vs commentaire)</div>
+      <span class="view-all">Afficher tout →</span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Client</th>
+          <th>Note Donnée</th>
+          <th>Sentiment NLP</th>
+          <th>Confiance</th>
+          <th>Extrait du commentaire</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="!flaggedReviews || flaggedReviews.length === 0">
+          <td colspan="6" style="text-align: center; padding: 20px; color: var(--muted);">
+            Aucune anomalie détectée. Les modèles NLP et l'intention client sont alignés.
+          </td>
+        </tr>
+
+        <tr *ngFor="let review of flaggedReviews">
+          <td><b>{{ review.clientName }}</b></td>
+          <td>
+            <span style="color:var(--amber);">{{ getStars(review.rating) }}</span> ({{ review.rating | number:'1.1-1' }})
+          </td>
+          <td>
+            <span class="badge" 
+                  [ngClass]="review.sentiment === 'NEGATIVE' ? 'badge-red' : (review.sentiment === 'POSITIVE' ? 'badge-green' : 'badge-amber')">
+              {{ review.sentiment }}
+            </span>
+          </td>
+          <td><b>{{ review.sentimentScore !== undefined ? ((review.sentimentScore * 100) | number:'1.0-0') : '--' }}%</b></td>
+          <td style="color: var(--muted); font-size: 12px; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" [title]="review.comment">
+            "{{ review.comment }}"
+          </td>
+          <td style="cursor: pointer;" (click)="viewReviewDetails(+review.id!)">👁</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
 </div>

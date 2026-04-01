@@ -1,5 +1,9 @@
-import { Component, OnInit } from '@angular/core';
-import { Courier } from '../../../models/courrier.model';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { KeycloakAdminService } from '@services/keycloak-admin.service';
+import { DeliveryService } from '@services/delivery.service';
+import { Courier } from '@models/courrier.model';
+import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
+
 @Component({
   selector: 'app-admin-couriers',
   standalone: false,
@@ -7,27 +11,100 @@ import { Courier } from '../../../models/courrier.model';
   styleUrl: './couriers.scss',
 })
 export class AdminCouriers implements OnInit {
-  couriers:Courier[]=[];
-  filtered:Courier[]=[];
-  loading=true; filterStatus=''; filterVehicle=''; searchTerm='';
-  private mock:Courier[]=[
-    { id:'0cb58ccd', name:'Mohamed Ben Bouazza', email:'mbenbouazza@gmail.com', vehicleType:'MOTORCYCLE', totalDeliveries:284, rating:4.8, completionRate:96, earnings:8420, online:true,  lastSeen:'Now' },
-    { id:'3fa2b1cc', name:'Yassine Amrani',       email:'yamrani@gmail.com',     vehicleType:'CAR',        totalDeliveries:157, rating:4.6, completionRate:91, earnings:4710, online:true,  lastSeen:'2 min ago' },
-    { id:'7dc3e4aa', name:'Karim Saidi',          email:'ksaidi@gmail.com',      vehicleType:'BICYCLE',    totalDeliveries:89,  rating:4.3, completionRate:84, earnings:2670, online:false, lastSeen:'3h ago' },
-  ];
-  ngOnInit():void { setTimeout(()=>{ this.couriers=this.mock; this.filtered=this.mock; this.loading=false; },400); }
-  applyFilters():void {
-    this.filtered=this.couriers.filter(c=>
-      (!this.filterStatus  || (this.filterStatus==='online'?c.online:!c.online)) &&
-      (!this.filterVehicle || c.vehicleType===this.filterVehicle) &&
-      (!this.searchTerm    || c.name.toLowerCase().includes(this.searchTerm.toLowerCase()))
+  couriers: Courier[] = [];
+  filtered: Courier[] = [];
+  loading = true;
+  
+  // Filtres
+  filterStatus = '';
+  filterVehicle = '';
+  searchTerm = '';
+
+  constructor(
+    private keycloakAdmin: KeycloakAdminService,
+    private deliveryService: DeliveryService,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
+    this.loadRealData();
+  }
+
+  // admin-couriers.component.ts (Extrait de loadRealData)
+
+loadRealData(): void {
+  this.loading = true;
+
+  forkJoin({
+    keycloakUsers: this.keycloakAdmin.getUsersByRole('COURIER'),
+    allDeliveries: this.deliveryService.getAll()
+  }).pipe(
+    switchMap(({ keycloakUsers, allDeliveries }) => {
+      // Pour chaque utilisateur, on crée une requête pour ses sessions
+      const courierRequests = keycloakUsers.map(u => 
+        this.keycloakAdmin.getUserSessions(u.id).pipe(
+          map(sessions => {
+            const myDeliveries = allDeliveries.filter(d => d.courierId === u.id);
+            const completed = myDeliveries.filter(d => d.status === 'DELIVERED').length;
+            
+            return {
+              id: u.id,
+              name: `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.username,
+              email: u.email,
+              vehicleType: (u.attributes?.vehicleType ? u.attributes.vehicleType[0] : 'MOTORCYCLE') as any,
+              
+              // 🌟 LA CORRECTION EST ICI :
+              // S'il y a au moins une session active, il est ONLINE
+              online: sessions.length > 0, 
+              
+              lastSeen: sessions.length > 0 ? 'Maintenant' : (u.attributes?.lastSeen ? u.attributes.lastSeen[0] : 'Hors ligne'),
+              totalDeliveries: myDeliveries.length,
+              completionRate: myDeliveries.length > 0 ? Math.round((completed / myDeliveries.length) * 100) : 100,
+              rating: 4.5,
+              earnings: myDeliveries.reduce((acc, d) => acc + (d.deliveryCost || 0), 0)
+            };
+          }),
+          catchError(() => of(null)) // Sécurité
+        )
+      );
+      return forkJoin(courierRequests);
+    })
+  ).subscribe({
+    next: (data) => {
+      // On filtre les nuls au cas où
+      this.couriers = data.filter(c => c !== null) as Courier[];
+      this.applyFilters();
+      this.loading = false;
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+  applyFilters(): void {
+    this.filtered = this.couriers.filter(c => 
+      (!this.filterStatus || (this.filterStatus === 'online' ? c.online : !c.online)) &&
+      (!this.filterVehicle || c.vehicleType === this.filterVehicle) &&
+      (!this.searchTerm || c.name.toLowerCase().includes(this.searchTerm.toLowerCase()) || c.email.toLowerCase().includes(this.searchTerm.toLowerCase()))
     );
   }
-  getVehicleClass(v:string):string {
-    const m:Record<string,string>={MOTORCYCLE:'badge-orange',CAR:'badge-blue',BICYCLE:'badge-purple',TRUCK:'badge-gray'};
-    return m[v]??'badge-gray';
+
+  getVehicleClass(v: string): string {
+    const m: any = { MOTORCYCLE: 'badge-orange', CAR: 'badge-blue', BICYCLE: 'badge-purple', TRUCK: 'badge-gray' };
+    return m[v] || 'badge-gray';
   }
-  getVehicleIcon(v:string):string { const m:Record<string,string>={MOTORCYCLE:'🛵',CAR:'🚗',BICYCLE:'🚲',TRUCK:'🚛'}; return m[v]??'🛵'; }
-  getInitials(name:string):string { return name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2); }
-  reset():void { this.filterStatus=''; this.filterVehicle=''; this.searchTerm=''; this.applyFilters(); }
+
+  getVehicleIcon(v: string): string {
+    const m: any = { MOTORCYCLE: '🛵', CAR: '🚗', BICYCLE: '🚲', TRUCK: '🚛' };
+    return m[v] || '🛵';
+  }
+
+  getInitials(name: string): string {
+    if(!name) return '??';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  }
+
+  reset(): void {
+    this.filterStatus = ''; this.filterVehicle = ''; this.searchTerm = '';
+    this.applyFilters();
+  }
 }

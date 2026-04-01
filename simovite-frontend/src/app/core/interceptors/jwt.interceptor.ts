@@ -1,8 +1,5 @@
-// core/interceptors/jwt.interceptor.ts
 import { Injectable } from '@angular/core';
-import {
-  HttpRequest, HttpHandler, HttpEvent, HttpInterceptor
-} from '@angular/common/http';
+import { HttpRequest, HttpHandler, HttpEvent, HttpInterceptor } from '@angular/common/http';
 import { Observable, from, switchMap } from 'rxjs';
 import { KeycloakService } from '../auth/keycloak.service';
 
@@ -13,17 +10,24 @@ export class JwtInterceptor implements HttpInterceptor {
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
 
-    // Skip Keycloak and i18n requests
-    if (req.url.includes('/realms/') || req.url.includes('/assets/i18n/')) {
+    // 1. On ignore UNIQUEMENT les fichiers de traduction et les appels de login/token de Keycloak
+    // On retire '/realms/' car l'API Admin en a besoin.
+    if (req.url.includes('/assets/i18n/') || req.url.includes('/protocol/openid-connect/')) {
       return next.handle(req);
     }
 
+    // 2. Pour toutes les autres requêtes (y compris l'API Admin), on ajoute le token
     return from(this.keycloak.refreshToken()).pipe(
       switchMap(token => {
-        const cloned = token
-          ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
-          : req;
-        return next.handle(cloned);
+        if (token) {
+          const cloned = req.clone({
+            setHeaders: {
+              Authorization: `Bearer ${token}`
+            }
+          });
+          return next.handle(cloned);
+        }
+        return next.handle(req);
       })
     );
   }

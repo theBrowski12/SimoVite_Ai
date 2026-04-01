@@ -9,8 +9,8 @@ export interface Client {
   id:           string;
   name:         string;
   email:        string;
+  emailVerified: boolean;
   enabled:      boolean;
-  emailVerified:boolean;
   joinedAt:     string;
   // enrichi côté frontend via OrderService
   totalOrders:  number;

@@ -12,6 +12,7 @@ import { Orders } from './orders/orders';
 import { OrderTracking } from './order-tracking/order-tracking';
 import { Reviews } from './reviews/reviews';
 import { SharedModule } from '../../shared/shared.module'; // 🌟 On importe le SharedModule pour les composants partagés
+import { RouterModule } from '@angular/router';
 @NgModule({
   declarations: [
     Home,
@@ -24,6 +25,8 @@ import { SharedModule } from '../../shared/shared.module'; // 🌟 On importe le
     OrderTracking,
     Reviews,
   ],
-  imports: [CommonModule, ClientRoutingModule, SharedModule],
+  imports: [CommonModule, ClientRoutingModule, SharedModule,
+    RouterModule
+  ],
 })
 export class ClientModule {}

@@ -1,34 +1,52 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { from, Observable, forkJoin, switchMap } from 'rxjs';
-import { KeycloakService } from '@core/auth/keycloak.service';
+import { HttpClient } from '@angular/common/http';
+import { Observable, forkJoin } from 'rxjs';
+import { environment } from '@env/environment';
 
-@Injectable({
-  providedIn: 'root'
+@Injectable({ 
+  providedIn: 'root' 
 })
 export class KeycloakAdminService {
 
-  private kcAdminUrl = 'http://localhost:8080/admin/realms/Simovite';
+  // URL de base propre utilisant tes variables d'environnement
+  private kcAdminUrl = `${environment.keycloak.url}/admin/realms/${environment.keycloak.realm}`;
 
-  constructor(private http: HttpClient, private keycloakService: KeycloakService) { }
+  constructor(private http: HttpClient) {}
 
-  // Une seule méthode qui récupère le token PUIS lance les 3 requêtes
-  getAllAdminData(): Observable<any> {
-    return from(this.keycloakService.getToken()).pipe(
-      switchMap(token => {
-        // 1. On crée les headers une seule fois
-        const headers = new HttpHeaders({
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json'
-        });
-
-        // 2. On lance les 3 requêtes en parallèle avec les mêmes headers
-        return forkJoin({
-          realmInfo: this.http.get<any>(this.kcAdminUrl, { headers }),
-          usersCount: this.http.get<number>(`${this.kcAdminUrl}/users/count`, { headers }),
-          rolesList: this.http.get<any[]>(`${this.kcAdminUrl}/roles`, { headers })
-        });
-      })
-    );
+  // ==========================================
+  // 1. Pour la page de Liste des Clients
+  // ==========================================
+  getUsers(): Observable<any[]> {
+    // Le token est ajouté automatiquement par AuthInterceptor
+    return this.http.get<any[]>(`${this.kcAdminUrl}/users`);
   }
+
+  // ==========================================
+  // 2. Pour la page Dashboard (Statistiques)
+  // ==========================================
+  getAllAdminData(): Observable<any> {
+    // Grâce à l'intercepteur, le code devient ultra simple. 
+    // Plus besoin de from(), switchMap() ou HttpHeaders() manuels !
+    return forkJoin({
+      realmInfo: this.http.get<any>(this.kcAdminUrl),
+      usersCount: this.http.get<number>(`${this.kcAdminUrl}/users/count`),
+      rolesList: this.http.get<any[]>(`${this.kcAdminUrl}/roles`)
+    });
+  }
+
+  deleteUser(id: string): Observable<void> {
+  return this.http.delete<void>(`${this.kcAdminUrl}/users/${id}`);
+}
+
+updateUser(id: string, data: any): Observable<void> {
+  // Keycloak utilise PUT pour les mises à jour partielles ou totales
+  return this.http.put<void>(`${this.kcAdminUrl}/users/${id}`, data);
+}
+getUsersByRole(roleName: string): Observable<any[]> {
+  return this.http.get<any[]>(`${this.kcAdminUrl}/roles/${roleName}/users`);
+}
+getUserSessions(id: string): Observable<any[]> {
+  return this.http.get<any[]>(`${this.kcAdminUrl}/users/${id}/sessions`);
+}
+  
 }

@@ -152,82 +152,63 @@
   </div>
 </section>
 
-<!-- ── STORES ── -->
+<!-- STORES -->
 <section id="stores" class="stores-section">
   <div style="display:flex;justify-content:space-between;align-items:flex-end">
     <div>
       <div class="section-tag">Featured</div>
       <h2 class="section-title" style="margin-bottom:0">Top Rated Stores Near You</h2>
     </div>
-    <a href="#" class="view-all">View All →</a>
+    <a routerLink="/client/categories" class="view-all">View All →</a>
   </div>
+
   <div class="stores-grid">
-    <div class="store-card">
-      <div class="store-img food-bg"><span>🍕</span><div class="store-status open">● Open</div></div>
+    <div class="store-card" *ngFor="let store of stores" [routerLink]="['/client/store-detail', store.id]">
+      
+      <div class="store-img" 
+           [ngClass]="{
+             'food-bg': store.category === 'RESTAURANT',
+             'pharma-bg': store.category === 'PHARMACY',
+             'market-bg': store.category === 'SUPERMARKET'
+           }"
+           [style.backgroundImage]="store.imageURL ? 'url(' + store.imageURL + ')' : ''"
+           [style.backgroundSize]="'cover'">
+        
+        <span *ngIf="!store.imageURL">{{ categoryIcons[store.category] }}</span>
+        
+        <div class="store-status" [ngClass]="store.open ? 'open' : 'closed'">
+          {{ store.open ? '● Open' : 'Closed' }}
+        </div>
+      </div>
+
       <div class="store-body">
-        <div class="cat-badge rest">RESTAURANT</div>
-        <div class="store-name">Pizza Palace Maarif</div>
+        <div class="cat-badge" 
+             [ngClass]="{
+               'rest': store.category === 'RESTAURANT',
+               'pharm': store.category === 'PHARMACY',
+               'mkt': store.category === 'SUPERMARKET'
+             }">
+          {{ store.category }}
+        </div>
+
+        <div class="store-name">{{ store.name }}</div>
+
         <div class="store-meta">
-          <div class="store-rating"><span class="store-stars">★★★★★</span> 4.8 (124)</div>
+          <div class="store-rating">
+            <span class="store-stars">
+              {{ '★'.repeat(Math.round(store.rating || 0)) }}{{ '☆'.repeat(5 - Math.round(store.rating || 0)) }}
+            </span> 
+            {{ store.rating || 'N/A' }} ({{ store.reviewCount || 0 }})
+          </div>
+          
           <div class="store-delivery">⏱ 20–30 min</div>
         </div>
       </div>
     </div>
-    <div class="store-card">
-      <div class="store-img pharma-bg"><span>💊</span><div class="store-status open">● Open</div></div>
-      <div class="store-body">
-        <div class="cat-badge pharm">PHARMACY</div>
-        <div class="store-name">Pharmacie Centrale</div>
-        <div class="store-meta">
-          <div class="store-rating"><span class="store-stars">★★★★</span>☆ 4.6 (89)</div>
-          <div class="store-delivery">⏱ 15–25 min</div>
-        </div>
-      </div>
-    </div>
-    <div class="store-card">
-      <div class="store-img market-bg"><span>🛒</span><div class="store-status closed">Closed</div></div>
-      <div class="store-body">
-        <div class="cat-badge mkt">SUPERMARKET</div>
-        <div class="store-name">Marjane Maarif</div>
-        <div class="store-meta">
-          <div class="store-rating"><span class="store-stars">★★★★</span>☆ 4.3 (67)</div>
-          <div class="store-delivery">⏱ 30–45 min</div>
-        </div>
-      </div>
-    </div>
-    <div class="store-card">
-      <div class="store-img food-bg"><span>🍔</span><div class="store-status open">● Open</div></div>
-      <div class="store-body">
-        <div class="cat-badge rest">RESTAURANT</div>
-        <div class="store-name">Burger House</div>
-        <div class="store-meta">
-          <div class="store-rating"><span class="store-stars">★★★★★</span> 4.9 (203)</div>
-          <div class="store-delivery">⏱ 18–28 min</div>
-        </div>
-      </div>
-    </div>
-    <div class="store-card">
-      <div class="store-img food-bg"><span>🍣</span><div class="store-status open">● Open</div></div>
-      <div class="store-body">
-        <div class="cat-badge rest">RESTAURANT</div>
-        <div class="store-name">Sushi King Casablanca</div>
-        <div class="store-meta">
-          <div class="store-rating"><span class="store-stars">★★★★★</span> 4.9 (311)</div>
-          <div class="store-delivery">⏱ 25–35 min</div>
-        </div>
-      </div>
-    </div>
-    <div class="store-card">
-      <div class="store-img pharma-bg"><span>🌿</span><div class="store-status open">● Open</div></div>
-      <div class="store-body">
-        <div class="cat-badge pharm">PHARMACY</div>
-        <div class="store-name">Herbal Plus Bio</div>
-        <div class="store-meta">
-          <div class="store-rating"><span class="store-stars">★★★★</span>☆ 4.1 (44)</div>
-          <div class="store-delivery">⏱ 20–30 min</div>
-        </div>
-      </div>
-    </div>
+  </div>
+
+  <div *ngIf="!loading && stores.length === 0" style="text-align: center; padding: 3rem; color: #64748b;">
+    <p>No stores available in your area at the moment.</p>
   </div>
 </section>
 

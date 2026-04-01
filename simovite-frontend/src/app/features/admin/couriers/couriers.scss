@@ -1,0 +1,122 @@
+.admin-couriers {
+  padding: 2rem;
+  background: #f8fafc;
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    h1 { font-size: 1.8rem; font-weight: 700; color: #1e293b; margin: 0; }
+    .page-sub { color: #64748b; }
+  }
+
+  .header-actions {
+  .reset-btn {
+    background-color: #ffffff;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &:hover {
+      background-color: #f1f5f9;
+      color: #1e293b;
+      border-color: #cbd5e1;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+
+    // Petit plus : ajouter une icône via CSS si tu n'en as pas dans le HTML
+    &::before {
+      content: '🔄'; 
+      font-size: 0.9rem;
+    }
+  }
+}
+
+  .filter-card {
+    background: white;
+    padding: 1rem;
+    border-radius: 12px;
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+
+    .search-box { flex: 1; 
+      input { width: 100%; padding: 0.6rem; border-radius: 8px; border: 1px solid #e2e8f0; }
+    }
+    .filter-group { display: flex; gap: 1rem; 
+      select { padding: 0.6rem; border-radius: 8px; border: 1px solid #e2e8f0; background: white; }
+    }
+  }
+
+  .table-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      
+      th { background: #f1f5f9; padding: 1rem; text-align: left; font-size: 0.8rem; text-transform: uppercase; color: #475569; }
+      td { padding: 1rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    }
+  }
+
+  .courier-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    .avatar { width: 40px; height: 40px; background: #6366f1; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+    .info { display: flex; flex-direction: column; 
+      .name { font-weight: 600; color: #1e293b; }
+      .email { font-size: 0.8rem; color: #64748b; }
+    }
+  }
+
+  // Badges Véhicules
+  .badge {
+    padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;
+    &.badge-orange { background: #fff7ed; color: #c2410c; }
+    &.badge-blue { background: #eff6ff; color: #1d4ed8; }
+    &.badge-purple { background: #faf5ff; color: #7e22ce; }
+  }
+
+  // Barre de performance
+  .perf-cell {
+    width: 140px;
+    .rating { display: block; font-weight: 600; margin-bottom: 4px; }
+    .progress-bg { width: 100%; height: 6px; background: #f1f5f9; border-radius: 10px; overflow: hidden; }
+    .progress-bar { height: 100%; background: #22c55e; transition: width 0.3s; }
+    .rate-text { font-size: 0.7rem; color: #64748b; }
+  }
+
+  .status-dot {
+    display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #cbd5e1; margin-right: 6px;
+    &.online { background: #22c55e; box-shadow: 0 0 8px rgba(34, 197, 94, 0.5); }
+  }
+
+  .text-price { font-weight: 700; color: #f97316; }
+}
+select {
+  appearance: none; // Enleve la flèche par défaut
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  background-size: 1em;
+  padding-right: 2.5rem !important;
+}

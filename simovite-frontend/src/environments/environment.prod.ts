@@ -1,6 +1,6 @@
 // environments/environment.prod.ts
 export const environment = {
-  production: false,
+  production: true,
   apiGateway: 'http://localhost:8888',
   keycloak: {
     url:    'http://localhost:8080',

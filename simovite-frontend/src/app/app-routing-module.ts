@@ -9,7 +9,7 @@ import { Home } from './features/client/home/home';
 // Supprime tous les imports de AdminDashboard, AdminOrders, etc. ici !
 
 const routes: Routes = [
-  { path: '', component: Home, canActivate: [GuestGuard] },
+  { path: '', component: Home },
   
   {
     path: 'admin',
@@ -17,9 +17,13 @@ const routes: Routes = [
     data: { role: 'ADMIN' },
     loadChildren: () => import('./features/admin/admin-module').then(m => m.AdminModule)
   },
+  {
+    path: 'client',
+    loadChildren: () => import('./features/client/client-module').then(m => m.ClientModule)
+  },
   
   // Reste des routes...
-  { path: '**', redirectTo: 'client/home' }
+  { path: '**', redirectTo: '' }
 ];
 
 @NgModule({

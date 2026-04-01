@@ -1,30 +1,89 @@
 <div class="admin-couriers">
-  <header class="page-header"><h1>Couriers Performance</h1><p class="page-sub">Monitor courier activity and earnings</p></header>
-  <div class="table-card">
-    <div class="filter-bar">
-      <select class="filter-sel" [(ngModel)]="filterStatus" (change)="applyFilters()"><option value="">All Status</option><option value="online">Online</option><option value="offline">Offline</option></select>
-      <select class="filter-sel" [(ngModel)]="filterVehicle" (change)="applyFilters()"><option value="">All Vehicles</option><option value="MOTORCYCLE">MOTORCYCLE</option><option value="CAR">CAR</option><option value="BICYCLE">BICYCLE</option><option value="TRUCK">TRUCK</option></select>
-      <input class="search-in" [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="Search courier name...">
-      <button class="btn-reset" (click)="reset()">Reset</button>
+  <header class="page-header">
+    <div class="header-main">
+      <h1>Livreurs (Couriers)</h1>
+      <p class="page-sub">Gestion des performances et statuts des livreurs en temps réel</p>
     </div>
-    <div class="loading-wrap" *ngIf="loading"><div class="spinner"></div></div>
-    <div class="table-wrap" *ngIf="!loading">
-      <table>
-        <thead><tr><th>Courier</th><th>Deliveries</th><th>Rating</th><th>Completion</th><th>Vehicle</th><th>Earnings</th><th>Status</th><th>Last Seen</th></tr></thead>
-        <tbody>
-          <tr *ngFor="let c of filtered">
-            <td><div class="courier-cell"><div class="cav">{{ getInitials(c.name) }}</div><div><b>{{ c.name }}</b><div class="cid">{{ c.id }}</div></div></div></td>
-            <td><b>{{ c.totalDeliveries }}</b></td>
-            <td><span style="color:#F59E0B">★</span> <b>{{ c.rating }}</b></td>
-            <td [style.color]="c.completionRate >= 90 ? '#22C55E' : '#F59E0B'"><b>{{ c.completionRate }}%</b></td>
-            <td><span class="badge {{ getVehicleClass(c.vehicleType) }}">{{ getVehicleIcon(c.vehicleType) }} {{ c.vehicleType }}</span></td>
-            <td><b>{{ c.earnings | number:'1.0-0' }} DH</b></td>
-            <td><div class="status-cell"><span class="dot" [class.online]="c.online" [class.offline]="!c.online"></span>{{ c.online ? 'Online' : 'Offline' }}</div></td>
-            <td>{{ c.lastSeen }}</td>
-          </tr>
-          <tr *ngIf="filtered.length===0"><td colspan="8" class="empty-row">No couriers found</td></tr>
-        </tbody>
-      </table>
+    <div class="header-actions">
+      <button class="reset-btn" (click)="reset()">Réinitialiser</button>
+    </div>
+  </header>
+
+  <div class="filter-card">
+    <div class="search-box">
+      <input type="text" [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="Rechercher par nom ou email...">
+    </div>
+    <div class="filter-group">
+      <select [(ngModel)]="filterStatus" (change)="applyFilters()">
+        <option value="">Tous les statuts</option>
+        <option value="online">En ligne 🟢</option>
+        <option value="offline">Hors ligne ⚪</option>
+      </select>
+      <select [(ngModel)]="filterVehicle" (change)="applyFilters()">
+        <option value="">Tous les véhicules</option>
+        <option value="MOTORCYCLE">Moto</option>
+        <option value="CAR">Voiture</option>
+        <option value="BICYCLE">Vélo</option>
+        <option value="TRUCK">Camion</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="loading-wrap" *ngIf="loading">
+    <div class="spinner"></div>
+  </div>
+
+  <div class="table-card" *ngIf="!loading">
+    <table>
+      <thead>
+        <tr>
+          <th>Livreur</th>
+          <th>Véhicule</th>
+          <th>Performance</th>
+          <th>Livraisons</th>
+          <th>Gains Totaux</th>
+          <th>Dernière activité</th>
+          <th>Statut</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of filtered">
+          <td>
+            <div class="courier-profile">
+              <div class="avatar">{{ getInitials(c.name) }}</div>
+              <div class="info">
+                <span class="name">{{ c.name }}</span>
+                <span class="email">{{ c.email }}</span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="badge" [ngClass]="getVehicleClass(c.vehicleType)">
+              {{ getVehicleIcon(c.vehicleType) }} {{ c.vehicleType }}
+            </span>
+          </td>
+          <td>
+            <div class="perf-cell">
+              <span class="rating">⭐ {{ c.rating }}</span>
+              <div class="progress-bg">
+                <div class="progress-bar" [style.width.%]="c.completionRate"></div>
+              </div>
+              <span class="rate-text">{{ c.completionRate }}% complétion</span>
+            </div>
+          </td>
+          <td class="text-bold">{{ c.totalDeliveries }}</td>
+          <td class="text-price">{{ c.earnings | number:'1.0-0' }} DH</td>
+          <td class="text-muted">{{ c.lastSeen }}</td>
+          <td>
+            <span class="status-dot" [class.online]="c.online"></span>
+            {{ c.online ? 'En ligne' : 'Déconnecté' }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="empty-state" *ngIf="filtered.length === 0">
+      <p>Aucun livreur trouvé pour cette recherche.</p>
     </div>
   </div>
 </div>

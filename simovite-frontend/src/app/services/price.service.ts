@@ -5,8 +5,6 @@ import { Observable } from "rxjs";
 import { PriceRequest, PriceResponse } from "@models/price.model";
 import { EtaRequest, EtaResponse } from "@models/eta.model";
 import { Delivery } from "@models/delivery.model";
-import { CreateReviewDto, Review } from "@models/review.model";
-// services/price.service.ts
 @Injectable({ providedIn: 'root' })
 export class PriceService {
   private base = `${environment.apiGateway}/api/price`;
