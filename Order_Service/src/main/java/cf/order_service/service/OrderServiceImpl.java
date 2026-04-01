@@ -187,6 +187,7 @@ public class OrderServiceImpl implements OrderService {
             event.setTotalAmount(order.getPrice());
             event.setStoreId(order.getStoreId());
             event.setDeliveryAddress(order.getDeliveryAddress());
+            event.setDeliveryCost(order.getDeliveryCost());
             String storeCategory = null;
             try {
                 StoreResponseDto store = storeClient.getStoreById(order.getStoreId());

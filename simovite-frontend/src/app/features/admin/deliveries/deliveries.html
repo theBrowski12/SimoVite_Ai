@@ -1,74 +1,470 @@
 <div class="admin-deliveries">
+
+  <!-- ════════════════════════════════════════
+       HEADER
+       ════════════════════════════════════════ -->
   <header class="page-header">
-    <div><h1>Deliveries</h1><p class="page-sub">Track all active and completed deliveries</p></div>
+    <div class="header-left">
+      <h1>Deliveries</h1>
+      <div class="stats-row">
+        <span class="stat-badge">Total <strong>{{ deliveries.length }}</strong></span>
+        <span class="stat-badge filtered" *ngIf="filtered.length !== deliveries.length">
+          Filtered <strong>{{ filtered.length }}</strong>
+        </span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-reset"
+              *ngIf="searchTerm || filterStatus || filterVehicle"
+              (click)="reset()">
+        ↺ Reset
+      </button>
+      <button class="btn-refresh" (click)="load()" [disabled]="loading">
+        <span [class.spinning]="loading">↻</span> Refresh
+      </button>
+    </div>
   </header>
 
-  <!-- KPI Row -->
+
+  <!-- ════════════════════════════════════════
+       KPI ROW
+       ════════════════════════════════════════ -->
   <div class="kpi-row">
-    <div class="kpi-card"><div class="kpi-icon gray">⏳</div><div><div class="kpi-val">{{ kpis('PENDING') }}</div><div class="kpi-lbl">Pending</div></div></div>
-    <div class="kpi-card"><div class="kpi-icon orange">🛵</div><div><div class="kpi-val live-wrap">{{ kpis('ASSIGNED') }} <span class="live-dot"></span></div><div class="kpi-lbl">Assigned</div></div></div>
-    <div class="kpi-card"><div class="kpi-icon blue">📦</div><div><div class="kpi-val">{{ kpis('PICKED_UP') }}</div><div class="kpi-lbl">In Transit</div></div></div>
-    <div class="kpi-card"><div class="kpi-icon green">✅</div><div><div class="kpi-val">{{ kpis('DELIVERED') }}</div><div class="kpi-lbl">Delivered</div></div></div>
-  </div>
-
-  <div class="table-card">
-    <div class="filter-bar">
-      <select class="filter-sel" [(ngModel)]="filterStatus" (change)="applyFilters()">
-        <option value="">All Status</option>
-        <option value="PENDING">PENDING</option>
-        <option value="ASSIGNED">ASSIGNED</option>
-        <option value="PICKED_UP">PICKED_UP</option>
-        <option value="DELIVERED">DELIVERED</option>
-      </select>
-      <select class="filter-sel" [(ngModel)]="filterVehicle" (change)="applyFilters()">
-        <option value="">All Vehicles</option>
-        <option value="MOTORCYCLE">MOTORCYCLE</option>
-        <option value="CAR">CAR</option>
-        <option value="BICYCLE">BICYCLE</option>
-        <option value="TRUCK">TRUCK</option>
-      </select>
-      <input class="search-in" [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="Search by ref or courier...">
-      <button class="btn-reset" (click)="reset()">Reset</button>
+    <div class="kpi-card">
+      <div class="kpi-icon gray">⏳</div>
+      <div>
+        <div class="kpi-val">{{ kpiCount('PENDING') }}</div>
+        <div class="kpi-lbl">Pending</div>
+      </div>
     </div>
-
-    <div class="loading-wrap" *ngIf="loading"><div class="spinner"></div></div>
-
-    <div class="table-wrap" *ngIf="!loading">
-      <table>
-        <thead>
-          <tr>
-            <th>Order Ref</th><th>Courier</th><th>Vehicle</th>
-            <th>Distance</th><th>Cost</th><th>ETA</th>
-            <th>COD</th><th>Pickup</th><th>Drop-off</th>
-            <th>Status</th><th>Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let d of paginated">
-            <td><strong class="order-ref">{{ d.orderRef }}</strong></td>
-            <td>{{ d.courierName }}</td>
-            <td>{{ getVehicleIcon(d.vehicleType) }} {{ d.vehicleType }}</td>
-            <td>{{ d.distanceInKm | number:'1.1-1' }} km</td>
-            <td>{{ d.deliveryCost | number:'1.2-2' }} DH</td>
-            <td>{{ d.estimatedTimeInMinutes > 0 ? (d.estimatedTimeInMinutes + ' min') : '—' }}</td>
-            <td>
-              <span *ngIf="d.cashOnDelivery" class="badge badge-amber">{{ d.amountToCollect | number:'1.2-2' }} DH</span>
-              <span *ngIf="!d.cashOnDelivery" class="badge badge-green">Paid</span>
-            </td>
-            <td>{{ d.pickupCity }}</td>
-            <td>{{ d.dropoffCity }}</td>
-            <td><span class="badge {{ getStatusClass(d.status) }}">{{ d.status }}</span></td>
-            <td>{{ d.createdAt | date:'dd MMM, HH:mm' }}</td>
-          </tr>
-          <tr *ngIf="paginated.length === 0"><td colspan="11" class="empty-row">No deliveries found</td></tr>
-        </tbody>
-      </table>
-      <div class="pagination" *ngIf="totalPages > 1">
-        <button class="page-btn" [disabled]="currentPage === 1" (click)="currentPage = currentPage - 1">‹</button>
-        <button class="page-btn" *ngFor="let p of pages" [class.active]="p === currentPage" (click)="currentPage = p">{{ p }}</button>
-        <button class="page-btn" [disabled]="currentPage === totalPages" (click)="currentPage = currentPage + 1">›</button>
-        <span class="page-info">{{ filtered.length }} results</span>
+    <div class="kpi-card">
+      <div class="kpi-icon orange">🛵</div>
+      <div>
+        <div class="kpi-val live-wrap">
+          {{ kpiCount('ASSIGNED') }}
+          <span class="live-dot"></span>
+        </div>
+        <div class="kpi-lbl">Assigned</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon blue">📦</div>
+      <div>
+        <div class="kpi-val live-wrap">
+          {{ kpiCount('PICKED_UP') }}
+          <span class="live-dot blue-dot"></span>
+        </div>
+        <div class="kpi-lbl">In Transit</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon green">✅</div>
+      <div>
+        <div class="kpi-val">{{ kpiCount('DELIVERED') }}</div>
+        <div class="kpi-lbl">Delivered</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon purple">💰</div>
+      <div>
+        <div class="kpi-val">
+          {{ totalRevenue | number:'1.0-0' }}
+          <span class="kpi-unit">DH</span>
+        </div>
+        <div class="kpi-lbl">Total Revenue</div>
       </div>
     </div>
   </div>
+
+
+  <!-- ════════════════════════════════════════
+       TABLE CARD
+       ════════════════════════════════════════ -->
+  <div class="table-card" [class.panel-open]="selectedDelivery">
+
+    <!-- ── Filter bar ── -->
+    <div class="filter-bar">
+
+      <!-- Search -->
+      <div class="search-wrap">
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input class="search-in"
+               [(ngModel)]="searchTerm"
+               (ngModelChange)="applyFilters()"
+               placeholder="Search by ref, courier, email…">
+        <button class="search-clear" *ngIf="searchTerm"
+                (click)="searchTerm = ''; applyFilters()">×</button>
+      </div>
+
+      <!-- Status -->
+      <select class="filter-sel" [(ngModel)]="filterStatus" (ngModelChange)="applyFilters()">
+        <option value="">All Status</option>
+        <option value="PENDING">⏳ Pending</option>
+        <option value="ASSIGNED">🛵 Assigned</option>
+        <option value="PICKED_UP">📦 In Transit</option>
+        <option value="DELIVERED">✅ Delivered</option>
+      </select>
+
+      <!-- Vehicle -->
+      <select class="filter-sel" [(ngModel)]="filterVehicle" (ngModelChange)="applyFilters()">
+        <option value="">All Vehicles</option>
+        <option value="MOTORCYCLE">🛵 Motorcycle</option>
+        <option value="CAR">🚗 Car</option>
+        <option value="BICYCLE">🚲 Bicycle</option>
+        <option value="TRUCK">🚛 Truck</option>
+      </select>
+
+      <!-- COD filter -->
+      <div class="date-chips">
+        <button class="date-chip" [class.active]="filterCod === ''"
+                (click)="filterCod = ''; applyFilters()">All</button>
+        <button class="date-chip" [class.active]="filterCod === 'cod'"
+                (click)="filterCod = 'cod'; applyFilters()">💵 COD</button>
+        <button class="date-chip" [class.active]="filterCod === 'paid'"
+                (click)="filterCod = 'paid'; applyFilters()">💳 Prepaid</button>
+      </div>
+
+    </div>
+    <!-- /filter-bar -->
+
+
+    <!-- ── Error ── -->
+    <div class="error-banner" *ngIf="error">
+      <span>⚠️</span> {{ error }}
+      <button (click)="load()">Retry</button>
+    </div>
+
+
+    <!-- ── Loading ── -->
+    <div class="loading-wrap" *ngIf="loading">
+      <div class="spinner"></div>
+      <span>Loading deliveries…</span>
+    </div>
+
+
+    <!-- ── Table ── -->
+    <div class="table-wrap" *ngIf="!loading && !error">
+      <table>
+        <thead>
+          <tr>
+            <th>Order Ref</th>
+            <th>Courier</th>
+            <th>Vehicle</th>
+            <th>Route</th>
+            <th>Distance</th>
+            <th>Cost</th>
+            <th>ETA</th>
+            <th>COD</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr *ngFor="let d of paginated"
+              [class.selected-row]="selectedDelivery?.id === d.id">
+
+            <!-- Order Ref -->
+            <td>
+              <button class="ref-btn" (click)="openDetail(d)">
+                {{ d.orderRef }}
+              </button>
+            </td>
+
+            <!-- Courier -->
+            <td>
+              <div class="courier-cell" *ngIf="d.courierId; else noCourier">
+                <div class="avatar">{{ getInitials(d.courierName || '??') }}</div>
+                <div>
+                  <div class="courier-name">{{ d.courierName }}</div>
+                  <div class="courier-email">{{ d.customerEmail }}</div>
+                </div>
+              </div>
+              <ng-template #noCourier>
+                <span class="no-courier">Not assigned</span>
+              </ng-template>
+            </td>
+
+            <!-- Vehicle -->
+            <td>
+              <span *ngIf="d.vehicleType" class="badge {{ getVehicleClass(d.vehicleType) }}">
+                {{ getVehicleIcon(d.vehicleType) }} {{ d.vehicleType }}
+              </span>
+              <span *ngIf="!d.vehicleType" class="na-text">—</span>
+            </td>
+
+            <!-- Route (pickup → dropoff cities) -->
+            <td>
+              <div class="route-cell">
+                <span class="route-from">{{ d.pickupAddress.city }}</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" class="route-arrow">
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                  <polyline points="12 5 19 12 12 19"/>
+                </svg>
+                <span class="route-to">{{ d.dropoffAddress.city }}</span>
+              </div>
+            </td>
+
+            <!-- Distance -->
+            <td>
+              <span class="distance-val">{{ d.distanceInKm | number:'1.1-1' }} km</span>
+            </td>
+
+            <!-- Cost -->
+            <td>
+              <strong>{{ d.deliveryCost | number:'1.2-2' }} DH</strong>
+            </td>
+
+            <!-- ETA -->
+            <td>
+              <span *ngIf="d.estimatedTimeInMinutes" class="eta-badge">
+                ⏱ {{ d.estimatedTimeInMinutes }} min
+              </span>
+              <span *ngIf="!d.estimatedTimeInMinutes" class="na-text">—</span>
+            </td>
+
+            <!-- COD -->
+            <td>
+              <div class="cod-cell">
+                <span *ngIf="d.cashOnDelivery" class="badge badge-amber">
+                  💵 {{ d.amountToCollect | number:'1.2-2' }} DH
+                </span>
+                <span *ngIf="!d.cashOnDelivery" class="badge badge-green">
+                  💳 Prepaid
+                </span>
+              </div>
+            </td>
+
+            <!-- Status — inline edit -->
+            <td>
+              <div class="status-cell">
+
+                <!-- View mode -->
+                <ng-container *ngIf="editingStatusId !== d.id">
+                  <span class="badge {{ getStatusClass(d.status) }}">
+                    {{ getStatusIcon(d.status) }} {{ d.status }}
+                  </span>
+                  <button class="edit-status-btn" (click)="startEditStatus(d.id)"
+                          title="Change status">✏️</button>
+                </ng-container>
+
+                <!-- Edit mode -->
+                <ng-container *ngIf="editingStatusId === d.id">
+                  <select class="status-sel-inline"
+                          [ngModel]="d.status"
+                          (ngModelChange)="confirmStatusChange(d, $event)"
+                          (blur)="cancelEditStatus()">
+                    <option *ngFor="let s of statusOptions" [value]="s">{{ s }}</option>
+                  </select>
+                  <button class="cancel-status-btn" (click)="cancelEditStatus()">✕</button>
+                </ng-container>
+
+              </div>
+            </td>
+
+            <!-- Date -->
+            <td>
+              <div class="date-cell">
+                <span>{{ d.createdAt | date:'dd MMM yyyy' }}</span>
+                <span class="date-time">{{ d.createdAt | date:'HH:mm' }}</span>
+              </div>
+            </td>
+
+            <!-- Actions -->
+            <td class="actions-cell">
+              <button class="btn-action" (click)="openDetail(d)" title="View details">👁️</button>
+              <button class="btn-action btn-delete" (click)="deleteDelivery(d)" title="Delete">🗑️</button>
+            </td>
+
+          </tr>
+
+          <!-- Empty state -->
+          <tr *ngIf="paginated.length === 0">
+            <td colspan="11">
+              <div class="empty-state">
+                <span class="empty-icon">🚚</span>
+                <strong>No deliveries found</strong>
+                <span>Try adjusting your filters</span>
+              </div>
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+    <!-- /table-wrap -->
+
+
+    <!-- ── Pagination ── -->
+    <div class="pagination" *ngIf="!loading && totalPages > 1">
+      <span class="page-info">
+        Showing {{ (currentPage - 1) * pageSize + 1 }}–{{ pageEnd }} of {{ filtered.length }}
+      </span>
+      <div class="page-btns">
+        <button class="page-btn" [disabled]="currentPage === 1"
+                (click)="currentPage = currentPage - 1">‹</button>
+        <button class="page-btn"
+                *ngFor="let p of pages"
+                [class.active]="p === currentPage"
+                (click)="currentPage = p">{{ p }}</button>
+        <button class="page-btn" [disabled]="currentPage === totalPages"
+                (click)="currentPage = currentPage + 1">›</button>
+      </div>
+    </div>
+
+  </div>
+  <!-- /table-card -->
+
+
+  <!-- ════════════════════════════════════════
+       DETAIL PANEL (slide-in)
+       ════════════════════════════════════════ -->
+  <div class="detail-overlay" *ngIf="selectedDelivery" (click)="closeDetail()"></div>
+
+  <div class="detail-panel" [class.open]="selectedDelivery">
+    <ng-container *ngIf="selectedDelivery as d">
+
+      <!-- Panel header -->
+      <div class="detail-header">
+        <div>
+          <div class="detail-ref">{{ d.orderRef }}</div>
+          <span class="badge {{ getStatusClass(d.status) }}">
+            {{ getStatusIcon(d.status) }} {{ d.status }}
+          </span>
+        </div>
+        <button class="detail-close" (click)="closeDetail()">✕</button>
+      </div>
+
+      <div class="detail-body">
+
+        <!-- Courier -->
+        <div class="detail-section">
+          <div class="section-label">🛵 Courier</div>
+          <ng-container *ngIf="d.courierId; else noAssignment">
+            <div class="detail-row">
+              <span>Name</span>
+              <strong>{{ d.courierName || '—' }}</strong>
+            </div>
+            <div class="detail-row">
+              <span>Courier ID</span>
+              <code>{{ d.courierId }}</code>
+            </div>
+            <div class="detail-row" *ngIf="d.vehicleType">
+              <span>Vehicle</span>
+              <span class="badge {{ getVehicleClass(d.vehicleType) }}">
+                {{ getVehicleIcon(d.vehicleType) }} {{ d.vehicleType }}
+              </span>
+            </div>
+          </ng-container>
+          <ng-template #noAssignment>
+            <div class="unassigned-notice">
+              <span>⏳</span> Waiting for a courier to accept
+            </div>
+          </ng-template>
+        </div>
+
+        <!-- Customer -->
+        <div class="detail-section">
+          <div class="section-label">👤 Customer</div>
+          <div class="detail-row">
+            <span>Email</span>
+            <strong>{{ d.customerEmail || '—' }}</strong>
+          </div>
+          <div class="detail-row">
+            <span>Payment</span>
+            <span class="badge {{ d.cashOnDelivery ? 'badge-amber' : 'badge-green' }}">
+              {{ d.cashOnDelivery ? '💵 Cash on Delivery' : '💳 Prepaid Online' }}
+            </span>
+          </div>
+          <div class="detail-row" *ngIf="d.cashOnDelivery">
+            <span>To collect</span>
+            <strong class="amount-highlight">{{ d.amountToCollect | number:'1.2-2' }} DH</strong>
+          </div>
+        </div>
+
+        <!-- Route -->
+        <div class="detail-section">
+          <div class="section-label">📍 Route</div>
+          <div class="route-block pickup">
+            <div class="route-dot pickup-dot"></div>
+            <div>
+              <div class="route-label">Pickup</div>
+              <div class="route-address">
+                {{ d.pickupAddress.street }}, {{ d.pickupAddress.buildingNumber }}
+              </div>
+              <div class="route-city">{{ d.pickupAddress.city }}</div>
+            </div>
+          </div>
+          <div class="route-line"></div>
+          <div class="route-block dropoff">
+            <div class="route-dot dropoff-dot"></div>
+            <div>
+              <div class="route-label">Drop-off</div>
+              <div class="route-address">
+                {{ d.dropoffAddress.street }}, {{ d.dropoffAddress.buildingNumber }}
+              </div>
+              <div class="route-city">{{ d.dropoffAddress.city }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ML Metrics -->
+        <div class="detail-section">
+          <div class="section-label">🤖 ML Metrics</div>
+          <div class="ml-cards">
+            <div class="ml-card">
+              <div class="ml-icon">📏</div>
+              <div class="ml-val">{{ d.distanceInKm | number:'1.1-1' }} km</div>
+              <div class="ml-lbl">Distance</div>
+            </div>
+            <div class="ml-card">
+              <div class="ml-icon">⏱️</div>
+              <div class="ml-val">{{ d.estimatedTimeInMinutes || '—' }} <span *ngIf="d.estimatedTimeInMinutes">min</span></div>
+              <div class="ml-lbl">ETA</div>
+            </div>
+            <div class="ml-card">
+              <div class="ml-icon">💰</div>
+              <div class="ml-val">{{ d.deliveryCost | number:'1.2-2' }}</div>
+              <div class="ml-lbl">Cost (DH)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="detail-section">
+          <div class="section-label">📅 Timeline</div>
+          <div class="detail-row">
+            <span>Created</span>
+            <strong>{{ d.createdAt | date:'dd MMM yyyy, HH:mm' }}</strong>
+          </div>
+          <div class="detail-row" *ngIf="d.updatedAt">
+            <span>Updated</span>
+            <strong>{{ d.updatedAt | date:'dd MMM yyyy, HH:mm' }}</strong>
+          </div>
+          <div class="detail-row" *ngIf="d.deliveredAt">
+            <span>Delivered</span>
+            <strong class="amount-highlight">{{ d.deliveredAt | date:'dd MMM yyyy, HH:mm' }}</strong>
+          </div>
+        </div>
+
+      </div>
+      <!-- /detail-body -->
+
+      <!-- Panel footer -->
+      <div class="detail-footer">
+        <button class="btn-delete-order" (click)="deleteDelivery(d)">
+          🗑️ Delete
+        </button>
+      </div>
+
+    </ng-container>
+  </div>
+  <!-- /detail-panel -->
+
 </div>

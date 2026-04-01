@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { OrderService }      from '../../../services/order.service';
 import { NotificationService } from '../../../services/notification.service';
 import { Order, OrderStatus, DateFilter, PaymentMethod } from '../../../models/order.model';
@@ -37,6 +37,7 @@ export class AdminOrders implements OnInit {
   constructor(
     private orderSvc: OrderService,
     private notif:    NotificationService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void { this.load(); }
@@ -51,10 +52,12 @@ export class AdminOrders implements OnInit {
         this.orders  = orders;
         this.applyFilters();
         this.loading = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.error   = 'Failed to load orders.';
         this.loading = false;
+        this.cdr.detectChanges();
       }
     });
   }

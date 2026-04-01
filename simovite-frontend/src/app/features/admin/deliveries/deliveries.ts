@@ -1,72 +1,206 @@
-import { Component, OnInit } from '@angular/core';
-
-interface Delivery {
-  id: number;
-  orderRef: string;
-  courierName: string;
-  vehicleType: string;
-  distanceInKm: number;
-  deliveryCost: number;
-  estimatedTimeInMinutes: number;
-  status: 'PENDING' | 'ASSIGNED' | 'PICKED_UP' | 'DELIVERED';
-  cashOnDelivery: boolean;
-  amountToCollect: number;
-  pickupCity: string;
-  dropoffCity: string;
-  createdAt: string;
-}
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { DeliveryService }    from '../../../services/delivery.service';
+import { NotificationService } from '../../../services/notification.service';
+import { Delivery, DeliveryStatus, VehicleType } from '../../../models/delivery.model';
 
 @Component({
-  selector: 'app-admin-deliveries',
-  standalone: false,
+  selector:    'app-admin-deliveries',
+  standalone:  false,
   templateUrl: './deliveries.html',
-  styleUrls: ['./deliveries.scss']
+  styleUrls:   ['./deliveries.scss']
 })
 export class AdminDeliveries implements OnInit {
 
+  // ── Data ─────────────────────────────────────────────────
   deliveries: Delivery[] = [];
-  filtered: Delivery[] = [];
+  filtered:   Delivery[] = [];
   loading = true;
-  filterStatus = '';
+  error   = '';
+
+  // ── Filters ───────────────────────────────────────────────
+  searchTerm    = '';
+  filterStatus  = '';
   filterVehicle = '';
-  searchTerm = '';
+  filterCod     = '';
+
+  // ── Pagination ────────────────────────────────────────────
   currentPage = 1;
-  pageSize = 10;
+  pageSize    = 10;
 
-  private mock: Delivery[] = [
-    { id:1, orderRef:'SV20260320001', courierName:'Mohamed B.', vehicleType:'MOTORCYCLE', distanceInKm:5.1,  deliveryCost:20.22, estimatedTimeInMinutes:18, status:'DELIVERED', cashOnDelivery:true,  amountToCollect:107.72, pickupCity:'Casablanca', dropoffCity:'Casablanca', createdAt:'2026-03-20T09:14:00' },
-    { id:2, orderRef:'SV20260320002', courierName:'Yassine A.', vehicleType:'CAR',        distanceInKm:3.4,  deliveryCost:16.80, estimatedTimeInMinutes:22, status:'ASSIGNED',  cashOnDelivery:false, amountToCollect:0,      pickupCity:'Casablanca', dropoffCity:'Ain Sebaa',  createdAt:'2026-03-20T09:32:00' },
-    { id:3, orderRef:'SV20260320003', courierName:'—',          vehicleType:'—',          distanceInKm:7.2,  deliveryCost:24.40, estimatedTimeInMinutes:0,  status:'PENDING',   cashOnDelivery:true,  amountToCollect:344.40, pickupCity:'Casablanca', dropoffCity:'Hay Hassani', createdAt:'2026-03-20T09:45:00' },
-    { id:4, orderRef:'SV20260320004', courierName:'Karim S.',   vehicleType:'BICYCLE',    distanceInKm:1.8,  deliveryCost:11.60, estimatedTimeInMinutes:12, status:'PICKED_UP', cashOnDelivery:false, amountToCollect:0,      pickupCity:'Casablanca', dropoffCity:'Casablanca', createdAt:'2026-03-20T10:02:00' },
-  ];
+  // ── Detail panel ─────────────────────────────────────────
+  selectedDelivery: Delivery | null = null;
 
-  ngOnInit(): void {
-    // TODO: inject DeliveryService
-    setTimeout(() => { this.deliveries = this.mock; this.filtered = this.mock; this.loading = false; }, 400);
+  // ── Inline status edit ────────────────────────────────────
+  editingStatusId: number | null = null;
+  statusOptions: DeliveryStatus[] = ['PENDING', 'ASSIGNED', 'PICKED_UP', 'DELIVERED'];
+
+  constructor(
+    private deliverySvc: DeliveryService,
+    private notif:       NotificationService,
+    private cdr:         ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void { this.load(); }
+
+  // ── Load ──────────────────────────────────────────────────
+
+  load(): void {
+    this.loading = true;
+    this.error   = '';
+    this.deliverySvc.getAll().subscribe({
+      next: data => {
+        this.deliveries = data;
+        this.applyFilters();
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.error   = 'Failed to load deliveries.';
+        this.loading = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
+
+  // ── Filters ───────────────────────────────────────────────
 
   applyFilters(): void {
-    this.filtered = this.deliveries.filter(d =>
-      (!this.filterStatus  || d.status      === this.filterStatus) &&
-      (!this.filterVehicle || d.vehicleType === this.filterVehicle) &&
-      (!this.searchTerm    || d.orderRef.toLowerCase().includes(this.searchTerm.toLowerCase()) || d.courierName.toLowerCase().includes(this.searchTerm.toLowerCase()))
-    );
+    const term = this.searchTerm.toLowerCase();
+
+    this.filtered = this.deliveries.filter(d => {
+      const matchSearch =
+        !term ||
+        d.orderRef.toLowerCase().includes(term)          ||
+        (d.courierName  || '').toLowerCase().includes(term) ||
+        (d.customerEmail|| '').toLowerCase().includes(term);
+
+      const matchStatus  = !this.filterStatus  || d.status      === this.filterStatus;
+      const matchVehicle = !this.filterVehicle || d.vehicleType === this.filterVehicle;
+      const matchCod     =
+        !this.filterCod ||
+        (this.filterCod === 'cod'  &&  d.cashOnDelivery) ||
+        (this.filterCod === 'paid' && !d.cashOnDelivery);
+
+      return matchSearch && matchStatus && matchVehicle && matchCod;
+    });
+
     this.currentPage = 1;
+    this.cdr.detectChanges();
   }
 
-  get paginated(): Delivery[] { return this.filtered.slice((this.currentPage-1)*this.pageSize, this.currentPage*this.pageSize); }
-  get totalPages(): number { return Math.ceil(this.filtered.length / this.pageSize); }
-  get pages(): number[] { return Array.from({ length: this.totalPages }, (_, i) => i+1); }
+  reset(): void {
+    this.searchTerm    = '';
+    this.filterStatus  = '';
+    this.filterVehicle = '';
+    this.filterCod     = '';
+    this.applyFilters();
+  }
 
-  kpis(status: string): number { return this.deliveries.filter(d => d.status === status).length; }
+  // ── Status update ─────────────────────────────────────────
+
+  startEditStatus(id: number): void  { this.editingStatusId = id;  this.cdr.detectChanges();}
+  cancelEditStatus(): void           { this.editingStatusId = null;  this.cdr.detectChanges();}
+
+  confirmStatusChange(delivery: Delivery, newStatus: DeliveryStatus): void {
+    if (delivery.status === newStatus) { this.editingStatusId = null;  this.cdr.detectChanges();return; }
+
+    const prev = delivery.status;
+    delivery.status      = newStatus;
+    this.editingStatusId = null;
+    this.cdr.detectChanges();
+    this.deliverySvc.updateStatus(delivery.id, newStatus).subscribe({
+      next:  updated => {
+        Object.assign(delivery, updated);
+        this.notif.success(`Delivery ${delivery.orderRef} → ${newStatus}`);
+      },
+      error: () => {
+        delivery.status = prev;
+        this.notif.error('Status update failed.');
+      }
+    });
+  }
+
+  // ── Delete ────────────────────────────────────────────────
+
+  deleteDelivery(delivery: Delivery): void {
+    if (!confirm(`Delete delivery for ${delivery.orderRef}?`)) return;
+
+    this.deliverySvc.delete(delivery.id).subscribe({
+      next: () => {
+        this.deliveries = this.deliveries.filter(d => d.id !== delivery.id);
+        this.applyFilters();
+        if (this.selectedDelivery?.id === delivery.id) this.selectedDelivery = null;
+        this.notif.success(`Delivery ${delivery.orderRef} deleted.`);
+         this.cdr.detectChanges();
+      },
+      error: () => this.notif.error('Delete failed.')
+    });
+  }
+
+  // ── Detail panel ─────────────────────────────────────────
+
+  openDetail(d: Delivery): void  { this.selectedDelivery = d; }
+  closeDetail(): void            { this.selectedDelivery = null; }
+
+  // ── KPIs ──────────────────────────────────────────────────
+
+  kpiCount(status: DeliveryStatus): number {
+    return this.deliveries.filter(d => d.status === status).length;
+  }
+
+  get totalRevenue(): number {
+    return this.deliveries
+      .filter(d => d.status === 'DELIVERED')
+      .reduce((s, d) => s + (d.deliveryCost ?? 0), 0);
+  }
+
+  // ── Pagination ────────────────────────────────────────────
+
+  get paginated(): Delivery[] {
+    const s = (this.currentPage - 1) * this.pageSize;
+    return this.filtered.slice(s, s + this.pageSize);
+  }
+  get totalPages(): number { return Math.ceil(this.filtered.length / this.pageSize); }
+  get pages():      number[]{ return Array.from({ length: this.totalPages }, (_, i) => i + 1); }
+  get pageEnd():    number  { return Math.min(this.currentPage * this.pageSize, this.filtered.length); }
+
+  // ── Style helpers ─────────────────────────────────────────
 
   getStatusClass(s: string): string {
-    const m: Record<string,string> = { PENDING:'badge-gray', ASSIGNED:'badge-orange', PICKED_UP:'badge-blue', DELIVERED:'badge-green' };
+    const m: Record<string, string> = {
+      PENDING:   'badge-gray',
+      ASSIGNED:  'badge-orange',
+      PICKED_UP: 'badge-blue',
+      DELIVERED: 'badge-green',
+    };
     return m[s] ?? 'badge-gray';
   }
-  getVehicleIcon(v: string): string {
-    const m: Record<string,string> = { MOTORCYCLE:'🛵', CAR:'🚗', BICYCLE:'🚲', TRUCK:'🚛' };
-    return m[v] ?? '—';
+
+  getStatusIcon(s: string): string {
+    const m: Record<string, string> = {
+      PENDING: '⏳', ASSIGNED: '🛵', PICKED_UP: '📦', DELIVERED: '✅'
+    };
+    return m[s] ?? '';
   }
-  reset(): void { this.filterStatus = ''; this.filterVehicle = ''; this.searchTerm = ''; this.applyFilters(); }
+
+  getVehicleClass(v: string): string {
+    const m: Record<string, string> = {
+      MOTORCYCLE: 'badge-orange',
+      CAR:        'badge-blue',
+      BICYCLE:    'badge-purple',
+      TRUCK:      'badge-gray',
+    };
+    return m[v] ?? 'badge-gray';
+  }
+
+  getVehicleIcon(v: string): string {
+    const m: Record<string, string> = {
+      MOTORCYCLE: '🛵', CAR: '🚗', BICYCLE: '🚲', TRUCK: '🚛'
+    };
+    return m[v] ?? '';
+  }
+
+  getInitials(name: string): string {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  }
 }

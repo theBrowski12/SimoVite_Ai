@@ -25,6 +25,7 @@ public class OrderPaidEvent {
     private String customerEmail;
     // Fourni par le client lors du checkout
     private String message; // Optionnel (ex: "Code d'entrée 1234")
+    private BigDecimal deliveryCost;
     // OrderPaidEvent.java — vérifie que tu as ces champs
     private String storeCategory;   // RESTAURANT / PHARMACY / SUPERMARKET
 

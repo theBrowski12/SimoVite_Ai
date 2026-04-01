@@ -96,36 +96,15 @@ public class DeliveryServiceImpl implements DeliveryService {
         // 5. Calculate delivery cost with ML and get percentage
         BigDecimal deliveryCost;
         Double pricePercentage = null;
-        try {
-            PriceRequest priceRequest = PriceRequest.builder()
-                    .distanceKm(distanceKm)
-                    .vehicleType("MOTORCYCLE")
-                    .category(event.getStoreCategory().toString())
-                    .pickupLatitude(pickupAddress.getLatitude())
-                    .pickupLongitude(pickupAddress.getLongitude())
-                    .orderTotal(event.getTotalAmount().doubleValue())
-                    .build();
-
-            PriceResponse priceResponse = priceFeignClient.calculatePrice(priceRequest);
-            deliveryCost = BigDecimal.valueOf(priceResponse.getDeliveryCost());
-            pricePercentage = priceResponse.getPricePercentage();  // Get percentage from service
-
-            // Calculate fallback for logging only
-            Double fallbackPrice = 10.00 + (distanceKm * 2.00);
-
-            log.info("✅ Price ML: {} DH | weather: {} | rush: {} | change: {}% (fallback: {} DH)",
-                    deliveryCost,
-                    priceResponse.getWeatherCondition(),
-                    priceResponse.getRushHourFactor(),
-                    pricePercentage != null ? pricePercentage : 0.0,
-                    fallbackPrice);
-
-        } catch (Exception e) {
-            log.warn("⚠️ Price Service unavailable — using fallback calculation: {}", e.getMessage());
+        if (event.getDeliveryCost() != null && event.getDeliveryCost().compareTo(BigDecimal.ZERO) > 0) {
+            // ✅ Prix déjà calculé par Order_Service, on le réutilise
+            deliveryCost = event.getDeliveryCost();
+            log.info("💰 Using delivery cost from Order_Service: {} DH", deliveryCost);
+        } else {
+            // ⚠️ Fallback uniquement si l'event n'a pas le prix (legacy/compatibilité)
             deliveryCost = new BigDecimal("10.00")
                     .add(new BigDecimal(distanceKm).multiply(new BigDecimal("2.00")));
-            pricePercentage = 0.0;
-            log.info("💰 Using fallback price: {} DH (0% change)", deliveryCost);
+            log.warn("⚠️ No deliveryCost in event — fallback: {} DH", deliveryCost);
         }
 
         // 6. Calculate ETA with ML and get percentage

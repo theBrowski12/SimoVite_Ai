@@ -24,6 +24,7 @@ public class OrderEvent {
     private String message;      // Optionnel : pour un texte personnalisé
     private boolean cashOnDelivery;
     private Address deliveryAddress;
+    private BigDecimal deliveryCost;
     private String storeId;
     private String storeCategory;
     @Data

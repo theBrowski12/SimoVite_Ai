@@ -11,8 +11,8 @@ export interface Delivery {
   customerEmail?: string;
   pickupAddress: Address;
   dropoffAddress: Address;
-  distanceInKm?: number;
-  deliveryCost?: number;
+  distanceInKm: number;
+  deliveryCost: number;
   estimatedTimeInMinutes?: number;
   vehicleType?: VehicleType;
   cashOnDelivery: boolean;
@@ -23,4 +23,7 @@ export interface Delivery {
   createdAt: string;
   updatedAt?: string;
   deliveredAt?: string;
+}
+export interface DeliveryRequestDto {
+  vehicleType: VehicleType;
 }
