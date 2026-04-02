@@ -57,7 +57,7 @@ export class Categories implements OnInit, OnDestroy {
   readonly categories: CategoryConfig[] = [
     {
       key:        MainCategory.RESTAURANT,
-      label:      'Food',
+      label:      'Restaurant',
       icon:       '🍔',
       sub:        '500+ restaurants',
       colorClass: 'food',
@@ -99,6 +99,8 @@ export class Categories implements OnInit, OnDestroy {
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
 
+  // ── Lifecycle ─────────────────────────────────────────────────────────────
+
   ngOnInit(): void {
     // Search with debounce
     this.searchCtrl.valueChanges.pipe(
@@ -106,6 +108,26 @@ export class Categories implements OnInit, OnDestroy {
       distinctUntilChanged(),
       takeUntil(this.destroy$)
     ).subscribe(term => { this.searchTerm = term ?? ''; });
+
+    // 👈 NOUVEAU BLOC : Écoute les routes dynamiques (/categories/:categoryName)
+    this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      const categoryUrlParam = params.get('categoryName'); 
+      
+      if (categoryUrlParam) {
+        const matchedCategory = this.categories.find(c => 
+          c.colorClass.toLowerCase() === categoryUrlParam.toLowerCase() ||
+          c.label.toLowerCase() === categoryUrlParam.toLowerCase()
+        );
+
+        if (matchedCategory) {
+          this.enterCategory(matchedCategory);
+        }
+      } else {
+        // 🟢 C'est ICI que la magie opère pour la Navbar !
+        // Si on arrive sur '/categories' tout court, on affiche la liste globale
+        this.backToCategories();
+      }
+    });
 
     // Read query params (e.g. navigating from home with ?type=RESTAURANT)
     this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {

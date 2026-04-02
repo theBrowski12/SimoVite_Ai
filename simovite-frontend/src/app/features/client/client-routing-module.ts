@@ -12,6 +12,7 @@ const routes: Routes = [
   { path: 'stores/:id', component: StoreDetailComponent },
   { path: 'cart', component: Cart },
   { path: 'my-reviews', component: Reviews },
+  { path: 'categories/:categoryName', component: Categories },
   { path: 'categories', component: Categories },
   { path: '**', redirectTo: 'home' }
 ];

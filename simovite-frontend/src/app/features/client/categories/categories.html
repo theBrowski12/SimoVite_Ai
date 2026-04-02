@@ -135,7 +135,7 @@
         <div class="product-card"
              *ngFor="let p of filteredProducts"
              [class.unavailable]="!p.available"
-             [routerLink]="['/client/store', p.storeId]">
+             [routerLink]="['/store', p.storeId]">
 
           <div class="product-img-wrap">
             <img *ngIf="p.imageURL" [src]="p.imageURL" [alt]="p.name" class="product-img">

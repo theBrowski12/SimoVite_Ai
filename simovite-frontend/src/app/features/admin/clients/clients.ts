@@ -3,6 +3,7 @@ import { KeycloakAdminService } from '@services/keycloak-admin.service';
 import { Client } from '@models/client.model'; 
 import { OrderService } from '@services/order.service';
 import { map, switchMap, of, catchError, forkJoin } from 'rxjs';
+import { is } from 'date-fns/locale';
 
 @Component({ 
   selector: 'app-admin-clients',
@@ -17,7 +18,7 @@ export class AdminClientsComponent implements OnInit {
   searchTerm = ''; 
   currentPage = 1; 
   pageSize = 10;
-
+  
   constructor(
     private keycloakAdmin: KeycloakAdminService,
     private cdr: ChangeDetectorRef,
@@ -32,34 +33,42 @@ export class AdminClientsComponent implements OnInit {
     this.loading = true;
 
     this.keycloakAdmin.getUsers().pipe(
-      // On transforme d'abord les données Keycloak en base de liste Client
+      // 1. On transforme les données Keycloak en base de liste Client
       map((keycloakUsers: any[]) => {
         return keycloakUsers.map(ku => ({
           id: ku.id,
           name: `${ku.firstName || ''} ${ku.lastName || ''}`.trim() || ku.username,
           email: ku.email || 'Aucun email',
-          enabled: ku.enabled ?? true,
+          enabled: ku.enabled ?? true, // Gère le statut Suspendu/Actif
           emailVerified: ku.emailVerified ?? false,
+          isOnline: false, // Valeur par défaut, on la met à jour juste après !
           joinedAt: ku.createdTimestamp ? new Date(ku.createdTimestamp).toISOString().split('T')[0] : 'Inconnu',
           totalOrders: 0,
           totalSpent: 0,
-          reviewsCount: 0 // Note: Ton OrderService n'a pas de reviews, on laisse à 0
+          reviewsCount: 0
         }));
       }),
-      // On utilise switchMap pour lancer les requêtes de commandes en parallèle pour chaque client
+      
+      // 2. On enrichit avec les Commandes ET les Sessions Keycloak
       switchMap((baseClients: Client[]) => {
         if (baseClients.length === 0) return of([]);
 
         const enrichmentRequests = baseClients.map(client =>
-          this.orderService.getByUserId(client.id).pipe(
-            map(orders => {
-              // On calcule les stats pour ce client précis
+          // ⚡ On lance les deux requêtes en parallèle pour chaque client
+          forkJoin({
+            orders: this.orderService.getByUserId(client.id).pipe(catchError(() => of([]))),
+            sessions: this.keycloakAdmin.getUserSessions(client.id).pipe(catchError(() => of([])))
+          }).pipe(
+            map(({ orders, sessions }) => {
+              // Calcul des commandes
               client.totalOrders = orders.length;
               client.totalSpent = orders.reduce((sum, order) => sum + (order.price || 0), 0); 
-              // Remplace 'totalPrice' par le nom exact du champ dans ton Order model
+              
+              // 🟢 Calcul du statut En Ligne : s'il y a au moins 1 session active
+              client.isOnline = sessions && sessions.length > 0;
+
               return client;
-            }),
-            catchError(() => of(client)) // Si l'Order-Service échoue pour un client, on garde le client avec 0
+            })
           )
         );
         return forkJoin(enrichmentRequests);

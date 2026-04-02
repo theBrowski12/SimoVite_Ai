@@ -93,7 +93,7 @@
 
 .btn-back-floating {
   position: absolute;
-  top: 20px;
+  top: 90px;
   left: 24px;
   z-index: 10;
   width: 36px;
@@ -109,6 +109,9 @@
   justify-content: center;
   transition: background .15s;
   &:hover { background: rgba(255,255,255,.3); }
+}
+.btn-back-floating:hover { 
+  background: rgba(255,255,255,.3); 
 }
 
 .hero-content {
@@ -265,7 +268,7 @@ h1 {
   flex-direction: column;
   gap: 12px;
   position: sticky;
-  top: 70px;
+  top: 100px;
   z-index: 20;
   background: var(--bg);
   padding-bottom: 14px;

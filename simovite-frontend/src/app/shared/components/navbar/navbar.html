@@ -5,9 +5,16 @@
   </a>
 
   <div class="nav-links">
-    <a href="#" class="active">Home</a>
-    <a routerLink="/categories" routerLinkActive="active">Categories</a>
-    <a href="#stores">Stores</a>
+    <a routerLink="/home" 
+       routerLinkActive="active" 
+       [routerLinkActiveOptions]="{exact: true}">
+      Home
+    </a>
+    <a routerLink="/categories" 
+       routerLinkActive="active">
+      Categories
+    </a>
+    <a routerLink="/categories" routerLinkActive="active">Stores</a>
     <a href="#track">Track Order</a>
     <button *ngIf="isAdmin" 
             routerLink="/admin/dashboard" 

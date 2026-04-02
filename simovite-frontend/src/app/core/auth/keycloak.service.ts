@@ -14,15 +14,22 @@ export class KeycloakService {
       realm:    environment.keycloak.realm,
       clientId: environment.keycloak.clientId
     });
-
+    this.keycloak.onTokenExpired = () => {
+          this.keycloak.updateToken(30).catch(() => {
+            console.warn('Échec du rafraîchissement automatique du token.');
+            this.logout(); 
+          });
+        };
     return this.keycloak.init({
       onLoad:       'check-sso',
       checkLoginIframe: false
     });
   }
+  
   async loadUserProfile(): Promise<KeycloakProfile> {
     return await this.keycloak.loadUserProfile();
 }
+
   login():  void { this.keycloak.login(); }
   logout(): void { this.keycloak.logout({ redirectUri: window.location.origin }); }
   register(): void {
@@ -53,7 +60,16 @@ export class KeycloakService {
   }
 
   async refreshToken(): Promise<string> {
-    await this.keycloak.updateToken(30);
-    return this.keycloak.token ?? '';
-  }
+    // ✅ NOUVEAU : On entoure avec try/catch pour éviter que l'intercepteur HTTP ne crash
+    try {
+      // Si le token expire dans moins de 30s, on le rafraîchit
+      await this.keycloak.updateToken(30);
+      return this.keycloak.token ?? '';
+    } catch (error) {
+      console.error('La session a expiré, impossible de rafraîchir le token.', error);
+      // Redirige proprement au lieu de casser l'application
+      this.login(); 
+      return '';
+    }
+  }
 }

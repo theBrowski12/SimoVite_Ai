@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil, switchMap } from 'rxjs/operators';
-
+import { Location } from '@angular/common';
 import { StoreService } from '@services/store.service';
 import { CatalogService } from '@services/catalog.service';
 import { ReviewService } from '@services/review.service';
@@ -62,7 +62,8 @@ export class StoreDetailComponent implements OnInit, OnDestroy {
     private storeSvc:    StoreService,
     private catalogSvc:  CatalogService,
     private reviewSvc:   ReviewService,
-    private cdr:         ChangeDetectorRef
+    private cdr:         ChangeDetectorRef,
+    private location: Location,
   ) {}
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
@@ -80,7 +81,7 @@ export class StoreDetailComponent implements OnInit, OnDestroy {
       error: ()     => { this.error = 'Store not found.'; this.loadingStore = false; }
     });
   }
-
+  
   ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
 
   private resetState(): void {

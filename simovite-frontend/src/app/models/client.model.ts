@@ -16,4 +16,5 @@ export interface Client {
   totalOrders:  number;
   totalSpent:   number;
   reviewsCount: number;
+  isOnline: boolean;
 }

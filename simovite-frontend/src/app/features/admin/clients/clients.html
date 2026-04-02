@@ -19,7 +19,8 @@
           <tr>
             <th>Client</th>
             <th>Email</th>
-            <th>Status</th> <th>Keycloak ID</th>
+            <th>Status</th> 
+            <th>Connexion</th> <th>Keycloak ID</th>
             <th>Orders</th>
             <th>Total Spent</th>
             <th>Reviews</th>
@@ -44,6 +45,16 @@
                 {{ c.enabled ? 'Active' : 'Suspended' }}
               </span>
             </td>
+            <td>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span [style.backgroundColor]="c.isOnline ? '#22c55e' : '#9ca3af'" 
+                      style="width: 10px; height: 10px; border-radius: 50%; display: inline-block;">
+                </span>
+                <span style="font-size: 0.9em; color: #555;">
+                  {{ c.isOnline ? 'En ligne' : 'Hors ligne' }}
+                </span>
+              </div>
+            </td>
             <td class="mono" title="{{ c.id }}">{{ c.id | slice:0:8 }}...</td>
             <td><b>{{ c.totalOrders }}</b></td>
             <td><b style="color:#FF6B35">{{ c.totalSpent | number:'1.0-0' }} DH</b></td>
@@ -66,7 +77,7 @@
             </td>
           </tr>
           <tr *ngIf="paginated.length === 0">
-            <td colspan="8" class="empty-row">No clients found matching your search.</td>
+            <td colspan="10" class="empty-row">No clients found matching your search.</td>
           </tr>
         </tbody>
 
