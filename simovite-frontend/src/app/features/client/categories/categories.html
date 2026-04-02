@@ -1,1 +1,240 @@
-<p>categories works!</p>
+<div class="categories-page">
+
+  <!-- ════════════════════════════════════════
+       TOP BAR (shared across all views)
+       ════════════════════════════════════════ -->
+  <div class="top-bar">
+
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb">
+      <button class="bc-item bc-home" (click)="backToCategories()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+          <polyline points="9,22 9,12 15,12 15,22"/>
+        </svg>
+        Categories
+      </button>
+      <span class="bc-sep" *ngIf="selectedCategory">›</span>
+      <button class="bc-item"
+              *ngIf="selectedCategory"
+              (click)="viewMode = 'stores'">
+        {{ currentCategoryConfig?.label }}
+      </button>
+    </nav>
+
+    <!-- Search (only when browsing stores/products) -->
+    <div class="search-wrap" *ngIf="viewMode !== 'categories'">
+      <svg class="s-icon" width="14" height="14" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input class="search-in" [formControl]="searchCtrl"
+             placeholder="Search stores…">
+      <button class="search-clear"
+              *ngIf="searchCtrl.value"
+              (click)="searchCtrl.setValue('')">×</button>
+    </div>
+
+    <!-- Sort (only when showing products) -->
+    <div class="sort-wrap" *ngIf="viewMode === 'stores' && selectedSubCat && filteredProducts.length > 0">
+      <select class="sort-sel" [(ngModel)]="sort">
+        <option value="default">Default</option>
+        <option value="price_asc">Price ↑</option>
+        <option value="price_desc">Price ↓</option>
+        <option value="rating">Best Rated</option>
+      </select>
+    </div>
+
+  </div>
+  <!-- /top-bar -->
+
+
+  <!-- ════════════════════════════════════════
+       VIEW 1 — CATEGORY GRID
+       ════════════════════════════════════════ -->
+  <section class="view-categories" *ngIf="viewMode === 'categories'">
+    <div class="view-header">
+      <div class="section-tag">Browse</div>
+      <h1 class="view-title">What are you looking for?</h1>
+      <p class="view-sub">Choose from our wide range of categories and get everything delivered to your doorstep.</p>
+    </div>
+
+    <div class="categories-grid">
+      <div *ngFor="let cat of categories"
+           class="cat-card {{ cat.colorClass }}"
+           (click)="enterCategory(cat)">
+        <span class="cat-icon">{{ cat.icon }}</span>
+        <div class="cat-name">{{ cat.label }}</div>
+        <div class="cat-sub">{{ cat.sub }}</div>
+        <div class="cat-arrow">Browse →</div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ════════════════════════════════════════
+       VIEW 2 — STORES + OPTIONAL SUB-CATEGORY FILTER
+       ════════════════════════════════════════ -->
+  <section class="view-stores" *ngIf="viewMode === 'stores' && selectedCategory">
+
+    <!-- Category hero strip -->
+
+    <div class="category-tabs">
+      <button *ngFor="let cat of categories"
+              class="cat-tab"
+              [class.active]="selectedCategory === cat.key"
+              (click)="enterCategory(cat)">
+        <span class="tab-icon">{{ cat.icon }}</span>
+        <span class="tab-label">{{ cat.label }}</span>
+      </button>
+    </div>
+
+    <div class="cat-hero {{ currentCategoryConfig?.colorClass }}">
+      <div class="cat-hero-icon">{{ currentCategoryConfig?.icon }}</div>
+      <div class="cat-hero-info">
+        <h2>{{ currentCategoryConfig?.label }}</h2>
+        <p>{{ currentCategoryConfig?.sub }}</p>
+      </div>
+    </div>
+    <!-- Sub-category chips -->
+    <div class="subcats-bar" *ngIf="currentCategoryConfig?.subCats?.length">
+      <div class="subcats-label">Filter by</div>
+      <div class="subcats-chips">
+        
+        <button class="subcat-chip" [class.active]="selectedSubCat === ''"
+                (click)="selectSubCat('')"> All Stores
+        </button>
+        
+        <button class="subcat-chip"
+                *ngFor="let sub of currentCategoryConfig?.subCats"
+                [class.active]="selectedSubCat === sub"
+                (click)="selectSubCat(sub)"> {{ sub }}
+        </button>
+        
+      </div>
+    </div>
+
+    <!-- PRODUCTS (when a sub-category is selected) -->
+    <div class="products-section" *ngIf="selectedSubCat">
+      <div class="ps-header">
+        <div class="ps-title">
+          Products in <em>{{ selectedSubCat }}</em>
+          <span class="ps-count">{{ filteredProducts.length }}</span>
+        </div>
+      </div>
+
+      <div class="loading-wrap" *ngIf="loadingProducts">
+        <div class="spinner"></div>
+        <span>Loading products…</span>
+      </div>
+
+      <div class="products-grid" *ngIf="!loadingProducts">
+
+        <div class="product-card"
+             *ngFor="let p of filteredProducts"
+             [class.unavailable]="!p.available"
+             [routerLink]="['/client/store', p.storeId]">
+
+          <div class="product-img-wrap">
+            <img *ngIf="p.imageURL" [src]="p.imageURL" [alt]="p.name" class="product-img">
+            <div *ngIf="!p.imageURL" class="product-placeholder">
+              {{ currentCategoryConfig?.icon }}
+            </div>
+            <div class="unavail-tag" *ngIf="!p.available">Unavailable</div>
+            <div class="veg-tag" *ngIf="p.vegetarian">🌿</div>
+          </div>
+
+          <div class="product-body">
+            <div class="product-top">
+              <div class="product-name">{{ p.name }}</div>
+              <div class="product-price">{{ p.basePrice | number:'1.2-2' }} DH</div>
+            </div>
+            <p class="product-desc">{{ p.description }}</p>
+            <div class="product-footer">
+              <div class="product-store" *ngIf="p.store">
+                🏪 {{ p.store.name }}
+              </div>
+              <div class="product-rating" *ngIf="p.rating">
+                <span class="stars-sm">★</span>
+                {{ p.rating | number:'1.1-1' }}
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="empty-products" *ngIf="filteredProducts.length === 0">
+          <span>🔍</span>
+          <strong>No products found for {{ selectedSubCat }}</strong>
+          <span>Try another sub-category or search term</span>
+        </div>
+
+      </div>
+    </div>
+    <!-- /products-section -->
+
+
+    <!-- STORES GRID -->
+    <div class="stores-section" *ngIf="!selectedSubCat">
+      <div class="ss-header">
+        <h3>{{ filteredStores.length }} store{{ filteredStores.length !== 1 ? 's' : '' }}
+          <span *ngIf="searchCtrl.value"> matching <em>"{{ searchCtrl.value }}"</em></span>
+        </h3>
+      </div>
+
+      <!-- Loading -->
+      <div class="loading-wrap" *ngIf="loadingStores">
+        <div class="spinner"></div><span>Loading stores…</span>
+      </div>
+
+      <!-- Grid -->
+      <div class="stores-grid" *ngIf="!loadingStores">
+
+        <div class="store-card"
+             *ngFor="let store of filteredStores"
+             (click)="enterStore(store)">
+
+          <div class="store-img {{ getStoreBgClass(store.category) }}">
+            <span *ngIf="!store.imageURL">{{ getStoreIcon(store.category) }}</span>
+            <img *ngIf="store.imageURL" [src]="store.imageURL" [alt]="store.name" class="store-cover-img">
+            <div class="store-status" [class.open]="store.open" [class.closed]="!store.open">
+              {{ store.open ? '● Open' : 'Closed' }}
+            </div>
+          </div>
+
+          <div class="store-body">
+            <span class="cat-badge {{ getCatBadgeClass(store.category) }}">{{ store.category }}</span>
+            <div class="store-name">{{ store.name }}</div>
+            <p class="store-desc" *ngIf="store.description">{{ store.description }}</p>
+            <div class="store-meta">
+              <div class="store-rating" *ngIf="store.rating">
+                <span class="store-stars">{{ getStars(store.rating) }}</span>
+                {{ store.rating | number:'1.1-1' }}
+                <span class="review-cnt">({{ store.reviewCount }})</span>
+              </div>
+              <div class="store-delivery">⏱ 20–35 min</div>
+            </div>
+            <div class="store-address" *ngIf="store.address">
+              📍 {{ store.address.street }}, {{ store.address.city }}
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Empty -->
+        <div class="empty-stores" *ngIf="filteredStores.length === 0 && !loadingStores">
+          <span>🏪</span>
+          <strong>No stores found</strong>
+          <span *ngIf="!searchCtrl.value">No stores available in this category yet</span>
+          <span *ngIf="searchCtrl.value">Try a different search term</span>
+        </div>
+
+      </div>
+    </div>
+    <!-- /stores-section -->
+
+  </section>
+
+</div>

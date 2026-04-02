@@ -1,6 +1,7 @@
 import {
   Component, OnInit, OnDestroy,
-  ViewChild, ElementRef, AfterViewChecked
+  ViewChild, ElementRef, AfterViewChecked,
+  ChangeDetectorRef
 } from '@angular/core';
 import { v4 as uuidv4 } from 'uuid';
 import { ChatService, ChatMessage, ChatRequest, ChatResponse } from '@shared/services/chatbot.service';
@@ -37,6 +38,7 @@ export class ChatbotComponent implements OnInit, AfterViewChecked {
   constructor(
     private chatSvc: ChatService,
     public  auth:    AuthService,
+    private cdr:     ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -105,6 +107,7 @@ export class ChatbotComponent implements OnInit, AfterViewChecked {
         }
         this.isTyping = false;
         if (!this.isOpen) this.unreadCount++;
+        this.cdr.detectChanges();
       },
       error: () => {
         const idx = this.messages.findIndex(m => m.id === loadingId);
@@ -118,6 +121,7 @@ export class ChatbotComponent implements OnInit, AfterViewChecked {
           };
         }
         this.isTyping = false;
+        this.cdr.detectChanges();
       }
     });
   }

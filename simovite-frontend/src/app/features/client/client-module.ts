@@ -13,7 +13,7 @@ import { OrderTracking } from './order-tracking/order-tracking';
 import { Reviews } from './reviews/reviews';
 import { SharedModule } from '../../shared/shared.module'; // 🌟 On importe le SharedModule pour les composants partagés
 import { RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 @NgModule({
   declarations: [
     Home,
@@ -27,7 +27,7 @@ import { FormsModule } from '@angular/forms';
     Reviews,
   ],
   imports: [CommonModule, ClientRoutingModule, SharedModule,
-    RouterModule, FormsModule
+    RouterModule, FormsModule, ReactiveFormsModule
   ],
 })
 export class ClientModule {}

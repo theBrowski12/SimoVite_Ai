@@ -268,9 +268,9 @@
           <div class="reviews-grid" *ngIf="!loadingReviews">
             <div class="review-card" *ngFor="let r of reviews">
               <div class="review-top">
-                <div class="rev-avatar">{{ getInitials(r.clientId) }}</div>
+                <div class="rev-avatar">{{ getInitials(r.clientName || 'Client') }}</div>
                 <div>
-                  <div class="rev-name">Client</div>
+                  <div class="rev-name">{{ r.clientName || 'Anonymous Client' }}</div> 
                   <div class="rev-date">{{ r.createdAt | date:'dd MMM yyyy' }}</div>
                 </div>
                 <div class="rev-stars">{{ getStars(r.rating) }}</div>
