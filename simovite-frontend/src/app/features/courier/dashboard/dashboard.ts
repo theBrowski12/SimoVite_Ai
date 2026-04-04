@@ -130,7 +130,7 @@ export class Dashboard implements OnInit, OnDestroy {
 
   goToActiveDelivery(): void {
     // ⚠️ Adapte le chemin selon ton fichier de routing !
-    this.router.navigate(['/courier/active-delivery']); 
+    this.router.navigate(['/courier/active', this.activeDelivery?.id]); 
   }
   // ── Accept flow ───────────────────────────────────────────
 
@@ -235,7 +235,7 @@ export class Dashboard implements OnInit, OnDestroy {
       ASSIGNED:  'badge-orange',
       PICKED_UP: 'badge-blue',
       DELIVERED: 'badge-green',
-      CANCELLED: 'badge-red',
+      CANCELLED: 'badge-red', 
     };
     return m[status] ?? 'badge-gray';
   }

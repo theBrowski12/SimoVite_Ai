@@ -22,6 +22,8 @@ export class DeliveryPreview implements OnInit {
   currentLocation: CourierLocationRequest | null = null;
   deliveryId!: number;
 
+  isAccepting = false;
+
   constructor(
     private deliveryService: DeliveryService,
     private route: ActivatedRoute,
@@ -87,9 +89,47 @@ export class DeliveryPreview implements OnInit {
   }
 
   acceptDelivery(): void {
-    // Appel vers le endpoint d'acceptation de commande
-    console.log("Commande acceptée !");
+  // 1. Vérification de sécurité
+  if (!this.deliveryId || !this.currentLocation || !this.selectedVehicle) {
+    this.errorMessage = "Données de localisation ou véhicule manquantes.";
+    return;
   }
+
+  // 2. On lance le chargement
+  this.isAccepting = true;
+  this.errorMessage = '';
+  this.cdr.detectChanges();
+
+  // 3. Appel à ton service
+  this.deliveryService.accept(
+    this.deliveryId, 
+    this.selectedVehicle, 
+    this.currentLocation.latitude, 
+    this.currentLocation.longitude
+  ).subscribe({
+    next: (acceptedDelivery) => {
+      this.isAccepting = false;
+      console.log("✅ Commande acceptée !", acceptedDelivery);
+      
+      // 4. Redirection vers la page de suivi de SA course (à adapter selon tes routes)
+      // Par exemple : this.router.navigate(['/active-delivery', this.deliveryId]);
+      this.router.navigate(['/courier/active', this.deliveryId]); 
+    },
+    error: (err) => {
+      console.error(err);
+      this.isAccepting = false;
+      
+      // Gérer l'erreur (ex: un autre livreur l'a prise entre temps)
+      if (err.status === 400 || err.status === 409) {
+         this.errorMessage = "Oups ! Cette commande n'est plus disponible.";
+      } else {
+         this.errorMessage = "Une erreur est survenue lors de l'acceptation.";
+      }
+      this.cdr.detectChanges();
+    }
+  });
+}
+  
 
   goBack(): void {
     this.router.navigate(['/courier/dashboard']);

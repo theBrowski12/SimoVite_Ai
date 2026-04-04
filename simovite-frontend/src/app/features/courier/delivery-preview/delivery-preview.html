@@ -78,7 +78,11 @@
 
           <div class="buttons">
             <button class="btn-decline" (click)="goBack()">Refuser</button>
-            <button class="btn-accept" (click)="acceptDelivery()">Accepter la course</button>
+            
+            <button class="btn-accept" (click)="acceptDelivery()" [disabled]="isAccepting">
+              <span *ngIf="!isAccepting">Accepter la course</span>
+              <span *ngIf="isAccepting">⏳ Acceptation en cours...</span>
+            </button>
           </div>
         </div>
 
