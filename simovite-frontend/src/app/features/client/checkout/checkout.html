@@ -1,1 +1,152 @@
-<p>checkout works!</p>
+<div class="checkout-page">
+
+  <div class="checkout-container">
+
+    <div class="checkout-summary">
+      <div class="summary-header">
+        <h2>Order Summary</h2>
+        <div class="store-pill">
+          <span>{{ store?.category === 'RESTAURANT' ? '🍕' : store?.category === 'PHARMACY' ? '💊' : '🛒' }}</span>
+          {{ store?.name }}
+        </div>
+      </div>
+
+      <div class="summary-items">
+        <div class="summary-item" *ngFor="let item of items">
+          <div class="si-qty">×{{ item.quantity }}</div>
+          <div class="si-name">{{ item.product.name }}</div>
+          <div class="si-price">{{ item.product.basePrice * item.quantity | number:'1.2-2' }} DH</div>
+        </div>
+      </div>
+
+      <div class="summary-totals">
+        <div class="total-row"><span>Subtotal</span><span>{{ subtotal | number:'1.2-2' }} DH</span></div>
+        <div class="total-row"><span>Delivery</span><span class="muted">Calculated after confirmation</span></div>
+        <div class="total-row grand"><span>Estimated</span><strong>~{{ subtotal | number:'1.0-0' }} DH+</strong></div>
+      </div>
+    </div>
+
+    <div class="checkout-form-section">
+      <h2>Delivery Details</h2>
+
+      <div class="form-card">
+        <div class="form-card-title">📍 Delivery Address</div>
+
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label>Street <span class="req">*</span></label>
+            <input class="form-input" [(ngModel)]="address.street"
+                   placeholder="e.g. Rue Mohammed V">
+          </div>
+          <div class="form-group flex-1">
+            <label>Building No.</label>
+            <input class="form-input" [(ngModel)]="address.buildingNumber"
+                   placeholder="12">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label>City <span class="req">*</span></label>
+            <input class="form-input" [(ngModel)]="address.city"
+                   placeholder="Casablanca">
+          </div>
+          <div class="form-group flex-1">
+            <label>Apartment</label>
+            <input class="form-input" [(ngModel)]="address.apartment"
+                   placeholder="Apt 3B">
+          </div>
+        </div>
+
+        <div class="location-section" style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <label style="margin: 0;"><strong>Map Coordinates</strong></label>
+            <button class="btn-secondary" (click)="getCurrentLocation()" style="padding: 5px 10px; font-size: 12px;">
+              📍 Get My Location
+            </button>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <input type="number" class="form-input" [(ngModel)]="address.latitude" placeholder="Latitude">
+            </div>
+            <div class="form-group flex-1">
+              <input type="number" class="form-input" [(ngModel)]="address.longitude" placeholder="Longitude">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <div class="form-card-title">💳 Payment Method</div>
+
+        <div class="payment-options">
+          <label class="payment-option" [class.selected]="paymentMethod === 'CASH_ON_DELIVERY'">
+            <input type="radio" name="payment"
+                   value="CASH_ON_DELIVERY"
+                   [(ngModel)]="paymentMethod">
+            <div class="po-icon">💵</div>
+            <div class="po-info">
+              <div class="po-label">Cash on Delivery</div>
+              <div class="po-sub">Pay when your order arrives</div>
+            </div>
+            <div class="po-check" *ngIf="paymentMethod === 'CASH_ON_DELIVERY'">✓</div>
+          </label>
+
+          <label class="payment-option" [class.selected]="paymentMethod === 'ONLINE_PAYMENT'">
+            <input type="radio" name="payment"
+                   value="ONLINE_PAYMENT"
+                   [(ngModel)]="paymentMethod">
+            <div class="po-icon">💳</div>
+            <div class="po-info">
+              <div class="po-label">Online Payment</div>
+              <div class="po-sub">Pay securely by card</div>
+            </div>
+            <div class="po-check" *ngIf="paymentMethod === 'ONLINE_PAYMENT'">✓</div>
+          </label>
+        </div>
+
+        <div class="credit-card-form" *ngIf="paymentMethod === 'ONLINE_PAYMENT'" 
+             style="margin-top: 20px; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background: #fff;">
+          <h4 style="margin-top: 0; margin-bottom: 15px; color: #333;">Enter Card Details</h4>
+          
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label>Cardholder Name <span class="req">*</span></label>
+            <input class="form-input" [(ngModel)]="ccName" placeholder="John Doe">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label>Card Number <span class="req">*</span></label>
+            <input class="form-input" [(ngModel)]="ccNumber" placeholder="0000 0000 0000 0000" maxlength="16">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label>Expiry Date <span class="req">*</span></label>
+              <input class="form-input" [(ngModel)]="ccExpiry" placeholder="MM/YY" maxlength="5">
+            </div>
+            <div class="form-group flex-1">
+              <label>CVV <span class="req">*</span></label>
+              <input type="password" class="form-input" [(ngModel)]="ccCvv" placeholder="123" maxlength="3">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="error-banner" *ngIf="error">⚠️ {{ error }}</div>
+
+      <div class="checkout-actions">
+        <button class="btn-cancel" (click)="cancelCheckout()">← Back</button>
+        <button class="btn-place-order"
+                [disabled]="!isFormValid || submitting"
+                (click)="placeOrder()">
+          <span *ngIf="!submitting">
+            {{ paymentMethod === 'CASH_ON_DELIVERY' ? '🛵 Place Order' : '💳 Pay & Order' }}
+          </span>
+          <span *ngIf="submitting">Processing…</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>

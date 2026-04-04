@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { Order, OrderStatus } from '../models/order.model';
+import { Order, OrderRequestDto, OrderStatus } from '../models/order.model';
 
 @Injectable({ providedIn: 'root' })
 export class OrderService {
@@ -35,6 +35,10 @@ export class OrderService {
 
   // ── WRITE ────────────────────────────────────────────────
 
+  create(dto: OrderRequestDto): Observable<Order> {
+  return this.http.post<Order>(this.base, dto);
+  
+}
   updateStatus(id: number, status: OrderStatus): Observable<Order> {
     return this.http.put<Order>(
       `${this.base}/${id}/status`,

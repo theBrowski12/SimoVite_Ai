@@ -78,7 +78,7 @@
     <!-- ════════════════════════════════════════
          MAIN CONTENT + CART SIDEBAR
          ════════════════════════════════════════ -->
-    <div class="content-layout" [class.cart-open]="showCart && cartCount > 0">
+    <div class="content-layout" [class.cart-open]="cartCount > 0">
 
       <!-- ── LEFT: Menu ── -->
       <main class="menu-section">
@@ -331,7 +331,7 @@
           <button class="btn-checkout" (click)="goToCheckout()">
             Proceed to Checkout →
           </button>
-          <button class="btn-clear-cart" (click)="cart = []">Clear cart</button>
+          <button class="btn-clear-cart" (click)="clearCart()">Clear cart</button>
         </div>
       </aside>
 

@@ -5,6 +5,9 @@ import { StoreDetailComponent } from './store-detail/store-detail';
 import { Cart } from './cart/cart';
 import { Reviews } from './reviews/reviews';
 import { Categories } from './categories/categories';
+import { ProductDetail } from './product-detail/product-detail';
+import { Orders } from './orders/orders';
+import { Checkout } from './checkout/checkout';
 
 const routes: Routes = [
   
@@ -14,6 +17,9 @@ const routes: Routes = [
   { path: 'my-reviews', component: Reviews },
   { path: 'categories/:categoryName', component: Categories },
   { path: 'categories', component: Categories },
+  { path: 'product/:id', component: ProductDetail },
+  { path: 'orders', component: Orders},
+  { path: 'checkout', component: Checkout },
   { path: '**', redirectTo: 'home' }
 ];
 

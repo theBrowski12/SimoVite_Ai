@@ -1,1 +1,337 @@
-<p>orders works!</p>
+<div class="orders-page">
+
+  <!-- ════════════════════════════════════════
+       HEADER
+       ════════════════════════════════════════ -->
+  <div class="orders-header">
+    <div class="header-left">
+      <h1>My Orders</h1>
+      <p class="header-sub">Track and manage all your SimoVite orders</p>
+    </div>
+    <button class="btn-new-order" routerLink="/categories">+ New Order</button>
+  </div>
+
+
+  <!-- ════════════════════════════════════════
+       KPI STRIP
+       ════════════════════════════════════════ -->
+  <div class="kpi-strip">
+    <div class="kpi-tile" [class.active]="filterStatus === ''" (click)="filterStatus = ''; applyFilters()">
+      <div class="kpi-num">{{ orders.length }}</div>
+      <div class="kpi-lbl">All Orders</div>
+    </div>
+    <div class="kpi-divider"></div>
+    <div class="kpi-tile" [class.active]="filterStatus === 'PENDING'" (click)="filterStatus = 'PENDING'; applyFilters()">
+      <div class="kpi-num pending">{{ kpiCount('PENDING') }}</div>
+      <div class="kpi-lbl">Pending</div>
+    </div>
+    <div class="kpi-divider"></div>
+    <div class="kpi-tile" [class.active]="filterStatus === 'ACCEPTED'" (click)="filterStatus = 'ACCEPTED'; applyFilters()">
+      <div class="kpi-num accepted">{{ kpiCount('ACCEPTED') }}</div>
+      <div class="kpi-lbl">In Progress</div>
+    </div>
+    <div class="kpi-divider"></div>
+    <div class="kpi-tile" [class.active]="filterStatus === 'DELIVERED'" (click)="filterStatus = 'DELIVERED'; applyFilters()">
+      <div class="kpi-num delivered">{{ kpiCount('DELIVERED') }}</div>
+      <div class="kpi-lbl">Delivered</div>
+    </div>
+    <div class="kpi-divider"></div>
+    <div class="kpi-tile revenue">
+      <div class="kpi-num orange">{{ totalSpent | number:'1.0-0' }} DH</div>
+      <div class="kpi-lbl">Total Spent</div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════
+       FILTER BAR
+       ════════════════════════════════════════ -->
+  <div class="filter-bar">
+    <div class="search-wrap">
+      <svg class="s-icon" width="14" height="14" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input class="search-in"
+             [(ngModel)]="searchTerm"
+             (ngModelChange)="applyFilters()"
+             placeholder="Search by ref or store…">
+      <button class="search-clear" *ngIf="searchTerm"
+              (click)="searchTerm = ''; applyFilters()">×</button>
+    </div>
+
+    <button class="btn-reset"
+            *ngIf="searchTerm || filterStatus"
+            (click)="resetFilters()">
+      ↺ Reset
+    </button>
+  </div>
+
+
+  <!-- ════════════════════════════════════════
+       CONTENT
+       ════════════════════════════════════════ -->
+
+  <!-- Error -->
+  <div class="error-banner" *ngIf="error">
+    <span>⚠️</span> {{ error }}
+    <button (click)="load()">Retry</button>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-wrap" *ngIf="loading">
+    <div class="spinner"></div>
+    <span>Loading your orders…</span>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="!loading && orders.length === 0">
+    <span class="empty-icon">🛍️</span>
+    <strong>No orders yet</strong>
+    <span>Browse our stores and place your first order!</span>
+    <button class="btn-browse" routerLink="/client/categories">Browse Stores</button>
+  </div>
+
+  <!-- Empty filtered -->
+  <div class="empty-state" *ngIf="!loading && orders.length > 0 && filtered.length === 0">
+    <span class="empty-icon">🔍</span>
+    <strong>No orders match your filter</strong>
+    <button class="btn-browse" (click)="resetFilters()">Clear Filters</button>
+  </div>
+
+
+  <!-- Orders List -->
+  <div class="orders-list" *ngIf="!loading && filtered.length > 0"
+       [class.panel-open]="selected">
+
+    <div class="order-card"
+         *ngFor="let o of paginated"
+         [class.active]="selected?.id === o.id"
+         (click)="openDetail(o)">
+
+      <!-- Card top row -->
+      <div class="card-top">
+        <div class="card-left">
+          <div class="order-ref">{{ o.orderRef }}</div>
+          <div class="order-date">{{ o.createdAt | date:'dd MMM yyyy · HH:mm' }}</div>
+        </div>
+        <div class="card-right">
+          <span class="status-badge {{ getStatusClass(o.status) }}">
+            {{ getStatusIcon(o.status) }} {{ getStatusLabel(o.status) }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Store + category -->
+      <div class="card-store">
+        <div class="store-icon-wrap {{ getCategoryClass(o.storeCategory) }}">
+          {{ o.storeCategory === 'RESTAURANT' ? '🍕'
+           : o.storeCategory === 'PHARMACY'   ? '💊'
+           : o.storeCategory === 'SUPERMARKET' ? '🛒' : '📦' }}
+        </div>
+        <div class="store-info">
+          <div class="store-name">{{ o.storeName }}</div>
+          <div class="store-items">{{ o.items.length || 0 }} item{{ (o.items.length || 0) > 1 ? 's' : '' }}</div>
+        </div>
+      </div>
+
+      <!-- Progress bar (for active orders) -->
+      <div class="progress-bar" *ngIf="o.status !== 'CANCELLED'">
+        <div class="progress-steps">
+          <div class="pstep" [class.done]="getProgressStep(o.status) >= 0">
+            <div class="pstep-dot"></div>
+            <div class="pstep-lbl">Confirmed</div>
+          </div>
+          <div class="pstep-line" [class.done]="getProgressStep(o.status) >= 1"></div>
+          <div class="pstep" [class.done]="getProgressStep(o.status) >= 1">
+            <div class="pstep-dot"></div>
+            <div class="pstep-lbl">Assigned</div>
+          </div>
+          <div class="pstep-line" [class.done]="getProgressStep(o.status) >= 2"></div>
+          <div class="pstep" [class.done]="getProgressStep(o.status) >= 2">
+            <div class="pstep-dot"></div>
+            <div class="pstep-lbl">Picked up</div>
+          </div>
+          <div class="pstep-line" [class.done]="getProgressStep(o.status) >= 3"></div>
+          <div class="pstep" [class.done]="getProgressStep(o.status) >= 3">
+            <div class="pstep-dot"></div>
+            <div class="pstep-lbl">Delivered</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card footer -->
+      <div class="card-footer">
+        <div class="card-price">
+          <span class="price-total">{{ o.price | number:'1.2-2' }} DH</span>
+          <span class="price-delivery">+ {{ o.deliveryCost | number:'1.2-2' }} delivery</span>
+        </div>
+        <div class="card-payment {{ getPaymentClass(o.paymentMethod) }}">
+          {{ getPaymentLabel(o.paymentMethod) }}
+        </div>
+        <div class="card-actions" (click)="$event.stopPropagation()">
+          <button class="action-btn"
+                  *ngIf="o.status !== 'CANCELLED'"
+                  (click)="trackOrder(o)"
+                  title="Track order">
+            📍
+          </button>
+          <button class="action-btn pay-btn"
+                  *ngIf="canPay(o)"
+                  (click)="confirmPayment(o)"
+                  title="Pay now">
+            💳 Pay
+          </button>
+          <button class="action-btn"
+                  (click)="downloadPdf(o)"
+                  title="Download invoice">
+            📄
+          </button>
+          <button class="action-btn"
+                  (click)="reorder(o)"
+                  title="Reorder">
+            🔄
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+  <!-- /orders-list -->
+
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="!loading && totalPages > 1">
+    <span class="page-info">
+      {{ (currentPage - 1) * pageSize + 1 }}–{{ pageEnd }} of {{ filtered.length }}
+    </span>
+    <div class="page-btns">
+      <button class="page-btn" [disabled]="currentPage === 1"
+              (click)="currentPage = currentPage - 1">‹</button>
+      <button class="page-btn"
+              *ngFor="let p of pages"
+              [class.active]="p === currentPage"
+              (click)="currentPage = p">{{ p }}</button>
+      <button class="page-btn" [disabled]="currentPage === totalPages"
+              (click)="currentPage = currentPage + 1">›</button>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════
+       DETAIL PANEL
+       ════════════════════════════════════════ -->
+  <div class="panel-overlay" *ngIf="selected" (click)="closeDetail()"></div>
+
+  <div class="detail-panel" [class.open]="selected">
+    <ng-container *ngIf="selected as o">
+
+      <div class="panel-header">
+        <div>
+          <div class="panel-ref">{{ o.orderRef }}</div>
+          <span class="status-badge {{ getStatusClass(o.status) }}">
+            {{ getStatusIcon(o.status) }} {{ getStatusLabel(o.status) }}
+          </span>
+        </div>
+        <button class="panel-close" (click)="closeDetail()">✕</button>
+      </div>
+
+      <div class="panel-body">
+
+        <!-- Store -->
+        <div class="panel-section">
+          <div class="ps-label">🏪 Store</div>
+          <div class="ps-row"><span>Name</span><strong>{{ o.storeName }}</strong></div>
+          <div class="ps-row">
+            <span>Category</span>
+            <span class="cat-tag {{ getCategoryClass(o.storeCategory) }}">{{ o.storeCategory }}</span>
+          </div>
+        </div>
+
+        <!-- Items -->
+        <div class="panel-section">
+          <div class="ps-label">🛍️ Items ({{ o.items.length || 0 }})</div>
+          <div class="items-list">
+            <div class="item-row" *ngFor="let item of o.items">
+              <span class="item-qty">×{{ item.quantity }}</span>
+              <span class="item-name">{{ item.productName }}</span>
+              <span class="item-price">{{ item.subTotal | number:'1.2-2' }} DH</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Delivery address -->
+        <div class="panel-section">
+          <div class="ps-label">📍 Delivery Address</div>
+          <div class="ps-row">
+            <span>Street</span>
+            <strong>{{ o.deliveryAddress.street }}, {{ o.deliveryAddress.buildingNumber }}</strong>
+          </div>
+          <div class="ps-row">
+            <span>City</span>
+            <strong>{{ o.deliveryAddress.city }}</strong>
+          </div>
+        </div>
+
+        <!-- Pricing -->
+        <div class="panel-section">
+          <div class="ps-label">💰 Pricing</div>
+          <div class="ps-row"><span>Subtotal</span><strong>{{ o.price - o.deliveryCost | number:'1.2-2' }} DH</strong></div>
+          <div class="ps-row"><span>Delivery</span><strong>{{ o.deliveryCost | number:'1.2-2' }} DH</strong></div>
+          <div class="ps-row" *ngIf="o.percentage">
+            <span>Price variation</span>
+            <span [style.color]="o.percentage > 0 ? '#dc2626' : '#16a34a'">
+              {{ o.percentage > 0 ? '+' : '' }}{{ o.percentage }}%
+            </span>
+          </div>
+          <div class="ps-row total-row">
+            <span>Total</span>
+            <strong class="total-price">{{ o.price | number:'1.2-2' }} DH</strong>
+          </div>
+          <div class="ps-row">
+            <span>Payment</span>
+            <span class="pay-tag {{ getPaymentClass(o.paymentMethod) }}">{{ getPaymentLabel(o.paymentMethod) }}</span>
+          </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="panel-section">
+          <div class="ps-label">📅 Timeline</div>
+          <div class="ps-row">
+            <span>Created</span>
+            <strong>{{ o.createdAt | date:'dd MMM yyyy, HH:mm' }}</strong>
+          </div>
+          <div class="ps-row" *ngIf="o.updatedAt">
+            <span>Updated</span>
+            <strong>{{ o.updatedAt | date:'dd MMM yyyy, HH:mm' }}</strong>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Panel footer actions -->
+      <div class="panel-footer">
+        <button class="pf-btn pf-track"
+                *ngIf="o.status !== 'CANCELLED' && o.status !== 'DELIVERED'"
+                (click)="trackOrder(o)">
+          📍 Track Order
+        </button>
+        <button class="pf-btn pf-pay"
+                *ngIf="canPay(o)"
+                (click)="confirmPayment(o)">
+          💳 Pay Now
+        </button>
+        <button class="pf-btn pf-pdf" (click)="downloadPdf(o)">
+          📄 Invoice
+        </button>
+        <button class="pf-btn pf-reorder" (click)="reorder(o)">
+          🔄 Reorder
+        </button>
+      </div>
+
+    </ng-container>
+  </div>
+
+</div>

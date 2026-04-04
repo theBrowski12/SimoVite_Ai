@@ -10,6 +10,8 @@ import { ReviewService } from '@services/review.service';
 import { StoreResponseDto, MainCategory } from '@models/store.model';
 import { CatalogResponseDto, FoodCategory, PharmacyCategory, SupermarketCategory } from '@models/catalog.model';
 import { ReviewResponseDto, ReviewTargetType } from '@models/review.model';
+import { CartService } from '@services/cart.service';
+import { AuthService } from '@core/auth/auth.service';
 
 // ── Cart item (local, before moving to NgRx) ─────────────────────────────────
 export interface CartItem {
@@ -46,15 +48,16 @@ export class StoreDetailComponent implements OnInit, OnDestroy {
   supermarketCategories: string[] = Object.values(SupermarketCategory);
 
   // ── Cart ──────────────────────────────────────────────────────────────────
-  cart: CartItem[] = [];
-  showCart = false;
-
+  selectedPayment: 'CASH_ON_DELIVERY' | 'ONLINE_PAYMENT' = 'CASH_ON_DELIVERY';
+  checkingOut = false;
+  checkoutError = '';
   // ── Review form ───────────────────────────────────────────────────────────
   showReviewForm  = false;
   reviewRating    = 0;
   reviewHover     = 0;
   reviewComment   = '';
   submittingReview = false;
+
 
   constructor(
     private route:       ActivatedRoute,
@@ -64,6 +67,9 @@ export class StoreDetailComponent implements OnInit, OnDestroy {
     private reviewSvc:   ReviewService,
     private cdr:         ChangeDetectorRef,
     private location: Location,
+    private cartSvc: CartService,
+    private auth: AuthService,
+  
   ) {}
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
@@ -77,7 +83,12 @@ export class StoreDetailComponent implements OnInit, OnDestroy {
         return this.storeSvc.getStoreById(id);
       })
     ).subscribe({
-      next:  store  => { this.store = store; this.loadingStore = false; this.loadProducts(); this.loadReviews(); },
+      next:  store  => { 
+        this.store = store;
+        this.cartSvc.setStore(store);
+        this.loadingStore = false;
+        this.loadProducts();
+        this.loadReviews(); },
       error: ()     => { this.error = 'Store not found.'; this.loadingStore = false; }
     });
   }
@@ -159,48 +170,36 @@ export class StoreDetailComponent implements OnInit, OnDestroy {
   }
 
   // ── Cart ──────────────────────────────────────────────────────────────────
-
-  addToCart(product: CatalogResponseDto): void {
-    if (!product.available) return;
-    const existing = this.cart.find(i => i.product.id === product.id);
-    if (existing) {
-      existing.quantity++;
-    } else {
-      this.cart.push({ product, quantity: 1 });
+  addToCart(p: CatalogResponseDto): void  { this.cartSvc.add(p); }
+  removeFromCart(id: string): void        { this.cartSvc.remove(id); }
+  updateQty(id: string, delta: number)    { this.cartSvc.updateQty(id, delta); }
+  getCartQty(id: string): number          { return this.cartSvc.getQty(id); }
+  isInCart(id: string): boolean           { return this.cartSvc.isInCart(id); }
+  clearCart(): void { 
+    if (confirm("Are you sure you want to clear the cart?")) {
+      this.cartSvc.clear(); 
     }
   }
 
-  removeFromCart(productId: string): void {
-    this.cart = this.cart.filter(i => i.product.id !== productId);
-  }
 
-  updateQty(productId: string, delta: number): void {
-    const item = this.cart.find(i => i.product.id === productId);
-    if (!item) return;
-    item.quantity = Math.max(1, item.quantity + delta);
-  }
-
-  getCartQty(productId: string): number {
-    return this.cart.find(i => i.product.id === productId)?.quantity ?? 0;
-  }
-
-  isInCart(productId: string): boolean {
-    return this.cart.some(i => i.product.id === productId);
-  }
-
-  get cartTotal(): number {
-    return this.cart.reduce((s, i) => s + i.product.basePrice * i.quantity, 0);
-  }
-
-  get cartCount(): number {
-    return this.cart.reduce((s, i) => s + i.quantity, 0);
-  }
 
   goToCheckout(): void {
-    // Pass cart via router state or service/store before navigating
-    this.router.navigate(['/client/checkout'], { state: { cart: this.cart, store: this.store } });
-  }
+  if (!this.store || this.cart.length === 0) return;
 
+  // L'adresse doit venir du profil user ou d'un formulaire
+  // Pour l'instant on navigue vers checkout avec les données du cart
+  this.router.navigate(['/checkout'], {
+    state: {
+      storeId:       this.store.id,
+      items:         this.cart.map(i => ({ productId: i.product.id, quantity: i.quantity })),
+      paymentMethod: this.selectedPayment,
+    }
+  });
+}
+
+  get cart()      { return this.cartSvc.items; }
+get cartCount() { return this.cartSvc.count; }
+get cartTotal() { return this.cartSvc.total; }
   // ── Reviews ───────────────────────────────────────────────────────────────
 
   get avgRating(): number {
@@ -293,6 +292,7 @@ export class StoreDetailComponent implements OnInit, OnDestroy {
       }
     });
   }
+
 
   // 🌟 Helper method to catch keyboard mashing (e.g., "jjjjjjjj" or "asdfasdf")
   private isGibberish(text: string): boolean {
