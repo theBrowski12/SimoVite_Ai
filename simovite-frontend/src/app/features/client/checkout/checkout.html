@@ -59,23 +59,51 @@
         </div>
 
         <div class="location-section" style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <label style="margin: 0;"><strong>Map Coordinates</strong></label>
-            <button class="btn-secondary" (click)="getCurrentLocation()" style="padding: 5px 10px; font-size: 12px;">
-              📍 Get My Location
-            </button>
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group flex-1">
-              <input type="number" class="form-input" [(ngModel)]="address.latitude" placeholder="Latitude">
+  
+            <div style="margin-bottom: 12px;">
+                <label style="margin: 0; display: block; font-size: 14px;"><strong>📍 Pin your Location</strong></label>
+                <p style="font-size: 12px; color: #666; margin-top: 4px; margin-bottom: 0;">Click on the map, search, or use your GPS to set exact coordinates.</p>
             </div>
-            <div class="form-group flex-1">
-              <input type="number" class="form-input" [(ngModel)]="address.longitude" placeholder="Longitude">
+            
+            <div class="map-search-wrapper" style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center;">
+                
+                <div style="position: relative; flex: 1;">
+                <span class="search-icon" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #94a3b8;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </span>
+                <input type="text" 
+                        #addressSearch 
+                        placeholder="Taper une adresse (ex: Maarif, Casablanca)" 
+                        class="form-input"
+                        style="width: 100%; padding-left: 36px; padding-right: 10px;"
+                        (keydown.enter)="$event.preventDefault(); searchAddress(addressSearch.value)">
+                </div>
+
+                <button type="button" class="btn-cancel" style="padding: 10px 16px; font-weight: 600;" (click)="searchAddress(addressSearch.value)">
+                Chercher
+                </button>
+
+                <button type="button" class="btn-cancel" style="padding: 10px 16px; font-weight: 600; color: #FF6B35; border-color: rgba(255,107,53,0.3); display: flex; align-items: center; gap: 6px;" (click)="getCurrentLocation()" title="Utiliser ma position actuelle">
+                <span>📍</span> GPS
+                </button>
             </div>
-          </div>
-        </div>
-      </div>
+
+            <div id="checkout-map" style="height: 280px; width: 100%; border-radius: 8px; margin-bottom: 15px; border: 1px solid #ddd; z-index: 1;"></div>
+            
+            <div class="form-row">
+                <div class="form-group flex-1">
+                <input type="number" class="form-input" [(ngModel)]="address.latitude" placeholder="Latitude" readonly style="background: #f1f5f9; color: #64748b; cursor: not-allowed;">
+                </div>
+                <div class="form-group flex-1">
+                <input type="number" class="form-input" [(ngModel)]="address.longitude" placeholder="Longitude" readonly style="background: #f1f5f9; color: #64748b; cursor: not-allowed;">
+                </div>
+            </div>
+
+            </div>
+    </div>
 
       <div class="form-card">
         <div class="form-card-title">💳 Payment Method</div>
