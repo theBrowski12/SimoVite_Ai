@@ -5,67 +5,82 @@
 
   <ng-container *ngIf="previewData && !isLoading">
     
-    <app-route-map
-      [courierPosition]="currentLocation"
-      [pickupAddress]="previewData.pickupAddress"
-      [dropoffAddress]="previewData.dropoffAddress">
-    </app-route-map>
-
-    <div class="order-header">
-      <h2>Commande #{{ previewData.orderRef }}</h2>
-      <span class="badge" [class.cod]="previewData.cashOnDelivery">
-        {{ previewData.cashOnDelivery ? 'Espèce à la livraison' : 'Déjà Payé' }}
-      </span>
-    </div>
-
-    <div class="distance-breakdown card">
-      <h3>🛣️ Itinéraire</h3>
-      <div class="leg">
-        <span>📍 Vous → Magasin</span>
-        <strong>{{ previewData.distanceToPickupKm | number:'1.1-2' }} km</strong>
-      </div>
-      <div class="leg">
-        <span>🏪 Magasin → Client</span>
-        <strong>{{ previewData.distancePickupToDropoffKm | number:'1.1-2' }} km</strong>
-      </div>
-      <hr>
-      <div class="leg total">
-        <span>Distance Totale</span>
-        <strong>{{ previewData.totalDistanceKm | number:'1.1-2' }} km</strong>
-      </div>
-    </div>
-
-    <div class="ml-estimates">
-      <div class="estimate-card time">
-        <div class="label">⏱️ ETA Estimé</div>
-        <div class="value">{{ previewData.estimatedEtaMinutes }} min</div>
-        <div class="sub" [ngClass]="previewData.etaPercentage < 0 ? 'positive' : 'warning'">
-          {{ previewData.etaPercentage > 0 ? '+' : '' }}{{ previewData.etaPercentage }}% vs Standard
-        </div>
-      </div>
+    <div class="preview-layout">
       
-      <div class="estimate-card price">
-        <div class="label">💰 Gain Livreur</div>
-        <div class="value">{{ previewData.deliveryCost | currency:'MAD' }}</div>
-        <div class="sub" *ngIf="previewData.cashOnDelivery">
-          À collecter : {{ previewData.amountToCollect | currency:'MAD' }}
+      <div class="left-column">
+        <div class="order-header">
+          <h4>Commande #{{ previewData.orderRef }}</h4>
+          <span class="badge" [class.cod]="previewData.cashOnDelivery">
+            {{ previewData.cashOnDelivery ? 'Espèce à la livraison' : 'Déjà Payé' }}
+          </span>
         </div>
-      </div>
-    </div>
 
-    <div class="actions card">
-      <div class="vehicle-select">
-        <label>Mon véhicule actuel :</label>
-        <select [(ngModel)]="selectedVehicle" (change)="onVehicleChange()">
-          <option *ngFor="let v of vehicles" [value]="v">{{ v }}</option>
-        </select>
+        <app-route-map #myMap
+          [courierPosition]="currentLocation"
+          [pickupAddress]="previewData.pickupAddress"
+          [dropoffAddress]="previewData.dropoffAddress">
+        </app-route-map>
       </div>
 
-      <div class="buttons">
-        <button class="btn-decline" (click)="goBack()">Refuser</button>
-        <button class="btn-accept" (click)="acceptDelivery()">Accepter la course</button>
-      </div>
-    </div>
+      <div class="right-column">
+        
+        <div class="distance-breakdown card">
+          <h3>🛣️ Itinéraire</h3>
+          
+          <div class="leg">
+            <div class="leg-info">
+              <span>📍 Vous → Magasin</span>
+              <strong>{{ previewData.distanceToPickupKm | number:'1.1-2' }} km</strong>
+            </div>
+            <button class="btn-locate-small" (click)="myMap.centerOnPickup()" title="Voir sur la carte">🎯 Store location</button>
+          </div>
 
-  </ng-container>
+          <div class="leg">
+            <div class="leg-info">
+              <span>🏪 Magasin → Client</span>
+              <strong>{{ previewData.distancePickupToDropoffKm | number:'1.1-2' }} km</strong>
+            </div>
+            <button class="btn-locate-small" (click)="myMap.centerOnDropoff()" title="Voir sur la carte">🎯 Client location</button>
+          </div>
+          
+          <hr>
+          <div class="leg total">
+            <span>Distance Totale</span>
+            <strong>{{ previewData.totalDistanceKm | number:'1.1-2' }} km</strong>
+          </div>
+        </div>
+
+        <div class="ml-estimates">
+          <div class="estimate-card time">
+            <div class="label">⏱️ ETA Estimé</div>
+            <div class="value">{{ previewData.estimatedEtaMinutes }} min</div>
+            <div class="sub" [ngClass]="previewData.etaPercentage < 0 ? 'positive' : 'warning'">
+              {{ previewData.etaPercentage > 0 ? '+' : '' }}{{ previewData.etaPercentage }}% vs Standard
+            </div>
+          </div>
+          
+          <div class="estimate-card price">
+            <div class="label">💰 Gain Livreur</div>
+            <div class="value">{{ previewData.deliveryCost | currency:'MAD' }}</div>
+            <div class="sub" *ngIf="previewData.cashOnDelivery">
+              À collecter : {{ previewData.amountToCollect | currency:'MAD' }}
+            </div>
+          </div>
+        </div>
+
+        <div class="actions card">
+          <div class="vehicle-select">
+            <label>Mon véhicule actuel :</label>
+            <select [(ngModel)]="selectedVehicle" (change)="onVehicleChange()">
+              <option *ngFor="let v of vehicles" [value]="v">{{ v }}</option>
+            </select>
+          </div>
+
+          <div class="buttons">
+            <button class="btn-decline" (click)="goBack()">Refuser</button>
+            <button class="btn-accept" (click)="acceptDelivery()">Accepter la course</button>
+          </div>
+        </div>
+
+      </div> </div> </ng-container>
 </div>

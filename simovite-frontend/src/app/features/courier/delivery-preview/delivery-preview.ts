@@ -92,6 +92,6 @@ export class DeliveryPreview implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/dashboard']);
+    this.router.navigate(['/courier/dashboard']);
   }
 }

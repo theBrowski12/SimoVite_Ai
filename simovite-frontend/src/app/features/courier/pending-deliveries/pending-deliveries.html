@@ -1,34 +1,39 @@
-<div class="courier-pending">
-  <div class="welcome-banner">
-    <h2>Bonjour, Livreur ! 🏍️</h2>
-    <p>Il y a 5 nouvelles livraisons disponibles à proximité.</p>
+<div class="deliveries-container">
+  <h2>Commandes disponibles 🛵</h2>
+
+  <div class="loader" *ngIf="isLoading">
+    Recherche des commandes autour de vous...
   </div>
 
-  <div class="delivery-list">
+  <div class="error" *ngIf="errorMessage">
+    {{ errorMessage }}
+    <button (click)="fetchDeliveries()">Réessayer</button>
+  </div>
+
+  <div class="empty-state" *ngIf="!isLoading && !errorMessage && availableDeliveries.length === 0">
+    Aucune commande en attente pour le moment.
+  </div>
+
+  <div class="delivery-list" *ngIf="!isLoading && availableDeliveries.length > 0">
+    
     <div class="delivery-card" *ngFor="let delivery of availableDeliveries">
-      <div class="card-top">
-        <span class="store-name">{{ delivery.storeName }}</span>
-        <span class="price">{{ delivery.price | dhCurrency }}</span>
+      <div class="card-header">
+        <h3>Commande #{{ delivery.orderRef || delivery.id }}</h3>
+        <span class="price">{{ delivery.deliveryCost | currency:'MAD' }}</span>
       </div>
       
-      <div class="route-info">
-        <div class="point">
-          <i class="dot blue"></i>
-          <span>Collecte : {{ delivery.pickupAddress.name }}</span>
-        </div>
-        <div class="line"></div>
-        <div class="point">
-          <i class="dot orange"></i>
-          <span>Livraison : {{ delivery.dropoffAddress.name }}</span>
-        </div>
+      <div class="card-body">
+        <p><strong>De:</strong> {{ delivery.pickupAddress?.street || 'Adresse magasin' }}</p>
+        <p><strong>À:</strong> {{ delivery.dropoffAddress?.street || 'Adresse client' }}</p>
+        <p class="distance">Distance : {{ delivery.distanceInKm | number:'1.1-1' }} km</p>
       </div>
 
-      <div class="card-footer">
-        <span class="distance">{{ delivery.distanceKm }} km</span>
-        <button class="btn-outline" [routerLink]="['/courier/delivery-preview', delivery.id]">
-          Détails
+      <div class="card-actions">
+        <button class="btn-details" (click)="previewDelivery(delivery.id)">
+          Voir l'itinéraire
         </button>
       </div>
     </div>
+
   </div>
 </div>

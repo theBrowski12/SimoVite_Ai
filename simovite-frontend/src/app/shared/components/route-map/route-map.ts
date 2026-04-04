@@ -139,6 +139,17 @@ export class RouteMap implements AfterViewInit, OnChanges {
       this.map.fitBounds(bounds, { padding: [50, 50] });
     }
   }
+  public centerOnPickup(): void {
+    if (this.pickupAddress?.latitude && this.map) {
+      this.map.setView([this.pickupAddress.latitude, this.pickupAddress.longitude], 17, { animate: true });
+    }
+  }
+
+  public centerOnDropoff(): void {
+    if (this.dropoffAddress?.latitude && this.map) {
+      this.map.setView([this.dropoffAddress.latitude, this.dropoffAddress.longitude], 17, { animate: true });
+    }
+  }
   
 
 }

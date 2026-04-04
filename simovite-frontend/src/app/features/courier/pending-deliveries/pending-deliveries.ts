@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { DeliveryService } from '@services/delivery.service'; // Ajuste le chemin si besoin
 
 @Component({
   selector: 'app-pending-deliveries',
@@ -8,35 +10,45 @@ import { Component, OnInit } from '@angular/core';
 })
 export class PendingDeliveries implements OnInit {
 
-  // 🌟 On définit la liste que le HTML attend
-  availableDeliveries = [
-    {
-      id: 1,
-      storeName: 'Le Gourmet Burger',
-      price: 45,
-      distanceKm: 2.4,
-      pickupAddress: { name: 'Rue 12, Quartier Gauthier' },
-      dropoffAddress: { name: 'Résidence Sofia, Apt 4' }
-    },
-    {
-      id: 2,
-      storeName: 'Pizza Hot',
-      price: 35,
-      distanceKm: 1.1,
-      pickupAddress: { name: 'Bd Zerktouni, 145' },
-      dropoffAddress: { name: 'Bureau Tech Hub, 2ème étage' }
-    },
-    {
-      id: 3,
-      storeName: 'Pharmacie de Garde',
-      price: 60,
-      distanceKm: 4.8,
-      pickupAddress: { name: 'Avenue des FAR' },
-      dropoffAddress: { name: 'Villa 88, Anfa' }
-    }
-  ];
+  // La liste est maintenant vide au départ
+  availableDeliveries: any[] = [];
+  
+  // Variables d'état pour une bonne UX
+  isLoading: boolean = true;
+  errorMessage: string = '';
 
-  constructor() {}
+  constructor(
+    private deliveryService: DeliveryService,
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    // 🌟 Au chargement de la page, on récupère les vraies données
+    this.fetchDeliveries();
+  }
+
+  fetchDeliveries(): void {
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.deliveryService.getPending().subscribe({
+      next: (data) => {
+        this.availableDeliveries = data;
+        this.isLoading = false;
+        this.cdr.detectChanges(); // Forcer la mise à jour de l'UI après avoir reçu les données
+      },
+      error: (error) => {
+        console.error('Erreur lors de la récupération des commandes:', error);
+        this.errorMessage = "Impossible de charger les livraisons disponibles. Veuillez réessayer.";
+        this.isLoading = false;
+        this.cdr.detectChanges(); // Forcer la mise à jour de l'UI en cas d'erreur
+      }
+    });
+  }
+
+  // 🌟 Méthode pour rediriger le livreur vers la page de "preview" avec la carte
+  previewDelivery(deliveryId: number): void {
+    this.router.navigate(['/courier/preview', deliveryId]);
+  }
 }
