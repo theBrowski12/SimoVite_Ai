@@ -1,1 +1,34 @@
-<p>history works!</p>
+<div class="history-container">
+  <h2>Mon Historique</h2>
+
+  <div *ngIf="isLoading" class="loading-state">
+    <p>Chargement de vos anciennes courses...</p>
+    </div>
+
+  <div *ngIf="errorMessage" class="error-state">
+    <p>{{ errorMessage }}</p>
+    <button (click)="ngOnInit()">Réessayer</button>
+  </div>
+
+  <div *ngIf="!isLoading && !errorMessage && pastDeliveries.length === 0" class="empty-state">
+    <p>Vous n'avez pas encore terminé de livraisons.</p>
+  </div>
+
+  <div *ngIf="!isLoading && pastDeliveries.length > 0" class="deliveries-list">
+    
+    <div class="delivery-card" *ngFor="let delivery of pastDeliveries">
+      <div class="card-header">
+        <span class="delivery-id">Course #{{ delivery.id }}</span>
+        <span class="status-badge" [ngClass]="delivery.status | lowercase">
+          {{ delivery.status === 'DELIVERED' ? 'Livrée' : 'Annulée' }}
+        </span>
+      </div>
+      
+      <div class="card-body">
+        <p><strong>Statut final :</strong> {{ delivery.status }}</p>
+        
+        </div>
+    </div>
+
+  </div>
+</div>

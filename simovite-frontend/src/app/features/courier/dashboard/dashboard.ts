@@ -235,13 +235,22 @@ export class Dashboard implements OnInit, OnDestroy {
       ASSIGNED:  'badge-orange',
       PICKED_UP: 'badge-blue',
       DELIVERED: 'badge-green',
+      CANCELLED: 'badge-red',
     };
     return m[status] ?? 'badge-gray';
   }
 
   getStatusIcon(status: DeliveryStatus): string {
-    return { PENDING:'⏳', ASSIGNED:'🛵', PICKED_UP:'📦', DELIVERED:'✅' }[status] ?? '';
-  }
+  const icons: Record<string, string> = {
+    PENDING: '⏳',
+    ASSIGNED: '🛵',
+    PICKED_UP: '📦',
+    DELIVERED: '✅',
+    CANCELLED: '❌' // 🌟 Ajout de la clé manquante
+  };
+  
+  return icons[status] ?? '';
+}
 
   formatDate(d: string): string {
     const date  = new Date(d);

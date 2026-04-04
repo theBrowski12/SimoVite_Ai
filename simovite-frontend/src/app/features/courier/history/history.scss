@@ -1,0 +1,81 @@
+.history-container {
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+
+  h2 {
+    margin-bottom: 20px;
+    color: #333;
+  }
+}
+
+.loading-state, .error-state, .empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  color: #666;
+}
+
+.error-state {
+  color: #d9534f;
+  
+  button {
+    margin-top: 10px;
+    padding: 8px 16px;
+    cursor: pointer;
+  }
+}
+
+.deliveries-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.delivery-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+
+    .delivery-id {
+      font-weight: bold;
+      color: #333;
+    }
+
+    .status-badge {
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 500;
+
+      &.delivered {
+        background-color: #d4edda;
+        color: #155724;
+      }
+
+      &.cancelled {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+    }
+  }
+
+  .card-body {
+    p {
+      margin: 5px 0;
+      color: #555;
+      font-size: 0.95rem;
+    }
+  }
+}
