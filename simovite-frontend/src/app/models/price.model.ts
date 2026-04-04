@@ -1,18 +1,20 @@
 export interface PriceRequest {
-  distanceKm: number;
-  vehicleType: string;
+  distance_km: number;
+  vehicle_type: string;
   category: string;
-  pickupLatitude: number;
-  pickupLongitude: number;
-  orderTotal: number;
+  pickup_latitude: number;
+  pickup_longitude: number;
+  order_total: number;       // Match FastAPI: order_total
 }
 
 export interface PriceResponse {
-  deliveryCost: number;
-  distanceKm: number;
-  vehicleType: string;
+  delivery_cost: number;     // Match FastAPI: delivery_cost
+  distance_km: number;
+  vehicle_type: string;
   category: string;
-  weatherCondition: string;
-  weatherFactor: number;
-  rushHourFactor: number;
+  weather_condition: string;
+  weather_factor: number;
+  rush_hour_factor: number;
+  break_down: any;           // Match FastAPI: breakdown
+  price_percentage: number;
 }

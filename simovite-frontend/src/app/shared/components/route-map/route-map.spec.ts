@@ -8,6 +8,9 @@ import * as L from 'leaflet';
   styleUrl: './route-map.scss'
 })
 export class RouteMap implements OnInit, OnChanges {
+centerOnMe() {
+throw new Error('Method not implemented.');
+}
   @Input() courierPosition: any; 
   @Input() pickupAddress: any;
   @Input() dropoffAddress: any;

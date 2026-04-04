@@ -1,89 +1,97 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, forkJoin } from 'rxjs';
-import { switchMap, take } from 'rxjs/operators';
-import { Delivery, VehicleType } from '../../../models/delivery.model';
-import { EtaResponse } from '../../../models/eta.model';
-import { PriceResponse } from '../../../models/price.model';
-import { DeliveryService } from '../../../services/delivery.service';
-import { EtaService } from '../../../services/eta.service';
-import { GeolocationService, GpsPosition } from '../../../services/geolocation.service';
-import { PriceService } from '../../../services/price.service';
-import { calculateDistance } from '../../../helpers/gpsDistanceCalculator';
+import { DeliveryService } from '@services/delivery.service';
+import { DistancePreviewDto, CourierLocationRequest } from '@models/DistancePreviewDto';
+import { VehicleType } from '@models/delivery.model';
 @Component({
   selector: 'app-delivery-preview',
   standalone: false,
   templateUrl: './delivery-preview.html',
-  styleUrl: './delivery-preview.scss',
+  styleUrls: ['./delivery-preview.scss']
 })
-export class DeliveryPreview {
-  delivery!: Delivery;
-  courierGps$!: Observable<GpsPosition>;
-  courierToPickup = 0;
-  totalDistance = 0;
-  etaPreview?: EtaResponse;
-  pricePreview?: PriceResponse;
-  selectedVehicle = 'MOTORCYCLE';
-  vehicles = ['BICYCLE','MOTORCYCLE','CAR','TRUCK'];
-  rushPeriod = '';
+export class DeliveryPreview implements OnInit {
+  previewData: DistancePreviewDto | null = null;
+  isLoading = true;
+  errorMessage = '';
+
+  // Options de véhicules
+  vehicles: VehicleType[] = ['MOTORCYCLE', 'BICYCLE', 'CAR', 'TRUCK'];
+  selectedVehicle: VehicleType = 'MOTORCYCLE'; // Par défaut
+
+  // Position du livreur
+  currentLocation: CourierLocationRequest | null = null;
+  deliveryId!: number;
+
   constructor(
-    private route: ActivatedRoute,
     private deliveryService: DeliveryService,
-    private etaService: EtaService,
-    private priceService: PriceService,
-    private geoService: GeolocationService,
-    private router: Router
+    private route: ActivatedRoute,
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
+
   ngOnInit(): void {
-    const id = Number(this.route.snapshot.paramMap.get('id')!);
-    this.courierGps$ = this.geoService.watchPosition();
+    // Récupérer l'ID de la livraison depuis l'URL (ex: /preview/1)
+    this.deliveryId = Number(this.route.snapshot.paramMap.get('id'));
+    this.getLivePositionAndPreview();
+  }
 
-    this.deliveryService.getById(id).pipe(
-      switchMap(delivery => {
-        this.delivery = delivery;
-        return this.courierGps$.pipe(take(1));
-      }),
-      switchMap(courierPos => {
-        // Distance courier → pickup
-        this.courierToPickup = calculateDistance(
-          courierPos.lat, courierPos.lng,
-          this.delivery.pickupAddress.latitude!,
-          this.delivery.pickupAddress.longitude!
-        );
-        this.totalDistance = this.courierToPickup + this.delivery.distanceInKm!;
+  getLivePositionAndPreview(): void {
+    this.isLoading = true;
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          this.currentLocation = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          };
+          this.fetchPreview();
+          this.cdr.detectChanges();
+        },
+        (error) => {
+          console.error('Erreur GPS:', error);
+          this.errorMessage = "Impossible de récupérer votre position GPS.";
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        }
+      );
+    } else {
+      this.errorMessage = "La géolocalisation n'est pas supportée par ce navigateur.";
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
 
-        // Call ETA + Price in parallel
-        return forkJoin([
-          this.etaService.calculate({
-            distanceKm: this.totalDistance,
-            vehicleType: this.selectedVehicle,
-            pickupLatitude: this.delivery.pickupAddress.latitude!,
-            pickupLongitude: this.delivery.pickupAddress.longitude!
-          }),
-          this.priceService.calculate({
-            distanceKm: this.delivery.distanceInKm!,
-            vehicleType: this.selectedVehicle,
-            category: this.delivery.storeCategory!,
-            pickupLatitude: this.delivery.pickupAddress.latitude!,
-            pickupLongitude: this.delivery.pickupAddress.longitude!,
-            orderTotal: this.delivery.orderTotal!
-          })
-        ]);
-      })
-    ).subscribe(([eta, price]) => {
-      this.etaPreview   = eta;
-      this.pricePreview = price;
-    });
+  fetchPreview(): void {
+    if (!this.currentLocation || !this.deliveryId) return;
+
+    this.isLoading = true;
+    this.deliveryService.previewDistance(this.deliveryId, this.selectedVehicle, this.currentLocation)
+      .subscribe({
+        next: (data) => { 
+          this.previewData = data;
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error(err);
+          this.errorMessage = "Erreur lors du calcul de l'itinéraire.";
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  onVehicleChange(): void {
+    // Recalcule l'ETA et la distance si on change de véhicule
+    this.fetchPreview();
   }
 
   acceptDelivery(): void {
-    const id = this.delivery.id!;
-    this.courierGps$.pipe(take(1)).subscribe(courierPos => {
-      this.deliveryService.accept(id, this.selectedVehicle as VehicleType, courierPos.lat, courierPos.lng)
-        .subscribe(() => this.router.navigate(['/courier/active', id]));
-    });
+    // Appel vers le endpoint d'acceptation de commande
+    console.log("Commande acceptée !");
   }
 
-  goBack(): void { this.router.navigate(['/courier/pending']); }
+  goBack(): void {
+    this.router.navigate(['/dashboard']);
+  }
 }
-

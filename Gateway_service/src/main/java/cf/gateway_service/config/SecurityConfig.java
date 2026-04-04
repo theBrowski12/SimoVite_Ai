@@ -38,6 +38,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.GET, "/CATALOG-SERVICE/v1/stores/**", "/CATALOG-SERVICE/v1/stores").permitAll()
                         .pathMatchers(HttpMethod.GET, "/CATALOG-SERVICE/v1/reviews/**", "/CATALOG-SERVICE/v1/reviews").permitAll()
                         .pathMatchers("/SIMOVITEAI_CHATBOT/v1/chat").permitAll()
+                        .pathMatchers("/ETA-SERVICE/**").permitAll()
                         .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

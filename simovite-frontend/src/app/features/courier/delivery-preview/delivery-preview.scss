@@ -1,0 +1,146 @@
+.preview-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 16px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fc;
+  min-height: 100vh;
+}
+
+.loader, .error {
+  text-align: center;
+  padding: 2rem;
+  font-weight: bold;
+  border-radius: 12px;
+}
+.loader { color: #3b82f6; background: #eff6ff; }
+.error { color: #ef4444; background: #fef2f2; }
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+
+  h2 { margin: 0; font-size: 1.25rem; color: #1e293b; }
+  
+  .badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: #e2e8f0;
+    color: #475569;
+    
+    &.cod {
+      background: #fef08a;
+      color: #854d0e;
+    }
+  }
+}
+
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+
+  h3 { margin-top: 0; margin-bottom: 12px; font-size: 1.1rem; color: #334155; }
+}
+
+.distance-breakdown {
+  .leg {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    color: #64748b;
+
+    strong { color: #0f172a; }
+    
+    &.total {
+      font-size: 1.1rem;
+      color: #0f172a;
+      font-weight: 700;
+    }
+  }
+  hr { border: none; border-top: 1px dashed #cbd5e1; margin: 8px 0; }
+}
+
+.ml-estimates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+
+  .estimate-card {
+    background: white;
+    padding: 16px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    border: 2px solid transparent;
+
+    &.time { border-color: #e0e7ff; }
+    &.price { border-color: #dcfce7; }
+
+    .label { font-size: 0.85rem; color: #64748b; margin-bottom: 8px; font-weight: 600;}
+    .value { font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
+    
+    .sub {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #94a3b8;
+      &.positive { color: #16a34a; } // ETA plus rapide
+      &.warning { color: #ea580c; }  // ETA plus lent
+    }
+  }
+}
+
+.actions {
+  .vehicle-select {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    
+    label { font-weight: 600; color: #475569; }
+    select {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background: #f8f9fc;
+      font-weight: 600;
+      outline: none;
+    }
+  }
+
+  .buttons {
+    display: flex;
+    gap: 12px;
+
+    button {
+      flex: 1;
+      padding: 14px;
+      border-radius: 12px;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .btn-decline {
+      background: #f1f5f9;
+      color: #64748b;
+      &:hover { background: #e2e8f0; }
+    }
+
+    .btn-accept {
+      background: #10b981; // Vert action
+      color: white;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+      &:hover { background: #059669; transform: translateY(-2px); }
+    }
+  }
+}

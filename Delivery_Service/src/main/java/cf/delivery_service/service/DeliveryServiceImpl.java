@@ -6,8 +6,6 @@ import cf.delivery_service.dto.DistancePreviewDto;
 import cf.delivery_service.dto.ETA.ETARequest;
 import cf.delivery_service.dto.ETA.ETAResponse;
 import cf.delivery_service.dto.StoreResponseDto;
-import cf.delivery_service.dto.pricePred.PriceRequest;
-import cf.delivery_service.dto.pricePred.PriceResponse;
 import cf.delivery_service.entity.Address;
 import cf.delivery_service.entity.CourierLocation;
 import cf.delivery_service.entity.Delivery;
@@ -50,7 +48,6 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final StoreClient storeClient;
     private final ETAFeignClient etaFeignClient;
     private final CourierLocationRepository courierLocationRepository;
-    private final PriceFeignClient priceFeignClient;
     @Override
     public List<DeliveryResponseDto> getPendingDeliveries() {
         log.info("Récupération des livraisons en attente...");

@@ -1,5 +1,5 @@
 import joblib
-import numpy as np
+import pandas as pd
 from dtos.eta_dto import ETARequest, ETAResponse
 from services.weather import get_weather_factor
 from services.rush_service import get_rush_hour_factor
@@ -57,12 +57,18 @@ async def calculate_eta_from_request(request: ETARequest) -> ETAResponse:
         eta_percentage=eta_percentage  # % difference from Delivery Service fallback
     )
 
+
 def _predict(distance_km: float, vehicle_type: str,
              weather_factor: float, rush_factor: float) -> int:
     try:
         vehicle_encoded = _encoder.transform([vehicle_type])[0]
     except Exception:
-        vehicle_encoded = 1  # MOTORCYCLE par défaut
-    features = np.array([[distance_km, vehicle_encoded, weather_factor, rush_factor]])
-    eta      = _model.predict(features)[0]
+        vehicle_encoded = 1
+
+        # Utilise un DataFrame avec les noms de colonnes exacts (ex: distance, vehicle, etc.)
+    features = pd.DataFrame([[
+        distance_km, vehicle_encoded, weather_factor, rush_factor
+    ]], columns=["distance_km", "vehicle_encoded", "weather_factor", "rush_factor"])
+
+    eta = _model.predict(features)[0]
     return max(1, int(round(eta)))

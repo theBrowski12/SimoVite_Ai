@@ -3,7 +3,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { Delivery, VehicleType, DeliveryStatus } from '../models/delivery.model';
+import { Delivery, VehicleType, DeliveryStatus, DistancePreviewDto } from '../models/delivery.model';
+import { CourierLocationRequest } from '@models/DistancePreviewDto';
 
 @Injectable({ providedIn: 'root' })
 export class DeliveryService {
@@ -66,11 +67,12 @@ export class DeliveryService {
       { latitude: lat, longitude: lng }
     );
   }
-  previewDistance(id: number, vehicleType: VehicleType, lat: number, lng: number): Observable<any> {
-    return this.http.post<any>( // POST ou PUT selon ton Controller
+  previewDistance(id: number, vehicleType: VehicleType, location: CourierLocationRequest): Observable<DistancePreviewDto> {
+    const params = new HttpParams().set('vehicleType', vehicleType);
+    return this.http.post<DistancePreviewDto>( // POST ou PUT selon ton Controller
       `${this.base}/${id}/preview`,
-      { latitude: lat, longitude: lng },
-      { params: new HttpParams().set('vehicleType', vehicleType) }
+      location,
+      { params }
     );
   }
 

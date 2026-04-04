@@ -1,12 +1,39 @@
+/* Import obligatoire du CSS de Leaflet pour le rendu des tuiles */
+@import "leaflet/dist/leaflet.css";
+
 .map-container {
-  height: 400px;
+  position: relative; // Important pour le bouton absolute
+  height: 350px;
   width: 100%;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 
   #map {
     height: 100%;
     width: 100%;
+  }
+
+  .btn-locate {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000; // Doit être au dessus de la carte
+    background: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: transform 0.2s;
+
+    &:hover {
+      transform: scale(1.1);
+      background: #f8f9fa;
+    }
   }
 }

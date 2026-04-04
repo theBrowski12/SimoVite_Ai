@@ -7,7 +7,7 @@ import { EtaResponse } from "@models/eta.model";
 import { EtaRequest  } from "@models/eta.model";
 @Injectable({ providedIn: 'root' })
 export class EtaService {
-  private base = `${environment.apiGateway}/api/eta`;
+  private base = `${environment.apiGateway}/ETA-SERVICE/v1/eta`;
 
   constructor(private http: HttpClient) {}
 

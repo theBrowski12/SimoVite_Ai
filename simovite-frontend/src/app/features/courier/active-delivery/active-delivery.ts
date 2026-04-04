@@ -122,4 +122,29 @@ export class ActiveDelivery implements OnInit, OnDestroy {
       navigator.geolocation.clearWatch(this.geoWatchId);
     }
   }
+  cancelDelivery(): void {
+  if (!this.delivery) return;
+  
+  const reason = prompt("Veuillez indiquer le motif de l'annulation :");
+  if (!reason) return; // Annule l'action si le livreur n'écrit rien
+
+  this.isActionLoading = true;
+  
+  // On réutilise updateStatus avec le statut 'CANCELLED'
+  this.deliveryService.updateStatus(this.delivery.id, 'CANCELLED').subscribe({
+    next: () => {
+      this.isActionLoading = false;
+      this.stopLocationTracking();
+      // On le renvoie au dashboard puisqu'il n'a plus de course active
+      this.router.navigate(['/courier/dashboard']);
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error("Erreur lors de l'annulation", err);
+      this.isActionLoading = false;
+      this.cdr.detectChanges();
+
+    }
+  });
+}
 }
