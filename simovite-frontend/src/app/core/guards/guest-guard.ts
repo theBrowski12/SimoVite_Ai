@@ -27,7 +27,7 @@ export class GuestGuard implements CanActivate {
       } 
       else {
         // Par défaut, si aucun rôle spécifique ou rôle CLIENT
-        this.router.navigate(['/client/home']);
+        this.router.navigate(['/home']);
       }
 
       return false; // On empêche l'accès à la Landing Page puisqu'ils sont connectés

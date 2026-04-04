@@ -419,6 +419,36 @@ public class DeliveryServiceImpl implements DeliveryService {
                 return (int) Math.round(distanceKm * 2);
         }
     }
+    // Pour la route Frontend : getById(id)
+    @Override
+    public DeliveryResponseDto getDeliveryById(Long deliveryId) {
+        Delivery delivery = deliveryRepository.findById(deliveryId)
+                .orElseThrow(() -> new RuntimeException("Livraison introuvable avec l'ID : " + deliveryId));
+        return deliveryMapper.toDto(delivery);
+    }
+
+    // Pour les routes Frontend : getByOrderRef(ref) et trackByOrderRef(ref)
+    @Override
+    public DeliveryResponseDto getDeliveryByOrderRef(String orderRef) {
+        Delivery delivery = deliveryRepository.findByOrderRef(orderRef)
+                .orElseThrow(() -> new RuntimeException("Livraison introuvable pour la commande : " + orderRef));
+        return deliveryMapper.toDto(delivery);
+    }
+
+    // Pour la route Frontend : updateStatus(id, status)
+    @Override
+    @Transactional
+    public DeliveryResponseDto updateDeliveryStatus(Long deliveryId, DeliveryStatus newStatus) {
+        Delivery delivery = deliveryRepository.findById(deliveryId)
+                .orElseThrow(() -> new RuntimeException("Livraison introuvable avec l'ID : " + deliveryId));
+
+        delivery.setStatus(newStatus);
+        Delivery savedDelivery = deliveryRepository.save(delivery);
+
+        // Optionnel : Mettre à jour Order_Service si besoin selon le statut
+
+        return deliveryMapper.toDto(savedDelivery);
+    }
 
 
 }

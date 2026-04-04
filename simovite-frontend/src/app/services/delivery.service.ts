@@ -45,13 +45,13 @@ export class DeliveryService {
   }
 
   getMine(): Observable<Delivery[]> {
-    return this.http.get<Delivery[]>(`${this.base}/my`);
+    return this.http.get<Delivery[]>(`${this.base}/my-deliveries`);
   }
 
-  accept(id: number, vehicleType: VehicleType): Observable<Delivery> {
+  accept(id: number, vehicleType: VehicleType, lat: number, lng: number): Observable<Delivery> {
     return this.http.put<Delivery>(
       `${this.base}/${id}/accept`,
-      null,
+      { latitude: lat, longitude: lng }, 
       { params: new HttpParams().set('vehicleType', vehicleType) }
     );
   }
@@ -64,6 +64,13 @@ export class DeliveryService {
     return this.http.post<void>(
       `${this.base}/courier/location`,
       { latitude: lat, longitude: lng }
+    );
+  }
+  previewDistance(id: number, vehicleType: VehicleType, lat: number, lng: number): Observable<any> {
+    return this.http.post<any>( // POST ou PUT selon ton Controller
+      `${this.base}/${id}/preview`,
+      { latitude: lat, longitude: lng },
+      { params: new HttpParams().set('vehicleType', vehicleType) }
     );
   }
 

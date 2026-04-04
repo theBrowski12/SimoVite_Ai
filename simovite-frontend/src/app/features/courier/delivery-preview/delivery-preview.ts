@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, forkJoin } from 'rxjs';
 import { switchMap, take } from 'rxjs/operators';
-import { Delivery } from '../../../models/delivery.model';
+import { Delivery, VehicleType } from '../../../models/delivery.model';
 import { EtaResponse } from '../../../models/eta.model';
 import { PriceResponse } from '../../../models/price.model';
 import { DeliveryService } from '../../../services/delivery.service';
@@ -35,7 +35,7 @@ export class DeliveryPreview {
     private router: Router
   ) {}
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id')!;
+    const id = Number(this.route.snapshot.paramMap.get('id')!);
     this.courierGps$ = this.geoService.watchPosition();
 
     this.deliveryService.getById(id).pipe(
@@ -77,9 +77,11 @@ export class DeliveryPreview {
   }
 
   acceptDelivery(): void {
-    const id = String(this.delivery.id!);
-    this.deliveryService.accept(id, this.selectedVehicle)
-      .subscribe(() => this.router.navigate(['/courier/active', id]));
+    const id = this.delivery.id!;
+    this.courierGps$.pipe(take(1)).subscribe(courierPos => {
+      this.deliveryService.accept(id, this.selectedVehicle as VehicleType, courierPos.lat, courierPos.lng)
+        .subscribe(() => this.router.navigate(['/courier/active', id]));
+    });
   }
 
   goBack(): void { this.router.navigate(['/courier/pending']); }

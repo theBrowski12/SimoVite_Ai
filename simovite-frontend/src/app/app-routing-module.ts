@@ -2,16 +2,11 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from './core/guards/auth-guard';
 import { RoleGuard } from './core/guards/role-guard';
-import { GuestGuard } from './core/guards/guest-guard';
 import { Home } from './features/client/home/home';
-import { StoreDetailComponent } from './features/client/store-detail/store-detail';
-
-
-// Supprime tous les imports de AdminDashboard, AdminOrders, etc. ici !
+import { GuestGuard } from '@core/guards/guest-guard';
 
 const routes: Routes = [
-  { path: '', component: Home },
-  
+  // 1️⃣ LES ROUTES SPÉCIFIQUES (Admin, Courier, Auth...)
   {
     path: 'admin',
     canActivate: [AuthGuard, RoleGuard],
@@ -19,11 +14,27 @@ const routes: Routes = [
     loadChildren: () => import('./features/admin/admin-module').then(m => m.AdminModule)
   },
   {
+    path: 'courier',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { role: 'COURIER' },
+    loadChildren: () => import('./features/courier/courier-module').then(m => m.CourierModule)
+  },
+
+  // 2️⃣ LA ROUTE D'ACCUEIL EXACTE
+  { 
+    path: '', 
+    component: Home,
+    canActivate: [GuestGuard],
+    pathMatch: 'full' // 🌟 Très important : indique que l'URL doit être EXACTEMENT vide
+  },
+  
+  // 3️⃣ LE MODULE CLIENT (qui gère le reste des routes publiques)
+  {
     path: '',
     loadChildren: () => import('./features/client/client-module').then(m => m.ClientModule)
   },
   
-  // Reste des routes...
+  // 4️⃣ LE FALLBACK (Toujours en tout dernier !)
   { path: '**', redirectTo: '' }
 ];
 

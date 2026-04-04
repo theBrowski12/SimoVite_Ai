@@ -1,0 +1,26 @@
+<div class="courier-app-wrapper">
+  
+  <nav class="courier-nav">
+    <div class="nav-logo">
+      <div class="logo-icon">⚡</div>
+      <span class="logo-text">Simo<span>Delivery</span></span>
+    </div>
+    
+    <div class="nav-links">
+      <a class="nav-link" routerLink="/courier/dashboard" routerLinkActive="active">Home</a>
+      <a class="nav-link" routerLink="/courier/pending" routerLinkActive="active">Pending</a>
+      <a class="nav-link" routerLink="/courier/earnings" routerLinkActive="active">Earnings</a>
+      <a class="nav-link" routerLink="/courier/history" routerLinkActive="active">History</a>
+    </div>
+
+    <div class="nav-actions">
+      <div class="nav-avatar">{{ initials }}</div>
+      <button class="logout-btn" (click)="logout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="courier-main-content">
+    <router-outlet></router-outlet>
+  </div>
+
+</div>

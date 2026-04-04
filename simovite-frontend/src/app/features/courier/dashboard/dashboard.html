@@ -1,1 +1,396 @@
-<p>dashboard works!</p>
+<div class="courier-dashboard">
+  <div class="dashboard-container">
+  
+  <div 
+  class="active-task-banner" 
+  *ngIf="activeDelivery && !loadingMine" 
+  (click)="goToActive()">
+    
+    <div class="banner-left">
+      <div class="pulse-dot"></div>
+      <div class="banner-text">
+        <strong>Course en cours</strong>
+        <span>Cliquez pour reprendre la livraison</span>
+      </div>
+    </div>
+    
+    <div class="banner-right">
+      <span class="arrow-icon">➔</span>
+    </div>
+  </div>
+
+  <div class="dashboard-content">
+    <h2>Aperçu d'aujourd'hui</h2>
+    </div>
+
+</div>
+  <!-- ════════════════════════════════════════
+       HERO SECTION
+       ════════════════════════════════════════ -->
+  <section class="hero-section">
+    <div class="hero-inner">
+
+      <!-- Left -->
+      <div class="hero-left">
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          <span>Available for delivery</span>
+        </div>
+
+        <h1>Deliver Fast, <span class="accent">Earn More</span></h1>
+        <p class="hero-sub">Accept deliveries nearby, track your earnings in real time, and get paid fast.</p>
+
+        <div class="hero-btns">
+          <button class="btn-primary" routerLink="/courier/pending">
+            View Pending
+            <span class="pending-count" *ngIf="pendingDeliveries.length > 0">
+              {{ pendingDeliveries.length }}
+            </span>
+          </button>
+          <button class="btn-secondary" (click)="goToActive()" *ngIf="activeDelivery">
+            🛵 Active Delivery
+          </button>
+        </div>
+
+        <!-- Stats row -->
+        <div class="hero-stats">
+          <div class="hstat">
+            <div class="hstat-val">{{ totalDeliveries }}</div>
+            <div class="hstat-lbl">Deliveries</div>
+          </div>
+          <div class="hstat-div"></div>
+          <div class="hstat">
+            <div class="hstat-val">{{ completionRate }}%</div>
+            <div class="hstat-lbl">Completion</div>
+          </div>
+          <div class="hstat-div"></div>
+          <div class="hstat">
+            <div class="hstat-val accent">{{ totalEarnings | number:'1.0-0' }} DH</div>
+            <div class="hstat-lbl">Total Earned</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right — floating delivery cards -->
+      <div class="hero-right">
+
+        <!-- Active delivery alert -->
+        <div class="float-card active-card" *ngIf="activeDelivery" (click)="goToActive()">
+          <div class="fc-top">
+            <div>
+              <div class="fc-label">🔴 Active Delivery</div>
+              <div class="fc-ref">{{ activeDelivery.orderRef }}</div>
+            </div>
+            <div class="fc-status badge {{ getStatusClass(activeDelivery.status) }}">
+              {{ getStatusIcon(activeDelivery.status) }} {{ activeDelivery.status }}
+            </div>
+          </div>
+          <div class="fc-route">
+            <span class="fc-city">{{ activeDelivery.pickupAddress.city }}</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            <span class="fc-city">{{ activeDelivery.dropoffAddress.city }}</span>
+          </div>
+          <button class="btn-fc-action">Continue →</button>
+        </div>
+
+        <!-- First pending delivery preview -->
+        <div class="float-card pending-card"
+             *ngIf="pendingDeliveries.length > 0 && !activeDelivery">
+          <div class="fc-top">
+            <div>
+              <div class="fc-label">New Delivery!</div>
+              <div class="fc-dist">{{ pendingDeliveries[0].distanceInKm | number:'1.1-1' }} km away</div>
+            </div>
+            <div class="fc-cost">{{ pendingDeliveries[0].deliveryCost | number:'1.0-0' }} DH</div>
+          </div>
+          <div class="fc-route">
+            <span class="fc-city">{{ pendingDeliveries[0].pickupAddress.city }}</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            <span class="fc-city">{{ pendingDeliveries[0].dropoffAddress.city }}</span>
+          </div>
+          <div class="fc-actions">
+            <button class="btn-fc-preview" (click)="previewDelivery(pendingDeliveries[0])">
+              Preview
+            </button>
+            <button class="btn-fc-action" (click)="quickAccept(pendingDeliveries[0])">
+              Accept Now
+            </button>
+          </div>
+        </div>
+
+        <!-- Top courier badge -->
+        <div class="float-card courier-badge-card" *ngIf="completionRate >= 90">
+          <div class="fc-top">
+            <div class="cb-avatar">{{ initials }}</div>
+            <div>
+              <div class="cb-name">{{ auth.fullName }}</div>
+              <div class="cb-sub">Active Today</div>
+            </div>
+          </div>
+          <div class="top-badge">★ TOP COURIER</div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ════════════════════════════════════════
+       PENDING DELIVERIES
+       ════════════════════════════════════════ -->
+  <section class="section-white" id="deliveries">
+    <div class="section-inner">
+      <div class="section-hd">
+        <div>
+          <h2>Nearby Pending Deliveries</h2>
+          <p class="section-sub">Accept deliveries and start earning</p>
+        </div>
+        <button class="btn-view-all" routerLink="/courier/pending">View All →</button>
+      </div>
+
+      <!-- Loading -->
+      <div class="loading-wrap" *ngIf="loadingPending">
+        <div class="spinner"></div><span>Loading deliveries…</span>
+      </div>
+
+      <!-- Grid -->
+      <div class="pending-grid" *ngIf="!loadingPending">
+
+        <div class="delivery-card"
+             *ngFor="let d of pendingDeliveries.slice(0, 3)"
+             [class.accepting]="acceptingId === d.id">
+
+          <div class="dc-header">
+            <div>
+              <div class="dc-ref">{{ d.orderRef }}</div>
+              <div class="dc-pickup-label">Pickup</div>
+            </div>
+            <span *ngIf="d.cashOnDelivery" class="badge badge-amber">
+              💵 COD
+            </span>
+          </div>
+
+          <div class="dc-route">
+            <div class="dc-point pickup">
+              <div class="point-dot green-dot"></div>
+              <div>
+                <div class="point-label">Pickup</div>
+                <div class="point-addr">{{ d.pickupAddress.street }}, {{ d.pickupAddress.city }}</div>
+              </div>
+            </div>
+            <div class="dc-line"></div>
+            <div class="dc-point dropoff">
+              <div class="point-dot orange-dot"></div>
+              <div>
+                <div class="point-label">Drop-off</div>
+                <div class="point-addr">{{ d.dropoffAddress.street }}, {{ d.dropoffAddress.city }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="dc-metrics">
+            <div class="dc-metric">
+              <div class="metric-val">{{ d.distanceInKm | number:'1.1-1' }} km</div>
+              <div class="metric-lbl">Distance</div>
+            </div>
+            <div class="dc-metric">
+              <div class="metric-val orange">{{ d.deliveryCost | number:'1.2-2' }} DH</div>
+              <div class="metric-lbl">Earnings</div>
+            </div>
+            <div class="dc-metric" *ngIf="d.estimatedTimeInMinutes">
+              <div class="metric-val">{{ d.estimatedTimeInMinutes }} min</div>
+              <div class="metric-lbl">ETA</div>
+            </div>
+          </div>
+
+          <div class="dc-footer">
+            <button class="btn-preview" (click)="previewDelivery(d)">
+              Preview
+            </button>
+            <button class="btn-accept"
+                    (click)="openAcceptModal(d)"
+                    [disabled]="acceptingId === d.id">
+              {{ acceptingId === d.id ? 'Accepting…' : 'Accept Delivery' }}
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Empty -->
+        <div class="empty-pending" *ngIf="pendingDeliveries.length === 0">
+          <span>🛵</span>
+          <strong>No pending deliveries right now</strong>
+          <span>Check back soon — new orders come in frequently!</span>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ════════════════════════════════════════
+       PERFORMANCE STATS
+       ════════════════════════════════════════ -->
+  <section class="section-gray" id="earnings">
+    <div class="section-inner">
+      <div class="section-hd">
+        <div>
+          <h2>Your Performance</h2>
+          <p class="section-sub">Track your deliveries and earnings</p>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card blue">
+          <div class="stat-header">
+            <div class="stat-label">Total Deliveries</div>
+            <div class="stat-icon blue-icon">📦</div>
+          </div>
+          <div class="stat-val">{{ totalDeliveries }}</div>
+          <div class="stat-sub">All time</div>
+        </div>
+
+        <div class="stat-card green">
+          <div class="stat-header">
+            <div class="stat-label">This Week</div>
+            <div class="stat-icon green-icon">📈</div>
+          </div>
+          <div class="stat-val">{{ weekEarnings | number:'1.0-0' }} DH</div>
+          <div class="stat-sub">Last 7 days</div>
+        </div>
+
+        <div class="stat-card amber">
+          <div class="stat-header">
+            <div class="stat-label">Total Earned</div>
+            <div class="stat-icon amber-icon">💰</div>
+          </div>
+          <div class="stat-val">{{ totalEarnings | number:'1.0-0' }} DH</div>
+          <div class="stat-sub">All deliveries</div>
+        </div>
+
+        <div class="stat-card orange">
+          <div class="stat-header">
+            <div class="stat-label">Completion Rate</div>
+            <div class="stat-icon orange-icon">✅</div>
+          </div>
+          <div class="stat-val">{{ completionRate }}%</div>
+          <div class="stat-sub">{{ totalDeliveries }} of {{ myDeliveries.length }} completed</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ════════════════════════════════════════
+       RECENT DELIVERIES TABLE
+       ════════════════════════════════════════ -->
+  <section class="section-white" id="history">
+    <div class="section-inner">
+      <div class="section-hd">
+        <div>
+          <h2>Recent Deliveries</h2>
+          <p class="section-sub">Your delivery history</p>
+        </div>
+        <button class="btn-view-all" routerLink="/courier/history">Full History →</button>
+      </div>
+
+      <div class="loading-wrap" *ngIf="loadingMine">
+        <div class="spinner"></div><span>Loading history…</span>
+      </div>
+
+      <div class="table-wrap" *ngIf="!loadingMine">
+        <table>
+          <thead>
+            <tr>
+              <th>Order Ref</th>
+              <th>Route</th>
+              <th>Distance</th>
+              <th>Earnings</th>
+              <th>COD</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let d of recentDeliveries">
+              <td><span class="td-ref">{{ d.orderRef }}</span></td>
+              <td>
+                <div class="td-route">
+                  <span>{{ d.pickupAddress.city }}</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                  <span>{{ d.dropoffAddress.city }}</span>
+                </div>
+              </td>
+              <td>{{ d.distanceInKm | number:'1.1-1' }} km</td>
+              <td><span class="td-earn">{{ d.deliveryCost | number:'1.2-2' }} DH</span></td>
+              <td>
+                <span *ngIf="d.cashOnDelivery" class="badge badge-amber">COD</span>
+                <span *ngIf="!d.cashOnDelivery" class="badge badge-green">Paid</span>
+              </td>
+              <td>
+                <span class="badge {{ getStatusClass(d.status) }}">
+                  {{ getStatusIcon(d.status) }} {{ d.status }}
+                </span>
+              </td>
+              <td class="td-date">{{ formatDate(d.createdAt) }}</td>
+            </tr>
+            <tr *ngIf="recentDeliveries.length === 0">
+              <td colspan="7" class="empty-row">No deliveries yet</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ════════════════════════════════════════
+       ACCEPT MODAL
+       ════════════════════════════════════════ -->
+  <div class="modal-overlay" *ngIf="showAcceptModal" (click)="closeAcceptModal()">
+    <div class="accept-modal" (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+        <h3>Choose Your Vehicle</h3>
+        <button class="modal-close" (click)="closeAcceptModal()">✕</button>
+      </div>
+
+      <div class="modal-body" *ngIf="pendingAccept">
+        <div class="modal-order-info">
+          <div class="moi-ref">{{ pendingAccept.orderRef }}</div>
+          <div class="moi-route">
+            {{ pendingAccept.pickupAddress.city }} →
+            {{ pendingAccept.dropoffAddress.city }}
+          </div>
+          <div class="moi-metrics">
+            <span>📏 {{ pendingAccept.distanceInKm | number:'1.1-1' }} km</span>
+            <span>💰 {{ pendingAccept.deliveryCost | number:'1.2-2' }} DH</span>
+            <span *ngIf="pendingAccept.estimatedTimeInMinutes">
+              ⏱ {{ pendingAccept.estimatedTimeInMinutes }} min
+            </span>
+          </div>
+        </div>
+
+        <div class="vehicle-grid">
+          <button *ngFor="let v of vehicles"
+                  class="vehicle-btn"
+                  [class.selected]="selectedVehicle === v"
+                  (click)="selectedVehicle = v">
+            <span class="v-icon">{{ vehicleIcons[v] }}</span>
+            <span class="v-name">{{ v }}</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel-modal" (click)="closeAcceptModal()">Cancel</button>
+        <button class="btn-confirm-accept" (click)="confirmAccept()">
+          Accept with {{ vehicleIcons[selectedVehicle] }} {{ selectedVehicle }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>

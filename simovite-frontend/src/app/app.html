@@ -1,10 +1,13 @@
 <app-toast></app-toast>
 
-@if (!router.url.includes('admin')) {
+@if (!router.url.includes('admin') && !router.url.includes('courier')) {
   <app-navbar></app-navbar>
 }
 
-<div [class.container]="!router.url.includes('admin')">
+<div [class.container]="!router.url.includes('admin') && !router.url.includes('courier')">
   <router-outlet></router-outlet>
-  <app-chatbot></app-chatbot>
+  
+  @if (!router.url.includes('admin') && !router.url.includes('courier')) {
+    <app-chatbot></app-chatbot>
+  }
 </div>

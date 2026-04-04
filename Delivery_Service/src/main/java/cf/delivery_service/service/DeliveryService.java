@@ -3,6 +3,7 @@ package cf.delivery_service.service;
 import cf.delivery_service.dto.CourierLocationRequest;
 import cf.delivery_service.dto.DeliveryResponseDto;
 import cf.delivery_service.dto.DistancePreviewDto;
+import cf.delivery_service.enums.DeliveryStatus;
 import cf.delivery_service.enums.VehicleType;
 import cf.delivery_service.kafkaEvents.OrderPaidEvent;
 
@@ -25,4 +26,9 @@ public interface DeliveryService {
     // Pour le Dashboard Administrateur (Statistiques, monitoring)
     List<DeliveryResponseDto> getAllDeliveries();
 
-    DistancePreviewDto previewDeliveryDistance(Long deliveryId, CourierLocationRequest courierLocationRequest, VehicleType vehicleType);}
+    DistancePreviewDto previewDeliveryDistance(Long deliveryId, CourierLocationRequest courierLocationRequest, VehicleType vehicleType);
+    DeliveryResponseDto getDeliveryById(Long deliveryId);
+    DeliveryResponseDto getDeliveryByOrderRef(String orderRef);
+    DeliveryResponseDto updateDeliveryStatus(Long deliveryId, DeliveryStatus newStatus);
+
+}

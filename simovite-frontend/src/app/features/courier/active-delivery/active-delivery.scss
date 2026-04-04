@@ -1,0 +1,153 @@
+.active-delivery-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f8f9fa;
+  padding-bottom: 90px; /* Espace pour le footer fixe */
+}
+
+/* --- En-tête de statut --- */
+.status-header {
+  padding: 30px 20px;
+  color: white;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+
+  h2 { margin: 0; font-size: 1.5rem; font-weight: 700; }
+  p { margin: 5px 0 0; opacity: 0.8; font-size: 0.9rem; font-family: monospace; }
+
+  &.assigned { background: linear-gradient(135deg, #0d6efd, #0a58ca); }
+  &.picked_up { background: linear-gradient(135deg, #f59f00, #e67e22); }
+}
+
+.content-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* --- Carte Adresses --- */
+.address-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+
+    &.completed {
+      opacity: 0.5;
+      .icon { background: #28a745; color: white; border: none; }
+    }
+
+    .icon {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      
+      &.pickup { border: 2px solid #0d6efd; color: #0d6efd; }
+      &.dropoff { border: 2px solid #e67e22; color: #e67e22; }
+    }
+
+    .info {
+      small { color: #6c757d; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
+      p { margin: 2px 0 0; font-weight: 600; color: #212529; }
+    }
+  }
+
+  .step-divider {
+    height: 30px;
+    border-left: 2px dashed #dee2e6;
+    margin-left: 17px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+  }
+}
+
+/* --- Informations financières --- */
+.finance-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+
+  .earning {
+    padding: 20px;
+    text-align: center;
+    small { color: #6c757d; }
+    h3 { margin: 5px 0 0; color: #28a745; font-size: 1.8rem; }
+  }
+
+  .cod-alert {
+    background: #fff3cd;
+    color: #856404;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+
+    .alert-icon { font-size: 1.5rem; }
+    strong { display: block; margin-bottom: 3px; }
+    p { margin: 0; font-size: 0.9rem; }
+  }
+}
+
+/* --- Footer fixe d'action --- */
+.action-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 20px;
+  background: white;
+  box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+  box-sizing: border-box;
+
+  button {
+    width: 100%;
+    padding: 18px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s;
+
+    &:active { transform: scale(0.98); }
+    &:disabled { opacity: 0.7; cursor: not-allowed; }
+
+    &.btn-primary { background: #0d6efd; color: white; }
+    &.btn-success { background: #28a745; color: white; }
+  }
+}
+
+/* Loader */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: #6c757d;
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(0,0,0,0.1);
+    border-top: 4px solid #0d6efd;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+  }
+}
+
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }

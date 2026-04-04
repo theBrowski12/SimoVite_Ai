@@ -1,1 +1,71 @@
-<p>active-delivery works!</p>
+<div class="active-delivery-container" *ngIf="!isLoading && delivery">
+  
+  <div class="status-header" [ngClass]="delivery.status.toLowerCase()">
+    <div class="pulse-ring"></div>
+    <h2>
+      {{ delivery.status === 'ASSIGNED' ? 'En route vers le magasin' : 'En route vers le client' }}
+    </h2>
+    <p>Commande : #{{ delivery.orderRef }}</p>
+  </div>
+
+  <div class="content-body">
+    <div class="address-card">
+      <div class="step" [class.completed]="delivery.status === 'PICKED_UP'">
+        <div class="icon pickup">A</div>
+        <div class="info">
+          <small>Récupération</small>
+          <p>{{ delivery.pickupAddress.street }}, {{ delivery.pickupAddress.city }}</p>
+        </div>
+      </div>
+
+      <div class="step-divider"></div>
+
+      <div class="step">
+        <div class="icon dropoff">B</div>
+        <div class="info">
+          <small>Livraison</small>
+          <p>{{ delivery.dropoffAddress.street }}, {{ delivery.dropoffAddress.city }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="finance-card">
+      <div class="earning">
+        <small>Vos gains pour cette course</small>
+        <h3>{{ delivery.deliveryCost }} MAD</h3>
+      </div>
+      
+      <div class="cod-alert" *ngIf="delivery.cashOnDelivery">
+        <span class="alert-icon">⚠️</span>
+        <div class="cod-info">
+          <strong>Espèces à collecter !</strong>
+          <p>Le client doit payer {{ delivery.amountToCollect }} MAD</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="action-footer">
+    <button 
+      *ngIf="delivery.status === 'ASSIGNED'" 
+      class="btn-primary" 
+      [disabled]="isActionLoading"
+      (click)="markAsPickedUp()">
+      {{ isActionLoading ? 'Chargement...' : "J'ai récupéré la commande" }}
+    </button>
+
+    <button 
+      *ngIf="delivery.status === 'PICKED_UP'" 
+      class="btn-success" 
+      [disabled]="isActionLoading"
+      (click)="markAsDelivered()">
+      {{ isActionLoading ? 'Chargement...' : 'Commande Livrée !' }}
+    </button>
+  </div>
+
+</div>
+
+<div class="loading-state" *ngIf="isLoading">
+  <div class="spinner"></div>
+  <p>Chargement de votre course...</p>
+</div>

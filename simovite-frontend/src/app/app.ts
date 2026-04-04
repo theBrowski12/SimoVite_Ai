@@ -13,18 +13,22 @@ export class App implements OnInit{ // 👈 Le nom de la classe est "App"
   constructor(public router: Router ,private readonly keycloak: KeycloakService) {}
 
   async ngOnInit() {
-    // 1. On vérifie si l'utilisateur est connecté
     const isLoggedIn = await this.keycloak.isLoggedIn();
 
     if (isLoggedIn) {
-      // 2. On récupère les rôles
-      const roles = this.keycloak.getRoles();
+      const roles = this.keycloak.getRoles().map(r => r.toUpperCase());
 
-      // 3. Si on est sur la page d'accueil (ou la racine) et qu'on est ADMIN
-      // On évite de rediriger si l'utilisateur est déjà sur une page spécifique
+      // Si on est sur la page d'accueil
       if (this.router.url === '/' || this.router.url === '/home') {
+        
         if (roles.includes('ADMIN')) {
           this.router.navigate(['/admin']);
+        } 
+        else if (roles.includes('COURIER')) {
+          this.router.navigate(['/courier']); // 🌟 AJOUT POUR LE LIVREUR
+        }
+        else if (roles.includes('STORE_OWNER')) {
+          this.router.navigate(['/owner/dashboard']);
         }
       }
     }

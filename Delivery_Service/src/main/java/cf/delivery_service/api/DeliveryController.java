@@ -3,6 +3,7 @@ package cf.delivery_service.api;
 import cf.delivery_service.dto.CourierLocationRequest;
 import cf.delivery_service.dto.DeliveryResponseDto;
 import cf.delivery_service.dto.DistancePreviewDto;
+import cf.delivery_service.enums.DeliveryStatus;
 import cf.delivery_service.enums.VehicleType;
 import cf.delivery_service.service.DeliveryService;
 import cf.delivery_service.utils.JwtUtils;
@@ -221,5 +222,59 @@ public class DeliveryController {
 
         log.warn("🗑️ Admin deleting delivery {}", id);
         deliveryService.deleteDelivery(id);
+    }
+
+    // ==========================================
+    // 🌐 ENDPOINTS DE LECTURE ET SUIVI (FRONTEND)
+    // ==========================================
+
+    @GetMapping("/{id}")
+    @Operation(
+            summary = "Récupérer une livraison par son ID",
+            description = "Renvoie les détails d'une livraison spécifique via son identifiant unique."
+    )
+    public ResponseEntity<DeliveryResponseDto> getById(
+            @Parameter(description = "ID de la livraison", required = true)
+            @PathVariable Long id) {
+        return ResponseEntity.ok(deliveryService.getDeliveryById(id));
+    }
+
+    @GetMapping("/order/{ref}")
+    @Operation(
+            summary = "Récupérer par référence commande",
+            description = "Permet de trouver la livraison associée à la référence unique d'une commande."
+    )
+    public ResponseEntity<DeliveryResponseDto> getByOrderRef(
+            @Parameter(description = "Référence de la commande", required = true)
+            @PathVariable String ref) {
+        return ResponseEntity.ok(deliveryService.getDeliveryByOrderRef(ref));
+    }
+
+    @GetMapping("/track/{ref}")
+    @Operation(
+            summary = "Suivre une livraison (Client)",
+            description = "Endpoint spécifiquement conçu pour l'interface client afin de tracker la commande."
+    )
+    public ResponseEntity<DeliveryResponseDto> trackByOrderRef(
+            @Parameter(description = "Référence de la commande", required = true)
+            @PathVariable String ref) {
+        // On réutilise la même logique que order/{ref} car le besoin est identique
+        return ResponseEntity.ok(deliveryService.getDeliveryByOrderRef(ref));
+    }
+
+    @PutMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COURIER')")
+    @Operation(
+            summary = "Mettre à jour le statut manuellement",
+            description = "Permet à un admin (ou système) de forcer le changement de statut d'une livraison."
+    )
+    public ResponseEntity<DeliveryResponseDto> updateStatus(
+            @Parameter(description = "ID de la livraison", required = true)
+            @PathVariable Long id,
+            @Parameter(description = "Nouveau statut", required = true)
+            @RequestParam DeliveryStatus status) {
+
+        log.info("🔄 Mise à jour manuelle du statut de la livraison {} vers {}", id, status);
+        return ResponseEntity.ok(deliveryService.updateDeliveryStatus(id, status));
     }
 }
