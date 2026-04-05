@@ -31,9 +31,9 @@
       <div class="kpi-lbl">In Progress</div>
     </div>
     <div class="kpi-divider"></div>
-    <div class="kpi-tile" [class.active]="filterStatus === 'DELIVERED'" (click)="filterStatus = 'DELIVERED'; applyFilters()">
-      <div class="kpi-num delivered">{{ kpiCount('DELIVERED') }}</div>
-      <div class="kpi-lbl">Delivered</div>
+    <div class="kpi-tile" [class.active]="filterStatus === 'COMPLETED'" (click)="filterStatus = 'COMPLETED'; applyFilters()">
+      <div class="kpi-num completed">{{ kpiCount('COMPLETED') }}</div>
+      <div class="kpi-lbl">Completed</div>
     </div>
     <div class="kpi-divider"></div>
     <div class="kpi-tile revenue">
@@ -314,7 +314,7 @@
       <!-- Panel footer actions -->
       <div class="panel-footer">
         <button class="pf-btn pf-track"
-                *ngIf="o.status !== 'CANCELLED' && o.status !== 'DELIVERED'"
+                *ngIf="o.status !== 'CANCELLED' && o.status !== 'COMPLETED'"
                 (click)="trackOrder(o)">
           📍 Track Order
         </button>

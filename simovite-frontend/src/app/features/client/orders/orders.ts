@@ -29,7 +29,7 @@ export class Orders implements OnInit {
   currentPage = 1;
   pageSize    = 8;
 
-  readonly statusOptions: Array<OrderStatus | ''> = ['', 'PENDING', 'ACCEPTED', 'DELIVERED', 'CANCELLED'];
+  readonly statusOptions: Array<OrderStatus | ''> = ['', 'PENDING', 'ACCEPTED', 'COMPLETED', 'CANCELLED'];
 
   constructor(
     private orderSvc: OrderService,
@@ -130,7 +130,7 @@ export class Orders implements OnInit {
 
   get totalSpent(): number {
     return this.orders
-      .filter(o => o.status === 'DELIVERED')
+      .filter(o => o.status === 'COMPLETED')
       .reduce((s, o) => s + o.price, 0);
   }
 
@@ -140,18 +140,19 @@ export class Orders implements OnInit {
     const m: Record<string, string> = {
       PENDING:   'status-pending',
       ACCEPTED:  'status-accepted',
-      DELIVERED: 'status-delivered',
+      COMPLETED: 'status-delivered', // 👈 Remplacé DELIVERED par COMPLETED
       CANCELLED: 'status-cancelled',
+      REJECTED:  'status-cancelled'  // 👈 Ajout de REJECTED
     };
     return m[s] ?? '';
   }
 
   getStatusIcon(s: string): string {
-    return { PENDING:'⏳', ACCEPTED:'🔄', DELIVERED:'✅', CANCELLED:'❌' }[s] ?? '';
+    return { PENDING:'⏳', ACCEPTED:'🔄', COMPLETED:'✅', CANCELLED:'❌', REJECTED:'❌' }[s] ?? '';
   }
 
   getStatusLabel(s: string): string {
-    return { PENDING:'Pending', ACCEPTED:'In Progress', DELIVERED:'Delivered', CANCELLED:'Cancelled' }[s] ?? s;
+    return { PENDING:'Pending', ACCEPTED:'In Progress', COMPLETED:'Completed', CANCELLED:'Cancelled', REJECTED:'Rejected' }[s] ?? s;
   }
 
   getPaymentLabel(p: PaymentMethod): string {
@@ -172,7 +173,7 @@ export class Orders implements OnInit {
 
   // Progress step index (0–3)
   getProgressStep(status: OrderStatus): number {
-    return { PENDING:0, ACCEPTED:1, DELIVERED:3, CANCELLED:-1 }[status] ?? 0;
+    return { PENDING:0, ACCEPTED:1, COMPLETED:3, CANCELLED:-1, REJECTED: -1 }[status] ?? 0;
   }
 
   canPay(order: Order): boolean {

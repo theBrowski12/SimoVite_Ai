@@ -32,7 +32,7 @@ export class AdminOrders implements OnInit {
 
   // ── Inline status edit ────────────────────────────────────
   editingStatusId: number | null = null;
-  statusOptions: OrderStatus[] = ['PENDING', 'ACCEPTED', 'DELIVERED', 'CANCELLED'];
+  statusOptions: OrderStatus[] = ['PENDING', 'ACCEPTED', 'COMPLETED', 'CANCELLED'];
 
   constructor(
     private orderSvc: OrderService,
@@ -183,13 +183,13 @@ export class AdminOrders implements OnInit {
 
   get totalRevenue(): number {
     return this.orders
-      .filter(o => o.status === 'DELIVERED')
+      .filter(o => o.status === 'COMPLETED')
       .reduce((s, o) => s + o.price, 0);
   }
   // Revenu généré UNIQUEMENT par la livraison
   get totalDeliveryRevenue(): number {
     return this.orders
-      .filter(o => o.status === 'DELIVERED')
+      .filter(o => o.status === 'COMPLETED')
       .reduce((s, o) => s + (o.deliveryCost || 0), 0);
   }
   kpiCount(status: OrderStatus): number {
