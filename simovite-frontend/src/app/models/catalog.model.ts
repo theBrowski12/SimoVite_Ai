@@ -58,7 +58,7 @@ export interface CatalogRequestDto {
   available: boolean;
   storeId: string;
   imageURL?: string;
-
+  type: MainCategory | string; // ← REQUIRED by backend for polymorphic deserialization
 }
 
 export interface CatalogResponseDto {
@@ -101,3 +101,5 @@ export interface SpecialDeliveryRequestDto extends CatalogRequestDto {
   pricePerKg: number;
   requiredVehicleType: string;
 }
+
+export { MainCategory };

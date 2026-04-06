@@ -1,0 +1,50 @@
+<div class="layout-wrapper">
+  
+  <aside class="owner-sidebar">
+    
+    <div class="sidebar-brand">
+      <div class="logo-icon">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      </div>
+      <div class="logo-text">Simo<span>Vite</span></div>
+    </div>
+
+    <nav class="sidebar-menu">
+      <div *ngFor="let group of navItems">
+        <div class="menu-section">{{ group.section }}</div>
+        
+        <a *ngFor="let link of group.links" 
+           [routerLink]="link.route"
+           routerLinkActive="active"
+           class="menu-item">
+          <i [attr.data-lucide]="link.icon"></i>
+          {{ link.label }}
+        </a>
+      </div>
+    </nav>
+
+    <div class="sidebar-user">
+      <div class="user-avatar">{{ storeName.charAt(0) }}</div>
+      <div class="user-info">
+        <div class="user-name">{{ storeName }}</div>
+        <div class="user-role">Store Owner</div>
+      </div>
+      <button class="btn-logout" (click)="logout()" title="Déconnexion">
+        <i data-lucide="log-out"></i>
+      </button>
+    </div>
+    
+  </aside>
+
+  <main class="main-content">
+    
+    
+
+    <div class="dashboard-container">
+      <router-outlet></router-outlet>
+    </div>
+
+  </main>
+</div>

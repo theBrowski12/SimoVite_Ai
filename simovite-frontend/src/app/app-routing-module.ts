@@ -19,6 +19,12 @@ const routes: Routes = [
     data: { role: 'COURIER' },
     loadChildren: () => import('./features/courier/courier-module').then(m => m.CourierModule)
   },
+  {
+    path: 'owner',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { role: 'STORE_OWNER' }, // Assure-toi que c'est bien le rôle attendu par ton RoleGuard
+    loadChildren: () => import('./features/owner/owner-module').then(m => m.OwnerModule)
+  },
 
   // 2️⃣ LA ROUTE D'ACCUEIL EXACTE
   { 

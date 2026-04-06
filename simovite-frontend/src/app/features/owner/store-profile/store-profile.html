@@ -1,1 +1,324 @@
-<p>store-profile works!</p>
+<div class="store-profile-container">
+  <!-- Header -->
+  <header class="profile-header">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Store Management 👋</h1>
+      <p class="text-gray-500 text-sm">Manage your store profiles and create new ones</p>
+    </div>
+    <button *ngIf="stores.length > 0" (click)="openCreateModal()" class="btn-primary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+      Add New Store
+    </button>
+  </header>
+
+  <!-- Alert Messages -->
+  <div *ngIf="successMessage" class="alert alert-success">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+      <polyline points="22 4 12 14.01 9 11.01"/>
+    </svg>
+    <span>{{ successMessage }}</span>
+  </div>
+
+  <div *ngIf="error" class="alert alert-error">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <span>{{ error }}</span>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Loading your stores...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && stores.length === 0" class="empty-state">
+    <div class="empty-icon">🏪</div>
+    <h2>No Stores Yet</h2>
+    <p>You haven't created any stores yet. Start by creating your first store!</p>
+    <button (click)="openCreateModal()" class="btn-primary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+      Create Your First Store
+    </button>
+  </div>
+
+  <!-- Stores List Grid -->
+  <div *ngIf="!loading && stores.length > 0" class="stores-grid">
+    <!-- Sidebar: Store Cards -->
+    <div class="stores-sidebar">
+      <div *ngFor="let store of stores" 
+           class="store-card" 
+           [class.active]="selectedStore?.id === store.id"
+           (click)="selectStore(store)">
+        <div class="store-card-header">
+          <img *ngIf="store.imageURL" [src]="store.imageURL" [alt]="store.name" class="store-image">
+          <div *ngIf="!store.imageURL" class="store-image-placeholder">
+            <span>🏪</span>
+          </div>
+          <div class="store-status-badge" [class.open]="store.open">
+            {{ store.open ? 'Open' : 'Closed' }}
+          </div>
+        </div>
+        <div class="store-card-body">
+          <h3 class="store-name">{{ store.name }}</h3>
+          <p class="store-category">
+            <span class="category-badge" [ngClass]="getCategoryClass(store.category)">
+              {{ getCategoryLabel(store.category) }}
+            </span>
+          </p>
+          <div class="store-meta">
+            <div class="rating" *ngIf="store.rating !== undefined">
+              <span class="stars">{{ getStars(store.rating) }}</span>
+              <span class="rating-value">{{ store.rating }}</span>
+              <span class="review-count">({{ store.reviewCount || 0 }})</span>
+            </div>
+            <p class="store-phone">📞 {{ store.phone }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content: Selected Store Details -->
+    <div *ngIf="selectedStore" class="store-details-panel">
+      <div class="details-header">
+        <div>
+          <h2 class="details-title">{{ selectedStore.name }}</h2>
+          <p class="details-subtitle">{{ getCategoryLabel(selectedStore.category) }}</p>
+        </div>
+        <div class="details-actions">
+          <button (click)="openEditModal()" class="btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 3l4 4-7 7H10v-4l7-7z"/>
+              <path d="M4 20h16"/>
+            </svg>
+            Edit
+          </button>
+          <button (click)="toggleStoreStatus()" 
+                  class="btn-toggle"
+                  [class.open]="selectedStore.open">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18.36 6.64A9 9 0 1 1 5.64 18.36 9 9 0 0 1 18.36 6.64z"/>
+              <polyline points="12 8 12 12 14.5 14.5"/>
+            </svg>
+            {{ selectedStore.open ? 'Close' : 'Open' }}
+          </button>
+          <button (click)="deleteStore(selectedStore)" class="btn-danger">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 7h16M10 11v6M14 11v6M5 7l1 13a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-13"/>
+              <path d="M9 4h6"/>
+            </svg>
+            Delete
+          </button>
+        </div>
+      </div>
+
+      <div class="details-content">
+        <!-- Store Info -->
+        <div class="info-section">
+          <h3 class="section-title">Store Information</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Description</label>
+              <p class="info-value">{{ selectedStore.description || 'No description provided' }}</p>
+            </div>
+            <div class="info-item">
+              <label>Phone</label>
+              <p class="info-value">{{ selectedStore.phone }}</p>
+            </div>
+            <div class="info-item">
+              <label>Category</label>
+              <p class="info-value">
+                <span class="category-badge" [ngClass]="getCategoryClass(selectedStore.category)">
+                  {{ getCategoryLabel(selectedStore.category) }}
+                </span>
+              </p>
+            </div>
+            <div class="info-item">
+              <label>Status</label>
+              <p class="info-value">
+                <span class="status-badge" [class.open]="selectedStore.open">
+                  {{ selectedStore.open ? 'Open' : 'Closed' }}
+                </span>
+              </p>
+            </div>
+            <div class="info-item" *ngIf="selectedStore.rating !== undefined">
+              <label>Rating</label>
+              <p class="info-value rating-value-large">
+                <span class="stars">{{ getStars(selectedStore.rating) }}</span>
+                <span class="rating-number">{{ selectedStore.rating }}</span>
+                <span class="reviews">({{ selectedStore.reviewCount || 0 }} reviews)</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Address -->
+        <div class="info-section">
+          <h3 class="section-title">Address</h3>
+          <div class="address-display">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+            <div class="address-text">
+              <p *ngIf="selectedStore.address.street">{{ selectedStore.address.street }}</p>
+              <p *ngIf="selectedStore.address.buildingNumber">Building {{ selectedStore.address.buildingNumber }}<span *ngIf="selectedStore.address.apartment">, Apt {{ selectedStore.address.apartment }}</span></p>
+              <p *ngIf="selectedStore.address.city">{{ selectedStore.address.city }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Store Image -->
+        <div class="info-section" *ngIf="selectedStore.imageURL">
+          <h3 class="section-title">Store Image</h3>
+          <img [src]="selectedStore.imageURL" [alt]="selectedStore.name" class="store-detail-image">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create/Edit Modal -->
+  <div *ngIf="showCreateModal || showEditModal" class="modal-overlay" (click)="showCreateModal ? closeCreateModal() : closeEditModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ showCreateModal ? 'Create New Store' : 'Edit Store' }}</h2>
+        <button (click)="showCreateModal ? closeCreateModal() : closeEditModal()" class="btn-close">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <form [formGroup]="storeForm" (ngSubmit)="showCreateModal ? submitCreate() : submitEdit()" class="modal-form">
+        <div class="form-section">
+          <h3 class="form-section-title">Basic Information</h3>
+          
+          <div class="form-group">
+            <label for="name">Store Name *</label>
+            <input id="name" formControlName="name" type="text" class="form-control" placeholder="Enter store name">
+            <div *ngIf="storeForm.get('name')?.invalid && storeForm.get('name')?.touched" class="error-message">
+              Store name is required
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="category">Category *</label>
+              <select id="category" formControlName="category" class="form-control">
+                <option value="RESTAURANT">Restaurant</option>
+                <option value="PHARMACY">Pharmacy</option>
+                <option value="SUPERMARKET">Supermarket</option>
+                <option value="SPECIAL_DELIVERY">Special Delivery</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="phone">Phone *</label>
+              <input id="phone" formControlName="phone" type="tel" class="form-control" placeholder="+212 6XX XXX XXX">
+              <div *ngIf="storeForm.get('phone')?.invalid && storeForm.get('phone')?.touched" class="error-message">
+                Valid phone number is required
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" formControlName="description" class="form-control" rows="3" placeholder="Describe your store..."></textarea>
+            <div class="char-count">{{ storeForm.get('description')?.value?.length || 0 }}/500</div>
+          </div>
+
+          <div class="form-group">
+            <label for="imageURL">Image URL</label>
+            <input id="imageURL" formControlName="imageURL" type="url" class="form-control" placeholder="https://example.com/image.jpg">
+            <div *ngIf="storeForm.get('imageURL')?.invalid && storeForm.get('imageURL')?.touched" class="error-message">
+              Please enter a valid URL
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="form-section-title">Address</h3>
+          
+          <div class="form-group">
+            <label for="address-search">Search Address</label>
+            <div class="search-address">
+              <input id="address-search" type="text" class="form-control" placeholder="e.g., Maarif, Casablanca"
+                     #addressInput (keyup.enter)="searchAddress(addressInput.value)">
+              <button type="button" (click)="searchAddress(addressInput.value)" class="btn-search">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"/>
+                  <path d="m21 21-4.35-4.35"/>
+                </svg>
+              </button>
+            </div>
+            <p class="form-hint">Type an address and press Enter or click the search button</p>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="city">City *</label>
+              <input id="city" formControlName="city" type="text" class="form-control" placeholder="City">
+              <div *ngIf="storeForm.get('city')?.invalid && storeForm.get('city')?.touched" class="error-message">
+                City is required
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="street">Street *</label>
+              <input id="street" formControlName="street" type="text" class="form-control" placeholder="Street name">
+              <div *ngIf="storeForm.get('street')?.invalid && storeForm.get('street')?.touched" class="error-message">
+                Street is required
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="buildingNumber">Building Number</label>
+              <input id="buildingNumber" formControlName="buildingNumber" type="text" class="form-control" placeholder="Bldg #">
+            </div>
+
+            <div class="form-group">
+              <label for="apartment">Apartment</label>
+              <input id="apartment" formControlName="apartment" type="text" class="form-control" placeholder="Apt #">
+            </div>
+          </div>
+
+          <!-- Map -->
+          <div class="form-group">
+            <label>Location</label>
+            <p class="map-hint">Click on the map to set your store location</p>
+            <div id="map" class="map-container"></div>
+            <div class="form-row" style="margin-top: 0.5rem;">
+              <div class="form-group">
+                <input formControlName="latitude" type="number" step="0.000001" class="form-control" placeholder="Latitude" readonly>
+              </div>
+              <div class="form-group">
+                <input formControlName="longitude" type="number" step="0.000001" class="form-control" placeholder="Longitude" readonly>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" (click)="showCreateModal ? closeCreateModal() : closeEditModal()" class="btn-secondary">
+            Cancel
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="submitting">
+            <span *ngIf="submitting" class="spinner"></span>
+            {{ submitting ? 'Saving...' : (showCreateModal ? 'Create Store' : 'Save Changes') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

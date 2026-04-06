@@ -76,6 +76,7 @@ public class StoreServiceImpl implements StoreService {
                 .orElseThrow(() -> new RuntimeException("Magasin introuvable : " + id));
         Store updated = storeMapper.toEntity(requestDto);
         updated.setId(existing.getId());
+        updated.setOwnerId(existing.getOwnerId());
         return storeMapper.toDto(storeRepository.save(updated));
     }
 

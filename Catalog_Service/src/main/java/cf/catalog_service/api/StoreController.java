@@ -27,7 +27,7 @@ public class StoreController {
     // ==========================================
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")  // Seul l'admin crée des stores
+    @PreAuthorize("hasAnyRole('STORE_OWNER', 'ADMIN')")
     @Operation(summary = "Créer un nouveau magasin")
     public ResponseEntity<StoreResponseDto> createStore(@RequestBody StoreRequestDto requestDto) {
         return new ResponseEntity<>(storeService.createStore(requestDto), HttpStatus.CREATED);
@@ -46,7 +46,7 @@ public class StoreController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('STORE_OWNER', 'ADMIN')")
     @Operation(summary = "Mettre à jour un magasin existant")
     public ResponseEntity<StoreResponseDto> updateStore(
             @PathVariable String id,
@@ -55,7 +55,7 @@ public class StoreController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('STORE_OWNER', 'ADMIN')")
     @Operation(summary = "Supprimer un magasin")
     public ResponseEntity<Void> deleteStore(@PathVariable String id) {
         storeService.deleteStore(id);
