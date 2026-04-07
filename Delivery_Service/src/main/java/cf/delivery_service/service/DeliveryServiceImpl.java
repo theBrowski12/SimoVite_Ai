@@ -67,6 +67,7 @@ public class DeliveryServiceImpl implements DeliveryService {
             throw new RuntimeException("Impossible de trouver le magasin ou son adresse pour le storeId: " + event.getStoreId());
         }
 
+
         // 2. Préparer l'adresse de Pickup
         Address pickupAddress = Address.builder()
                 .city(store.getAddress().getCity())
@@ -143,6 +144,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         // 8. Création de l'entité
         Delivery delivery = Delivery.builder()
                 .orderRef(event.getOrderRef())
+                .storeId(event.getStoreId())
                 .customerEmail(event.getCustomerEmail())
                 .pickupAddress(pickupAddress)
                 .dropoffAddress(dropoffAddress)
@@ -445,6 +447,14 @@ public class DeliveryServiceImpl implements DeliveryService {
         // Optionnel : Mettre à jour Order_Service si besoin selon le statut
 
         return deliveryMapper.toDto(savedDelivery);
+    }
+
+    @Override
+    public List<DeliveryResponseDto> getDeliveriesByStoreId(String storeId) {
+        log.info("🏪 Récupération des livraisons pour le store {}", storeId);
+        return deliveryRepository.findByStoreId(storeId).stream()
+                .map(deliveryMapper::toDto)
+                .collect(Collectors.toList());
     }
 
 

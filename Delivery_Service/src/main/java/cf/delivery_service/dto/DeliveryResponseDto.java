@@ -23,6 +23,8 @@ public class DeliveryResponseDto {
     private String courierId;
     private String courierName;
     private String customerEmail;
+    // DeliveryResponseDto.java
+    private String storeId;
 
     // Adresses
     private AddressDto pickupAddress;

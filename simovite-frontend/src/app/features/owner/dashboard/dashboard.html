@@ -1,266 +1,196 @@
-<div class="store-dashboard">
+<div class="dashboard-container">
   <!-- Loading State -->
-  <div *ngIf="loading" class="flex items-center justify-center h-64">
-    <div class="text-center">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF6B35] mx-auto mb-4"></div>
-      <p class="text-gray-600">Loading dashboard...</p>
-    </div>
+  <div *ngIf="loading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Loading dashboard...</p>
   </div>
 
   <!-- Error State -->
-  <div *ngIf="error && !loading" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-    <p>{{ error }}</p>
-    <button (click)="loadDashboardData()" class="mt-2 text-sm font-semibold underline">Retry</button>
+  <div *ngIf="error && !loading" class="alert alert-error">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <span>{{ error }}</span>
   </div>
 
   <!-- Dashboard Content -->
   <div *ngIf="!loading">
-  <!-- Header -->
-  <header class="dashboard-header">
-    <div>
-      <h1 class="text-2xl font-bold text-gray-900">Welcome Back, {{ ownerName }} 👋</h1>
-      <p class="text-gray-500 text-sm">Real-time overview of your store performance</p>
-    </div>
-    <div class="date-badge bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium text-gray-700">
-      {{ today | date:'EEEE, MMMM d, y' }}
-    </div>
-  </header>
-
-  <!-- KPI Cards Grid -->
-  <div class="stats-row">
-  <!-- Card 1 -->
-  <div class="stat-card">
-    <div class="stat-icon orange">
-      📦
-    </div>
-    <div class="stat-content">
-      <div class="stat-header">
-        <span class="stat-label">Today's Orders</span>
-        <span class="trend" [ngClass]="stats.ordersToday > 0 ? 'up' : 'neutral'">
-          {{ stats.ordersToday > 0 ? '↑' : '→' }} {{ stats.ordersToday > 0 ? 'Active' : 'None' }}
-        </span>
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div>
+        <h1 class="header-title">Welcome Back, {{ ownerName }} 👋</h1>
+        <p class="header-subtitle">Your store performance at a glance</p>
       </div>
-      <p class="stat-value">{{ stats.ordersToday }}</p>
-      <p class="stat-sub">orders today</p>
-    </div>
-  </div>
-
-  <!-- Card 2 -->
-  <div class="stat-card">
-    <div class="stat-icon green">
-      💰
-    </div>
-    <div class="stat-content">
-      <div class="stat-header">
-        <span class="stat-label">Revenue Today</span>
-        <span class="trend" [ngClass]="stats.revenueToday > 0 ? 'up' : 'neutral'">
-          {{ stats.revenueToday > 0 ? '↑' : '→' }}
-        </span>
+      <div class="header-right">
+        <span class="date-badge">{{ today | date:'EEEE, MMM d, y' }}</span>
       </div>
-      <p class="stat-value">{{ stats.revenueToday | number }} DH</p>
-      <p class="stat-sub">net earnings</p>
-    </div>
-  </div>
+    </header>
 
-  <!-- Card 3 -->
-  <div class="stat-card">
-    <div class="stat-icon blue">
-      📦
+    <!-- Store Tabs -->
+    <div *ngIf="stores.length > 1" class="store-tabs">
+      <button *ngFor="let store of stores"
+              class="store-tab"
+              [class.active]="selectedStore?.id === store.id"
+              (click)="selectStore(store)">
+        <span class="tab-icon">🏪</span>
+        <span class="tab-name">{{ store.name }}</span>
+      </button>
     </div>
-    <div class="stat-content">
-      <div class="stat-header">
-        <span class="stat-label">Active Products</span>
-        <span class="trend neutral">{{ stats.activeProducts }}</span>
-      </div>
-      <p class="stat-value">{{ stats.activeProducts }}</p>
-      <p class="stat-sub">selling today</p>
-    </div>
-  </div>
 
-  <!-- Card 4 -->
-  <div class="stat-card">
-    <div class="stat-icon yellow">
-      ⭐
-    </div>
-    <div class="stat-content">
-      <div class="stat-header">
-        <span class="stat-label">Store Rating</span>
-        <span class="trend up">{{ stats.storeRating > 0 ? '★' : 'N/A' }}</span>
-      </div>
-      <p class="stat-value">{{ stats.storeRating > 0 ? stats.storeRating : 'N/A' }}<span class="star" *ngIf="stats.storeRating > 0">★</span></p>
-      <p class="stat-sub">{{ stores[0]?.reviewCount || 0 }} reviews</p>
-    </div>
-  </div>
-</div>
-
-  <!-- Charts Row 1: Sales Trend + Top Products (side by side) -->
-  <div class="charts-row">
-    <div class="chart-card half">
-      <h3 class="chart-title">Sales Trend (Last 7 Days)</h3>
-      <div class="chart-wrapper">
-        <canvas id="salesChart"></canvas>
+    <!-- Period Selector -->
+    <div class="period-bar">
+      <span class="period-label">Showing:</span>
+      <div class="period-buttons">
+        <button class="period-btn" [class.active]="selectedPeriod === 'today'" (click)="setPeriod('today')">Today</button>
+        <button class="period-btn" [class.active]="selectedPeriod === '7d'" (click)="setPeriod('7d')">7 Days</button>
+        <button class="period-btn" [class.active]="selectedPeriod === '30d'" (click)="setPeriod('30d')">30 Days</button>
+        <button class="period-btn" [class.active]="selectedPeriod === 'all'" (click)="setPeriod('all')">All Time</button>
       </div>
     </div>
-    <div class="chart-card half">
-      <h3 class="chart-title">Top Selling Products</h3>
-      <div class="chart-wrapper">
-        <canvas id="productsChart"></canvas>
-      </div>
-    </div>
-  </div>
 
-  <!-- Charts Row 2: Revenue by Payment Method -->
-  <div class="chart-row-single">
-    <div class="chart-card">
-      <h3 class="chart-title">Revenue by Payment Method</h3>
-      <div class="chart-wrapper doughnut-wrapper">
-        <canvas id="paymentChart"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- Live Deliveries (Simplified Map) -->
-  <div class="card-hover bg-white rounded-xl p-6 shadow-sm mb-6">
-    <h3 class="text-lg font-bold text-gray-900 mb-4">Live Deliveries</h3>
-    <div class="grid md:grid-cols-3 gap-6">
-      <div class="md:col-span-2">
-        <div class="bg-gray-100 rounded-lg h-64 relative overflow-hidden border-2 border-gray-200 flex items-center justify-center">
-          <div class="absolute inset-0" style="background-image: linear-gradient(rgba(156, 163, 175, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(156, 163, 175, 0.1) 1px, transparent 1px); background-size: 40px 40px;"></div>
-          <div class="absolute top-12 left-12 w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-white shadow-md">1</div>
-          <div class="absolute top-1/3 right-1/4 w-8 h-8 bg-[#FF6B35] rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-white shadow-md">2</div>
-          <div class="absolute bottom-1/4 left-1/4 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-white shadow-md">3</div>
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card primary">
+        <div class="kpi-icon">📦</div>
+        <div class="kpi-content">
+          <span class="kpi-label">Total Orders</span>
+          <span class="kpi-value">{{ stats.totalOrders }}</span>
         </div>
       </div>
-      <div class="space-y-3">
-        <div class="p-3 bg-gray-50 rounded-lg border-l-4 border-gray-400">
-          <div class="flex items-start justify-between mb-1">
-            <p class="text-sm font-bold text-gray-900">SV001</p>
-            <span class="badge bg-gray-100 text-gray-700">PENDING</span>
+
+      <div class="kpi-card success">
+        <div class="kpi-icon">💰</div>
+        <div class="kpi-content">
+          <span class="kpi-label">Total Revenue</span>
+          <span class="kpi-value">{{ stats.totalRevenue | number:'1.2-2' }} DH</span>
+        </div>
+      </div>
+
+      <div class="kpi-card info">
+        <div class="kpi-icon">📊</div>
+        <div class="kpi-content">
+          <span class="kpi-label">Avg Order Value</span>
+          <span class="kpi-value">{{ stats.avgOrderValue | number:'1.2-2' }} DH</span>
+        </div>
+      </div>
+
+      <div class="kpi-card warning">
+        <div class="kpi-icon">⏳</div>
+        <div class="kpi-content">
+          <span class="kpi-label">Pending Orders</span>
+          <span class="kpi-value">{{ stats.pendingOrders }}</span>
+        </div>
+      </div>
+
+      <div class="kpi-card completed">
+        <div class="kpi-icon">✅</div>
+        <div class="kpi-content">
+          <span class="kpi-label">Completed</span>
+          <span class="kpi-value">{{ stats.completedOrders }}</span>
+        </div>
+      </div>
+
+      <div class="kpi-card danger">
+        <div class="kpi-icon">❌</div>
+        <div class="kpi-content">
+          <span class="kpi-label">Cancelled</span>
+          <span class="kpi-value">{{ stats.cancelledOrders }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row 1: Revenue + Orders -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <h3 class="chart-title">Revenue Trend</h3>
+        <div class="chart-wrapper">
+          <canvas id="revenueChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3 class="chart-title">Orders Over Time</h3>
+        <div class="chart-wrapper">
+          <canvas id="ordersChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row 2: Payment + Status -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <h3 class="chart-title">Payment Distribution</h3>
+        <div class="chart-wrapper doughnut-wrapper">
+          <canvas id="paymentChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3 class="chart-title">Order Status Breakdown</h3>
+        <div class="chart-wrapper doughnut-wrapper">
+          <canvas id="statusChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Orders + Top Products -->
+    <div class="bottom-row">
+      <!-- Recent Orders -->
+      <div class="table-card">
+        <div class="card-header">
+          <h3 class="card-title">Recent Orders</h3>
+          <a routerLink="/owner/orders" class="view-all">View All →</a>
+        </div>
+        <div *ngIf="recentOrders.length === 0" class="empty-mini">No orders yet</div>
+        <div class="table-responsive" *ngIf="recentOrders.length > 0">
+          <table class="mini-table">
+            <thead>
+              <tr>
+                <th>Order</th>
+                <th>Customer</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let order of recentOrders">
+                <td class="ref-cell">{{ order.orderRef }}</td>
+                <td>{{ order.fullName }}</td>
+                <td class="amount-cell">{{ order.price }} DH</td>
+                <td><span class="status-badge" [ngClass]="getStatusClass(order.status)">{{ order.status }}</span></td>
+                <td class="time-cell">{{ formatTime(order.createdAt) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Top Products -->
+      <div class="table-card">
+        <div class="card-header">
+          <h3 class="card-title">Top Products</h3>
+          <a routerLink="/owner/products" class="view-all">View All →</a>
+        </div>
+        <div *ngIf="products.length === 0" class="empty-mini">No product data yet</div>
+        <div class="products-list" *ngIf="products.length > 0">
+          <div *ngFor="let product of products; let i = index" class="product-item">
+            <span class="product-rank">#{{ i + 1 }}</span>
+            <div class="product-info">
+              <span class="product-name">{{ product.name }}</span>
+              <span class="product-sold">{{ product.sold }} sold</span>
+            </div>
+            <span class="product-revenue">{{ product.revenue | number:'1.2-2' }} DH</span>
           </div>
-          <p class="text-xs text-gray-600">Ahmed • 18 min</p>
-        </div>
-        <div class="p-3 bg-gray-50 rounded-lg border-l-4 border-[#FF6B35]">
-          <div class="flex items-start justify-between mb-1">
-            <p class="text-sm font-bold text-gray-900">SV002</p>
-            <span class="badge bg-orange-100 text-[#FF6B35]">ASSIGNED</span>
-          </div>
-          <p class="text-xs text-gray-600">Fatima • 12 min</p>
-        </div>
-        <div class="p-3 bg-gray-50 rounded-lg border-l-4 border-green-500">
-          <div class="flex items-start justify-between mb-1">
-            <p class="text-sm font-bold text-gray-900">SV003</p>
-            <span class="badge bg-green-100 text-green-700">DELIVERED</span>
-          </div>
-          <p class="text-xs text-gray-600">Hassan • 5 min ago</p>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Recent Orders Table -->
-  <div class="card-hover bg-white rounded-xl p-6 shadow-sm mb-6">
-    <div class="flex items-center justify-between mb-4">
-      <h3 class="text-lg font-bold text-gray-900">Today's Orders</h3>
-      <a routerLink="/owner/orders" class="text-[#FF6B35] font-semibold text-sm hover:text-orange-600">View All →</a>
-    </div>
-    <div *ngIf="recentOrders.length === 0" class="text-center py-12 text-gray-500">
-      <p class="text-4xl mb-2">📦</p>
-      <p>No orders yet. New orders will appear here.</p>
-    </div>
-    <div class="overflow-x-auto" *ngIf="recentOrders.length > 0">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="border-b border-gray-200">
-            <th class="px-4 py-3 text-left font-bold text-gray-900">Order Ref</th>
-            <th class="px-4 py-3 text-left font-bold text-gray-900">Customer</th>
-            <th class="px-4 py-3 text-left font-bold text-gray-900">Items</th>
-            <th class="px-4 py-3 text-left font-bold text-gray-900">Total</th>
-            <th class="px-4 py-3 text-left font-bold text-gray-900">Payment</th>
-            <th class="px-4 py-3 text-left font-bold text-gray-900">Status</th>
-            <th class="px-4 py-3 text-left font-bold text-gray-900">Time</th>
-            <th class="px-4 py-3 text-center font-bold text-gray-900">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let order of recentOrders" class="table-row-hover border-b border-gray-100">
-            <td class="px-4 py-3 text-gray-900 font-bold">{{ order.orderRef }}</td>
-            <td class="px-4 py-3 text-gray-700">{{ order.fullName }}</td>
-            <td class="px-4 py-3 text-gray-700">{{ getItemsCount(order) }} items</td>
-            <td class="px-4 py-3 text-gray-900 font-bold">{{ order.price }} DH</td>
-            <td class="px-4 py-3"><span class="badge" [ngClass]="getPaymentBadgeClass(order.paymentMethod)">{{ getPaymentLabel(order.paymentMethod) }}</span></td>
-            <td class="px-4 py-3"><span class="badge" [ngClass]="getStatusClass(order.status)">{{ order.status }}</span></td>
-            <td class="px-4 py-3 text-gray-600">{{ formatTime(order.createdAt) }}</td>
-            <td class="px-4 py-3 text-center">
-              <button class="text-gray-600 hover:text-[#FF6B35] transition-colors">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Products Management Table -->
-  <div class="card-hover bg-white rounded-xl p-6 shadow-sm mb-6">
-    <div class="flex items-center justify-between mb-6">
-      <h3 class="text-lg font-bold text-gray-900">Your Products</h3>
-      <a href="#" class="text-[#FF6B35] font-semibold text-sm hover:text-orange-600">+ Add Product</a>
-    </div>
-    <div class="overflow-x-auto">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="border-b border-gray-200">
-            <th class="px-4 py-3 text-left font-bold text-gray-900">Product</th>
-            <th class="px-4 py-3 text-left font-bold text-gray-900">Category</th>
-            <th class="px-4 py-3 text-left font-bold text-gray-900">Price</th>
-            <th class="px-4 py-3 text-left font-bold text-gray-900">Stock</th>
-            <th class="px-4 py-3 text-left font-bold text-gray-900">Sold (Today)</th>
-            <th class="px-4 py-3 text-left font-bold text-gray-900">Status</th>
-            <th class="px-4 py-3 text-center font-bold text-gray-900">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let product of products" class="table-row-hover border-b border-gray-100">
-            <td class="px-4 py-3 text-gray-900 font-bold">{{ product.name }}</td>
-            <td class="px-4 py-3 text-gray-700">{{ product.category }}</td>
-            <td class="px-4 py-3 text-gray-900 font-bold">{{ product.price }} DH</td>
-            <td class="px-4 py-3 text-gray-700">{{ product.stock }}</td>
-            <td class="px-4 py-3"><span class="font-bold text-green-600">{{ product.soldToday }}</span></td>
-            <td class="px-4 py-3"><span class="badge" [ngClass]="product.statusClass">{{ product.status }}</span></td>
-            <td class="px-4 py-3 text-center flex items-center justify-center gap-2">
-              <button class="text-gray-600 hover:text-[#FF6B35]">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3l4 4-7 7H10v-4l7-7z"/><path d="M4 20h16"/></svg>
-              </button>
-              <button class="text-gray-600 hover:text-red-600">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 13a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-13"/><path d="M9 4h6"/></svg>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Store Statistics (Performance Metrics) -->
-  <div class="card-hover bg-white rounded-xl p-6 shadow-sm mb-6">
-    <h3 class="text-lg font-bold text-gray-900 mb-6">Performance Metrics</h3>
-    <div class="metrics-grid">
-      <div class="metric-item">
-        <div class="flex justify-between mb-1"><span class="text-xs font-medium text-gray-600">Order Fulfillment Rate</span><span class="text-xs font-bold">{{ stats.orderFulfillmentRate }}%</span></div>
-        <div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-green-500 h-2 rounded-full" [style.width.%]="stats.orderFulfillmentRate"></div></div>
-      </div>
-      <div class="metric-item">
-        <div class="flex justify-between mb-1"><span class="text-xs font-medium text-gray-600">On-Time Delivery</span><span class="text-xs font-bold">{{ stats.onTimeDelivery }}%</span></div>
-        <div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-blue-500 h-2 rounded-full" [style.width.%]="stats.onTimeDelivery"></div></div>
-      </div>
-      <div class="metric-item">
-        <div class="flex justify-between mb-1"><span class="text-xs font-medium text-gray-600">Customer Satisfaction</span><span class="text-xs font-bold">{{ stats.customerSatisfaction }}%</span></div>
-        <div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-[#FF6B35] h-2 rounded-full" [style.width.%]="stats.customerSatisfaction"></div></div>
-      </div>
-      <div class="metric-item">
-        <div class="flex justify-between mb-1"><span class="text-xs font-medium text-gray-600">Product Quality Score</span><span class="text-xs font-bold">{{ stats.productQualityScore }}%</span></div>
-        <div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-purple-500 h-2 rounded-full" [style.width.%]="stats.productQualityScore"></div></div>
+    <!-- Store Rating Card -->
+    <div *ngIf="stats.storeRating > 0" class="rating-card">
+      <div class="rating-icon">⭐</div>
+      <div class="rating-content">
+        <span class="rating-label">Store Rating</span>
+        <span class="rating-value">{{ stats.storeRating }} / 5</span>
+        <span class="rating-stars">{{ getStars(stats.storeRating) }}</span>
       </div>
     </div>
   </div>

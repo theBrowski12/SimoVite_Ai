@@ -13,6 +13,12 @@ export class DeliveryService {
 
   constructor(private http: HttpClient) {}
 
+  // ── OWNER ─────────────────────────────────────────────────
+
+  getByStoreId(storeId: string): Observable<Delivery[]> {
+    return this.http.get<Delivery[]>(`${this.base}/store/${storeId}`);
+  }
+
   // ── ADMIN ─────────────────────────────────────────────────
 
   getAll(): Observable<Delivery[]> {
@@ -75,6 +81,8 @@ export class DeliveryService {
       { params }
     );
   }
+  // After trackByOrderRef
+  
 
   // ── CLIENT ────────────────────────────────────────────────
 

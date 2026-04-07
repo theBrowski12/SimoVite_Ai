@@ -1,11 +1,11 @@
-.orders-container {
+.deliveries-container {
   max-width: 1400px;
   margin: 0 auto;
   padding: 1.5rem;
 }
 
 // Header
-.orders-header {
+.deliveries-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -47,6 +47,7 @@
   justify-content: center;
   padding: 4rem 2rem;
   text-align: center;
+
   p { margin-top: 1rem; color: #6b7280; font-weight: 500; }
 }
 
@@ -179,12 +180,12 @@
   }
 
   &.pending { background: #fef9c3; border-color: #fde047; }
-  &.completed { background: #dcfce7; border-color: #86efac; }
-  &.revenue { background: #dbeafe; border-color: #93c5fd; }
+  &.assigned { background: #dbeafe; border-color: #93c5fd; }
+  &.delivered { background: #dcfce7; border-color: #86efac; }
 }
 
-// Orders Panel
-.orders-panel {
+// Deliveries Panel
+.deliveries-panel {
   background: white;
   border-radius: 12px;
   padding: 1.5rem;
@@ -244,7 +245,10 @@
   cursor: pointer;
   transition: all 0.2s;
 
-  &:focus { outline: none; border-color: #FF6B35; }
+  &:focus {
+    outline: none;
+    border-color: #FF6B35;
+  }
 }
 
 .btn-reset {
@@ -264,12 +268,13 @@
 // Table
 .table-wrapper { overflow-x: auto; }
 
-.orders-table {
+.deliveries-table {
   width: 100%;
   border-collapse: collapse;
 
   thead {
     tr { border-bottom: 2px solid #f3f4f6; }
+
     th {
       padding: 0.75rem 1rem;
       text-align: left;
@@ -288,52 +293,96 @@
       transition: background 0.2s;
 
       &:hover { background: #f9fafb; }
-      &.updating { opacity: 0.6; pointer-events: none; }
+
+      &.updating {
+        opacity: 0.6;
+        pointer-events: none;
+      }
     }
   }
 }
 
 .ref-cell { padding: 1rem; }
-.ref-number { font-weight: 700; color: #111827; font-size: 0.95rem; }
 
-.customer-cell { padding: 1rem; }
-.customer-info { display: flex; flex-direction: column; gap: 0.25rem; }
-.customer-name { font-weight: 600; color: #111827; font-size: 0.95rem; }
-.customer-email { font-size: 0.8rem; color: #6b7280; }
+.ref-number {
+  font-weight: 700;
+  color: #111827;
+  font-size: 0.95rem;
+}
 
-.items-cell { padding: 1rem; }
-.items-count { font-weight: 600; color: #374151; }
+.courier-cell { padding: 1rem; }
 
-.price-cell { padding: 1rem; }
-.price { font-size: 1.05rem; font-weight: 700; color: #FF6B35; }
+.courier-name {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.9rem;
+}
 
-.payment-cell { padding: 1rem; }
-.payment-badge {
-  display: inline-block;
+.vehicle-cell { padding: 1rem; }
+
+.vehicle-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   padding: 0.35rem 0.75rem;
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 600;
+
+  &.badge-green { background: #dcfce7; color: #166534; }
   &.badge-orange { background: #ffedd5; color: #c2410c; }
   &.badge-blue { background: #dbeafe; color: #1e40af; }
+  &.badge-purple { background: #f3e8ff; color: #6b21a5; }
+  &.badge-gray { background: #f3f4f6; color: #6b7280; }
+}
+
+.distance-cell { padding: 1rem; }
+
+.distance {
+  font-weight: 600;
+  color: #374151;
+}
+
+.cost-cell { padding: 1rem; }
+
+.cost {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #FF6B35;
 }
 
 .status-cell { padding: 1rem; }
+
 .status-badge {
   display: inline-block;
   padding: 0.35rem 0.75rem;
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 600;
+
   &.badge-yellow { background: #fef9c3; color: #854d0e; }
   &.badge-blue { background: #dbeafe; color: #1e40af; }
-  &.badge-red { background: #fee2e2; color: #991b1b; }
+  &.badge-purple { background: #f3e8ff; color: #6b21a5; }
   &.badge-green { background: #dcfce7; color: #166534; }
+  &.badge-red { background: #fee2e2; color: #991b1b; }
   &.badge-gray { background: #f3f4f6; color: #374151; }
 }
 
+.eta-cell { padding: 1rem; }
+
+.eta {
+  font-size: 0.85rem;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
 .date-cell { padding: 1rem; }
-.date { font-size: 0.85rem; color: #6b7280; white-space: nowrap; }
+
+.date {
+  font-size: 0.85rem;
+  color: #6b7280;
+  white-space: nowrap;
+}
 
 .actions-cell {
   padding: 1rem;
@@ -355,10 +404,14 @@
   cursor: pointer;
   transition: all 0.2s;
 
-  &:hover { background: #f3f4f6; color: #FF6B35; }
+  &:hover {
+    background: #f3f4f6;
+    color: #FF6B35;
+  }
 }
 
 .status-dropdown { position: relative; }
+
 .status-select {
   padding: 0.4rem 0.5rem;
   border: 2px solid #e5e7eb;
@@ -415,13 +468,21 @@
   transition: all 0.2s;
 
   &:hover:not(.active) { border-color: #FF6B35; color: #FF6B35; }
-  &.active { background: #FF6B35; border-color: #FF6B35; color: white; }
+
+  &.active {
+    background: #FF6B35;
+    border-color: #FF6B35;
+    color: white;
+  }
 }
 
 // Modal
 .modal-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
@@ -448,8 +509,18 @@
   padding: 1.5rem 2rem;
   border-bottom: 2px solid #f3f4f6;
 
-  h2 { margin: 0; font-size: 1.5rem; font-weight: 700; color: #111827; }
-  .modal-subtitle { margin: 0.25rem 0 0; font-size: 0.9rem; color: #6b7280; }
+  h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .modal-subtitle {
+    margin: 0.25rem 0 0;
+    font-size: 0.9rem;
+    color: #6b7280;
+  }
 }
 
 .btn-close {
@@ -468,11 +539,17 @@
 }
 
 .modal-body { padding: 2rem; }
-.detail-grid { display: flex; flex-direction: column; gap: 1.5rem; }
+
+.detail-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
 
 .detail-section {
   padding-bottom: 1.25rem;
   border-bottom: 1px solid #f3f4f6;
+
   &:last-child { border-bottom: none; }
 }
 
@@ -489,43 +566,51 @@
   align-items: center;
   padding: 0.5rem 0;
 
-  label { font-size: 0.85rem; font-weight: 600; color: #6b7280; }
-  p { margin: 0; font-size: 0.95rem; color: #111827; font-weight: 500; }
-}
-
-.items-list { display: flex; flex-direction: column; gap: 0.5rem; }
-
-.item-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem;
-  background: #f9fafb;
-  border-radius: 8px;
-
-  .item-name { flex: 1; font-weight: 600; color: #111827; }
-  .item-qty { color: #6b7280; font-weight: 600; margin: 0 1rem; }
-  .item-price { font-weight: 700; color: #FF6B35; }
-}
-
-.summary-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.5rem 0;
-  font-size: 0.95rem;
-
-  span:first-child { color: #6b7280; }
-  span:last-child { color: #111827; font-weight: 600; }
-
-  &.total {
-    padding-top: 0.75rem;
-    margin-top: 0.5rem;
-    border-top: 2px solid #f3f4f6;
-    font-size: 1.1rem;
-
-    span:last-child { color: #FF6B35; font-weight: 700; }
-    .total-price { font-size: 1.25rem; }
+  label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #6b7280;
   }
+
+  p {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #111827;
+    font-weight: 500;
+  }
+}
+
+.address-row {
+  padding: 0.5rem 0;
+
+  label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #6b7280;
+    margin-bottom: 0.25rem;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #111827;
+    font-weight: 500;
+  }
+}
+
+.cost-highlighted {
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  color: #FF6B35 !important;
+}
+
+.order-total {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #FF6B35;
+  text-align: center;
+  padding: 1rem 0;
 }
 
 .modal-footer {
@@ -564,7 +649,7 @@
 }
 
 @media (max-width: 768px) {
-  .orders-header {
+  .deliveries-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;

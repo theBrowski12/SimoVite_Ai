@@ -1,0 +1,272 @@
+<div class="deliveries-container">
+  <!-- Header -->
+  <header class="deliveries-header">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Delivery Management 🚚</h1>
+      <p class="text-gray-500 text-sm">Track and manage all delivery requests</p>
+    </div>
+  </header>
+
+  <!-- Alert Messages -->
+  <div *ngIf="successMessage" class="alert alert-success">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+      <polyline points="22 4 12 14.01 9 11.01"/>
+    </svg>
+    <span>{{ successMessage }}</span>
+  </div>
+
+  <div *ngIf="error" class="alert alert-error">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <span>{{ error }}</span>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Loading deliveries...</p>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!loading" class="main-content">
+    <!-- Store Tabs Bar -->
+    <div *ngIf="stores.length > 0" class="store-tabs">
+      <button *ngFor="let store of stores"
+              class="store-tab"
+              [class.active]="selectedStore?.id === store.id"
+              (click)="selectStore(store)">
+        <span class="tab-icon">🏪</span>
+        <span class="tab-name">{{ store.name }}</span>
+        <span class="tab-count">{{ getStoreDeliveryCount(store.id) }} deliveries</span>
+      </button>
+    </div>
+
+    <!-- KPI Stats -->
+    <div *ngIf="selectedStore" class="kpi-bar">
+      <div class="kpi-item">
+        <span class="kpi-value">{{ kpiStats.total }}</span>
+        <span class="kpi-label">Total Deliveries</span>
+      </div>
+      <div class="kpi-item pending">
+        <span class="kpi-value">{{ kpiStats.pending }}</span>
+        <span class="kpi-label">Pending</span>
+      </div>
+      <div class="kpi-item assigned">
+        <span class="kpi-value">{{ kpiStats.assigned }}</span>
+        <span class="kpi-label">Assigned</span>
+      </div>
+      <div class="kpi-item delivered">
+        <span class="kpi-value">{{ kpiStats.delivered }}</span>
+        <span class="kpi-label">Delivered</span>
+      </div>
+    </div>
+
+    <!-- Deliveries Panel -->
+    <div class="deliveries-panel">
+
+    <!-- Empty State -->
+    <div *ngIf="deliveries.length === 0" class="empty-state">
+      <div class="empty-icon">🚚</div>
+      <h2>No Deliveries Yet</h2>
+      <p>Delivery requests will appear here once customers place orders.</p>
+    </div>
+
+    <!-- Filters & Table -->
+    <div *ngIf="deliveries.length > 0">
+      <!-- Filters -->
+      <div class="filters-bar">
+        <div class="search-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()"
+                 placeholder="Search by order ref, courier, customer..." class="search-input">
+        </div>
+        <div class="filter-group">
+          <select [(ngModel)]="filterStatus" (ngModelChange)="applyFilters()" class="filter-select">
+            <option value="">All Status</option>
+            <option *ngFor="let s of STATUSES" [value]="s">{{ getStatusIcon(s) }} {{ s }}</option>
+          </select>
+          <select [(ngModel)]="filterVehicle" (ngModelChange)="applyFilters()" class="filter-select">
+            <option value="">All Vehicles</option>
+            <option *ngFor="let v of VEHICLES" [value]="v">{{ getVehicleIcon(v) }} {{ getVehicleLabel(v) }}</option>
+          </select>
+          <button (click)="resetFilters()" class="btn-reset">Reset</button>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-wrapper">
+        <table class="deliveries-table">
+          <thead>
+            <tr>
+              <th>Order Ref</th>
+              <th>Courier</th>
+              <th>Vehicle</th>
+              <th>Distance</th>
+              <th>Cost</th>
+              <th>Status</th>
+              <th>ETA</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let d of paginatedDeliveries" class="delivery-row" [class.updating]="updatingDeliveryId === d.id">
+              <td class="ref-cell">
+                <span class="ref-number">{{ d.orderRef }}</span>
+              </td>
+              <td class="courier-cell">
+                <span class="courier-name">{{ d.courierName || 'Unassigned' }}</span>
+              </td>
+              <td class="vehicle-cell">
+                <span class="vehicle-badge" [ngClass]="getVehicleClass(d.vehicleType)">
+                  {{ getVehicleIcon(d.vehicleType) }} {{ getVehicleLabel(d.vehicleType) }}
+                </span>
+              </td>
+              <td class="distance-cell">
+                <span class="distance">{{ d.distanceInKm }} km</span>
+              </td>
+              <td class="cost-cell">
+                <span class="cost">{{ d.deliveryCost }} DH</span>
+              </td>
+              <td class="status-cell">
+                <span class="status-badge" [ngClass]="getStatusClass(d.status)">
+                  {{ getStatusIcon(d.status) }} {{ d.status }}
+                </span>
+              </td>
+              <td class="eta-cell">
+                <span class="eta">{{ d.estimatedTimeInMinutes ? d.estimatedTimeInMinutes + ' min' : '—' }}</span>
+              </td>
+              <td class="date-cell">
+                <span class="date">{{ formatDateTime(d.createdAt) }}</span>
+              </td>
+              <td class="actions-cell">
+                <button (click)="viewDetails(d)" class="btn-icon" title="View Details">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </button>
+                <div *ngIf="canUpdateStatus(d.status)" class="status-dropdown">
+                  <select [disabled]="updatingDeliveryId === d.id"
+                          (change)="updateStatus(d, $any($event.target).value)"
+                          [value]="d.status"
+                          class="status-select">
+                    <option *ngFor="let status of getAvailableStatuses(d.status)" [value]="status">
+                      {{ getStatusIcon(status) }} {{ status }}
+                    </option>
+                  </select>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div *ngIf="totalPages > 1" class="pagination">
+          <button (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1" class="page-btn">← Prev</button>
+          <button *ngFor="let page of pages"
+                  (click)="goToPage(page)"
+                  [class.active]="page === currentPage"
+                  class="page-number">{{ page }}</button>
+          <button (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages" class="page-btn">Next →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div *ngIf="showDetailModal && selectedDelivery" class="modal-overlay" (click)="closeDetailModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h2>Delivery {{ selectedDelivery.orderRef }}</h2>
+          <p class="modal-subtitle">Created {{ formatDateTime(selectedDelivery.createdAt) }}</p>
+        </div>
+        <button (click)="closeDetailModal()" class="btn-close">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-grid">
+          <div class="detail-section">
+            <h3 class="detail-title">Courier Information</h3>
+            <div class="detail-row">
+              <label>Courier</label>
+              <p>{{ selectedDelivery.courierName || 'Not assigned yet' }}</p>
+            </div>
+            <div class="detail-row">
+              <label>Vehicle</label>
+              <p>
+                <span class="vehicle-badge" [ngClass]="getVehicleClass(selectedDelivery.vehicleType)">
+                  {{ getVehicleIcon(selectedDelivery.vehicleType) }} {{ getVehicleLabel(selectedDelivery.vehicleType) }}
+                </span>
+              </p>
+            </div>
+            <div class="detail-row">
+              <label>Status</label>
+              <p>
+                <span class="status-badge" [ngClass]="getStatusClass(selectedDelivery.status)">
+                  {{ getStatusIcon(selectedDelivery.status) }} {{ selectedDelivery.status }}
+                </span>
+              </p>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h3 class="detail-title">Addresses</h3>
+            <div class="address-row">
+              <label>📍 Pickup</label>
+              <p>{{ selectedDelivery.pickupAddress.street }}, {{ selectedDelivery.pickupAddress.city }}</p>
+            </div>
+            <div class="address-row">
+              <label>🏠 Dropoff</label>
+              <p>{{ selectedDelivery.dropoffAddress.street }}, {{ selectedDelivery.dropoffAddress.city }}</p>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h3 class="detail-title">Delivery Details</h3>
+            <div class="detail-row">
+              <label>Distance</label>
+              <p>{{ selectedDelivery.distanceInKm }} km</p>
+            </div>
+            <div class="detail-row">
+              <label>Estimated Time</label>
+              <p>{{ selectedDelivery.estimatedTimeInMinutes ? selectedDelivery.estimatedTimeInMinutes + ' min' : 'N/A' }}</p>
+            </div>
+            <div class="detail-row">
+              <label>Delivery Cost</label>
+              <p class="cost-highlighted">{{ selectedDelivery.deliveryCost }} DH</p>
+            </div>
+            <div class="detail-row">
+              <label>Payment on Delivery</label>
+              <p>{{ selectedDelivery.cashOnDelivery ? 'Yes' : 'No' }}</p>
+            </div>
+            <div class="detail-row" *ngIf="selectedDelivery.amountToCollect">
+              <label>Amount to Collect</label>
+              <p class="cost-highlighted">{{ selectedDelivery.amountToCollect }} DH</p>
+            </div>
+          </div>
+
+          <div class="detail-section" *ngIf="selectedDelivery.orderTotal">
+            <h3 class="detail-title">Order Total</h3>
+            <p class="order-total">{{ selectedDelivery.orderTotal }} DH</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button (click)="closeDetailModal()" class="btn-secondary">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

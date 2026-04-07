@@ -59,6 +59,9 @@ public class Delivery {
     private BigDecimal amountToCollect;
 
     private Integer estimatedTimeInMinutes; // ETA
+    // Delivery.java
+    @Column(name = "store_id")
+    private String storeId;
 
     @Enumerated(EnumType.STRING)
     private DeliveryStatus status; // PENDING, ASSIGNED, PICKED_UP, DELIVERED

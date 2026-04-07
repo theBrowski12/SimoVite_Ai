@@ -17,9 +17,8 @@ export class OwnerLayout implements AfterViewInit {
     { section: 'Overview', links: [{ label: 'Dashboard', icon: 'layout-dashboard', route: '/owner/dashboard' }] },
     { section: 'Store', links: [
       { label: 'Store Info', icon: 'settings', route: '/owner/store-info' },
-      { label: 'Products', icon: 'package', route: '/owner/products' },
-      { label: 'Categories', icon: 'tag', route: '/owner/categories' }
-    ]},
+      { label: 'Products', icon: 'package', route: '/owner/products' }
+        ]},
     { section: 'Sales', links: [
       { label: 'Orders', icon: 'shopping-cart', route: '/owner/orders' },
       { label: 'Deliveries', icon: 'truck', route: '/owner/deliveries' }

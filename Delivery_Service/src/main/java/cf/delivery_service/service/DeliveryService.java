@@ -19,16 +19,15 @@ public interface DeliveryService {
     void updateCourierLocation(String courierId, CourierLocationRequest req);
     // Le livreur termine la livraison
     DeliveryResponseDto completeDelivery(Long deliveryId);
-
     // Pour l'historique du livreur
     List<DeliveryResponseDto> getMyDeliveries(String courierId);
     void deleteDelivery(Long deliveryId);
     // Pour le Dashboard Administrateur (Statistiques, monitoring)
     List<DeliveryResponseDto> getAllDeliveries();
-
     DistancePreviewDto previewDeliveryDistance(Long deliveryId, CourierLocationRequest courierLocationRequest, VehicleType vehicleType);
     DeliveryResponseDto getDeliveryById(Long deliveryId);
     DeliveryResponseDto getDeliveryByOrderRef(String orderRef);
     DeliveryResponseDto updateDeliveryStatus(Long deliveryId, DeliveryStatus newStatus);
-
+    // DeliveryRepository.java
+    List<DeliveryResponseDto> getDeliveriesByStoreId(String storeId);
 }

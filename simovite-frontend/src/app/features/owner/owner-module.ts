@@ -10,9 +10,19 @@ import { Reviews } from './reviews/reviews';
 import { Analytics } from './analytics/analytics';
 import { StoreProfile } from './store-profile/store-profile';
 import { OwnerLayout } from './owner-layout/owner-layout';
+import { Deliveries } from './deliveries/deliveries';
 
 @NgModule({
-  declarations: [Dashboard, Products, Orders, Reviews, Analytics, StoreProfile, OwnerLayout],
+  declarations: [
+    Dashboard,
+    Products,
+    Orders,
+    Reviews,
+    Analytics,
+    StoreProfile,
+    OwnerLayout,
+    Deliveries,
+  ],
   imports: [CommonModule, OwnerRoutingModule, ReactiveFormsModule, FormsModule],
 })
 export class OwnerModule {}

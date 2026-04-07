@@ -1,1 +1,218 @@
-<p>analytics works!</p>
+<div class="analytics-container">
+  <!-- Header -->
+  <header class="analytics-header">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Analytics & Insights 📊</h1>
+      <p class="text-gray-500 text-sm">Performance metrics and review analytics for your store</p>
+    </div>
+  </header>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Loading analytics...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="alert alert-error">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <span>{{ error }}</span>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!loading" class="main-content">
+    <!-- Store Tabs -->
+    <div *ngIf="stores.length > 0" class="store-tabs">
+      <button *ngFor="let store of stores"
+              class="store-tab"
+              [class.active]="selectedStore?.id === store.id"
+              (click)="selectStore(store)">
+        <span class="tab-icon">🏪</span>
+        <span class="tab-name">{{ store.name }}</span>
+      </button>
+    </div>
+
+    <!-- Period Selector -->
+    <div class="period-selector">
+      <button class="period-btn" [class.active]="selectedPeriod === '7d'" (click)="selectPeriod('7d')">7 Days</button>
+      <button class="period-btn" [class.active]="selectedPeriod === '30d'" (click)="selectPeriod('30d')">30 Days</button>
+      <button class="period-btn" [class.active]="selectedPeriod === 'all'" (click)="selectPeriod('all')">All Time</button>
+    </div>
+
+    <!-- Performance Metrics -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-icon orange">📦</div>
+        <div class="metric-content">
+          <span class="metric-label">Order Fulfillment Rate</span>
+          <div class="metric-value-row">
+            <span class="metric-value">{{ metrics.orderFulfillmentRate }}%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill green" [style.width.%]="metrics.orderFulfillmentRate"></div></div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon blue">🚚</div>
+        <div class="metric-content">
+          <span class="metric-label">On-Time Delivery</span>
+          <div class="metric-value-row">
+            <span class="metric-value">{{ metrics.onTimeDelivery }}%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill blue" [style.width.%]="metrics.onTimeDelivery"></div></div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon green">😊</div>
+        <div class="metric-content">
+          <span class="metric-label">Customer Satisfaction</span>
+          <div class="metric-value-row">
+            <span class="metric-value">{{ metrics.customerSatisfaction }}%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill green" [style.width.%]="metrics.customerSatisfaction"></div></div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon purple">⭐</div>
+        <div class="metric-content">
+          <span class="metric-label">Product Quality Score</span>
+          <div class="metric-value-row">
+            <span class="metric-value">{{ metrics.productQualityScore }}%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill purple" [style.width.%]="metrics.productQualityScore"></div></div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon yellow">💰</div>
+        <div class="metric-content">
+          <span class="metric-label">Average Order Value</span>
+          <span class="metric-value-large">{{ metrics.averageOrderValue | number:'1.2-2' }} DH</span>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon red">❌</div>
+        <div class="metric-content">
+          <span class="metric-label">Cancellation Rate</span>
+          <div class="metric-value-row">
+            <span class="metric-value">{{ metrics.cancellationRate }}%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill red" [style.width.%]="metrics.cancellationRate"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row 1: Revenue + Orders -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <h3 class="chart-title">Revenue Trend</h3>
+        <div class="chart-wrapper">
+          <canvas id="revenueChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3 class="chart-title">Orders Over Time</h3>
+        <div class="chart-wrapper">
+          <canvas id="ordersChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row 2: Sentiment + Top Products -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <h3 class="chart-title">Review Sentiment Analysis</h3>
+        <div class="chart-wrapper doughnut-wrapper">
+          <canvas id="sentimentChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3 class="chart-title">Top Products by Revenue</h3>
+        <div class="chart-wrapper">
+          <canvas id="productsChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sentiment Analytics -->
+    <div class="analytics-section" *ngIf="sentiment.totalReviews > 0">
+      <h3 class="section-title">Review Sentiment Analytics</h3>
+      <div class="sentiment-grid">
+        <div class="sentiment-card positive">
+          <span class="sentiment-emoji">😊</span>
+          <span class="sentiment-value">{{ sentiment.positive }}%</span>
+          <span class="sentiment-label">Positive</span>
+        </div>
+        <div class="sentiment-card mixed">
+          <span class="sentiment-emoji">😐</span>
+          <span class="sentiment-value">{{ sentiment.mixed }}%</span>
+          <span class="sentiment-label">Mixed</span>
+        </div>
+        <div class="sentiment-card negative">
+          <span class="sentiment-emoji">😞</span>
+          <span class="sentiment-value">{{ sentiment.negative }}%</span>
+          <span class="sentiment-label">Negative</span>
+        </div>
+        <div class="sentiment-card info">
+          <span class="sentiment-emoji">📝</span>
+          <span class="sentiment-value">{{ sentiment.totalReviews }}</span>
+          <span class="sentiment-label">Total Reviews</span>
+        </div>
+        <div class="sentiment-card info">
+          <span class="sentiment-emoji">⭐</span>
+          <span class="sentiment-value">{{ sentiment.averageScore }}/5</span>
+          <span class="sentiment-label">Avg Rating</span>
+        </div>
+        <div class="sentiment-card info" *ngIf="sentiment.incoherentCount > 0">
+          <span class="sentiment-emoji">⚠️</span>
+          <span class="sentiment-value">{{ sentiment.incoherentCount }}</span>
+          <span class="sentiment-label">Flagged Reviews</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Reviews -->
+    <div class="analytics-section" *ngIf="recentReviews.length > 0">
+      <h3 class="section-title">Recent Reviews</h3>
+      <div class="reviews-list">
+        <div *ngFor="let review of recentReviews" class="review-item">
+          <div class="review-header">
+            <div class="reviewer-info">
+              <span class="reviewer-name">{{ review.clientName }}</span>
+              <span class="review-date">{{ formatDateTime(review.createdAt) }}</span>
+            </div>
+            <span class="sentiment-badge" [ngClass]="getSentimentClass(review.sentiment || '')">
+              {{ review.sentiment || 'N/A' }}
+            </span>
+          </div>
+          <div class="review-rating">
+            <span class="stars">{{ getStars(review.rating) }}</span>
+            <span class="rating-num">{{ review.rating }}/5</span>
+          </div>
+          <p class="review-comment">{{ review.comment }}</p>
+          <span *ngIf="review.incoherent" class="incoherent-badge">⚠️ Flagged as incoherent</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Store Ratings Overview -->
+    <div class="analytics-section" *ngIf="storeRatingsData.length > 0">
+      <h3 class="section-title">Store Ratings Overview</h3>
+      <div class="store-ratings-list">
+        <div *ngFor="let sr of storeRatingsData" class="store-rating-item">
+          <span class="store-name">{{ sr.storeName }}</span>
+          <div class="rating-info">
+            <span class="stars">{{ getStars(sr.rating) }}</span>
+            <span class="rating-value">{{ sr.rating }}</span>
+            <span class="review-count">({{ sr.reviewCount }} reviews)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

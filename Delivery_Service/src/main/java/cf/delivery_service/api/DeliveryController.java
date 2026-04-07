@@ -277,4 +277,16 @@ public class DeliveryController {
         log.info("🔄 Mise à jour manuelle du statut de la livraison {} vers {}", id, status);
         return ResponseEntity.ok(deliveryService.updateDeliveryStatus(id, status));
     }
+    @GetMapping("/store/{storeId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STORE_OWNER')")
+    @Operation(
+            summary = "Livraisons d'un magasin",
+            description = "Récupère toutes les livraisons liées à un magasin spécifique."
+    )
+    public ResponseEntity<List<DeliveryResponseDto>> getDeliveriesByStore(
+            @Parameter(description = "ID du magasin", required = true)
+            @PathVariable String storeId) {
+        log.info("🏪 Fetching deliveries for store {}", storeId);
+        return ResponseEntity.ok(deliveryService.getDeliveriesByStoreId(storeId));
+    }
 }
