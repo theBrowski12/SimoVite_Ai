@@ -42,6 +42,7 @@ export class StoreDetailComponent implements OnInit, OnDestroy {
   // ── Category filter ───────────────────────────────────────────────────────
   selectedCategory = '';
   searchTerm       = '';
+  filterPromo      = false;
 
   foodCategories:        string[] = Object.values(FoodCategory);
   pharmacyCategories:    string[] = Object.values(PharmacyCategory);
@@ -98,7 +99,7 @@ export class StoreDetailComponent implements OnInit, OnDestroy {
   private resetState(): void {
     this.store = null; this.products = []; this.reviews = [];
     this.loadingStore = true; this.loadingProducts = true; this.loadingReviews = true;
-    this.selectedCategory = ''; this.searchTerm = ''; this.error = '';
+    this.selectedCategory = ''; this.searchTerm = ''; this.filterPromo = false; this.error = '';
   }
 
   // ── Data loading ──────────────────────────────────────────────────────────
@@ -152,7 +153,9 @@ export class StoreDetailComponent implements OnInit, OnDestroy {
         prod.supermarketCategories?.includes(this.selectedCategory)
       );
 
-      return matchSearch && matchCat;
+      const matchPromo = !this.filterPromo || p.isPromotion;
+
+      return matchSearch && matchCat && matchPromo;
     });
   }
 

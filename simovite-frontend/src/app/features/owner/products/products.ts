@@ -11,26 +11,8 @@ import {
   SupermarketCategory,
   MainCategory
 } from '@models/catalog.model';
+import { VehicleType } from '@models/delivery.model';
 import { StoreResponseDto } from '@models/store.model';
-
-interface ProductFormData {
-  name: string;
-  description: string;
-  basePrice: number;
-  available: boolean;
-  imageURL: string;
-  vegetarian: boolean;
-  // Restaurant fields
-  foodCategories: FoodCategory[];
-  // Pharmacy fields
-  requiresPrescription: boolean;
-  dosage: string;
-  activeIngredient: string;
-  pharmacyCategories: PharmacyCategory[];
-  // Supermarket fields
-  weightInKg: number;
-  supermarketCategories: SupermarketCategory[];
-}
 
 @Component({
   selector: 'app-products',
@@ -50,16 +32,19 @@ export class Products implements OnInit {
 
   // Form
   productForm!: FormGroup;
+  promotionForm!: FormGroup;
   showCreateModal = false;
   showEditModal = false;
+  showPromotionModal = false;
   submitting = false;
   isEditing = false;
   editingProductId: string | null = null;
+  promoProductId: string | null = null;
 
   // Filters
   searchTerm = '';
   filterAvailability = '';
-  filterCategory = '';
+  filterPromotion = '';
 
   // Pagination
   currentPage = 1;
@@ -75,6 +60,7 @@ export class Products implements OnInit {
   PharmacyCategory = PharmacyCategory;
   SupermarketCategory = SupermarketCategory;
   MainCategory = MainCategory;
+  VehicleTypes : VehicleType[]= ['BICYCLE', 'MOTORCYCLE', 'CAR', 'TRUCK'];
 
   constructor(
     private catalogSvc: CatalogService,
@@ -84,6 +70,7 @@ export class Products implements OnInit {
     private cdr: ChangeDetectorRef
   ) {
     this.initForm();
+    this.initPromotionForm();
   }
 
   ngOnInit(): void {
@@ -100,32 +87,39 @@ export class Products implements OnInit {
       basePrice: [0, [Validators.required, Validators.min(0)]],
       available: [true],
       imageURL: ['', Validators.pattern(/^https?:\/\/.+/)],
+      // Restaurant
       vegetarian: [false],
       foodCategories: [[]],
+      ingredients: [''],
+      allergens: [''],
+      // Pharmacy
       requiresPrescription: [false],
       dosage: [''],
       activeIngredient: [''],
       pharmacyCategories: [[]],
+      // Supermarket
       weightInKg: [0, Validators.min(0)],
-      supermarketCategories: [[]]
+      supermarketCategories: [[]],
+      // Special Delivery
+      pricePerKm: [0, Validators.min(0)],
+      pricePerKg: [0, Validators.min(0)],
+      requiredVehicleType: ['']
+    });
+  }
+
+  private initPromotionForm(): void {
+    this.promotionForm = this.fb.group({
+      percentage: [10, [Validators.required, Validators.min(1), Validators.max(90)]]
     });
   }
 
   resetForm(): void {
     this.productForm.reset({
-      name: '',
-      description: '',
-      basePrice: 0,
-      available: true,
-      imageURL: '',
-      vegetarian: false,
-      foodCategories: [],
-      requiresPrescription: false,
-      dosage: '',
-      activeIngredient: '',
-      pharmacyCategories: [],
-      weightInKg: 0,
-      supermarketCategories: []
+      name: '', description: '', basePrice: 0, available: true, imageURL: '',
+      vegetarian: false, foodCategories: [], ingredients: '', allergens: '',
+      requiresPrescription: false, dosage: '', activeIngredient: '', pharmacyCategories: [],
+      weightInKg: 0, supermarketCategories: [],
+      pricePerKm: 0, pricePerKg: 0, requiredVehicleType: ''
     });
   }
 
@@ -158,8 +152,6 @@ export class Products implements OnInit {
   selectStore(store: StoreResponseDto): void {
     this.selectedStore = store;
     this.currentPage = 1;
-    this.loading = true;
-    this.cdr.detectChanges();
     this.loadProducts();
   }
 
@@ -196,38 +188,26 @@ export class Products implements OnInit {
         p.name.toLowerCase().includes(term) ||
         p.description?.toLowerCase().includes(term);
 
-      const matchAvailability = !this.filterAvailability ||
+      const matchAvail = !this.filterAvailability ||
         (this.filterAvailability === 'available' ? p.available : !p.available);
 
-      const matchCategory = !this.filterCategory || this.productMatchesCategory(p, this.filterCategory);
+      const matchPromo = !this.filterPromotion ||
+        (this.filterPromotion === 'promo' ? p.isPromotion : !p.isPromotion);
 
-      return matchSearch && matchAvailability && matchCategory;
+      return matchSearch && matchAvail && matchPromo;
     });
 
     this.currentPage = 1;
   }
 
-  private productMatchesCategory(product: CatalogResponseDto, category: string): boolean {
-    if (product.type === 'RESTAURANT' && (product as any).foodCategories) {
-      return (product as any).foodCategories.includes(category);
-    }
-    if (product.type === 'PHARMACY' && (product as any).pharmacyCategories) {
-      return (product as any).pharmacyCategories.includes(category);
-    }
-    if (product.type === 'SUPERMARKET' && (product as any).supermarketCategories) {
-      return (product as any).supermarketCategories.includes(category);
-    }
-    return false;
-  }
-
   resetFilters(): void {
     this.searchTerm = '';
     this.filterAvailability = '';
-    this.filterCategory = '';
+    this.filterPromotion = '';
     this.applyFilters();
   }
 
-  // ── Create Product ───────────────────────────────────────
+  // ── CRUD ─────────────────────────────────────────────────
 
   openCreateModal(): void {
     if (!this.selectedStore) {
@@ -235,7 +215,6 @@ export class Products implements OnInit {
       this.cdr.detectChanges();
       return;
     }
-
     this.isEditing = false;
     this.resetForm();
     this.showCreateModal = true;
@@ -252,69 +231,43 @@ export class Products implements OnInit {
       this.productForm.markAllAsTouched();
       return;
     }
-
     this.submitting = true;
-    const formValues = this.productForm.value;
-
-    const baseDto: CatalogRequestDto = {
-      name: formValues.name,
-      description: formValues.description,
-      basePrice: formValues.basePrice,
-      available: formValues.available,
-      storeId: this.selectedStore.id,
-
-      imageURL: formValues.imageURL,
-      type: this.selectedStore.category
+    const fv = this.productForm.value;
+    const base: CatalogRequestDto = {
+      name: fv.name, description: fv.description, basePrice: fv.basePrice,
+      available: fv.available, storeId: this.selectedStore.id,
+      imageURL: fv.imageURL, type: this.selectedStore.category
     };
 
-    // Build category-specific DTO
-    let requestDto: any = baseDto;
-
-    if (this.selectedStore.category === 'RESTAURANT') {
-      requestDto = {
-        ...baseDto,
-        foodCategories: formValues.foodCategories || [],
-        availableExtras: [],
-        ingredients: [],
-        vegetarian: formValues.vegetarian,
-        allergens: ''
-      };
-      this.catalogSvc.createRestaurantItem(requestDto).subscribe({
-        next: (product) => this.handleCreateSuccess(product),
-        error: (err) => this.handleCreateError(err)
-      });
-    } else if (this.selectedStore.category === 'PHARMACY') {
-      requestDto = {
-        ...baseDto,
-        requiresPrescription: formValues.requiresPrescription,
-        dosage: formValues.dosage,
-        activeIngredient: formValues.activeIngredient,
-        pharmacyCategories: formValues.pharmacyCategories || []
-      };
-      this.catalogSvc.createPharmacyItem(requestDto).subscribe({
-        next: (product) => this.handleCreateSuccess(product),
-        error: (err) => this.handleCreateError(err)
-      });
-    } else if (this.selectedStore.category === 'SUPERMARKET') {
-      requestDto = {
-        ...baseDto,
-        weightInKg: formValues.weightInKg,
-        supermarketCategories: formValues.supermarketCategories || []
-      };
-      this.catalogSvc.createSupermarketItem(requestDto).subscribe({
-        next: (product) => this.handleCreateSuccess(product),
-        error: (err) => this.handleCreateError(err)
-      });
+    const cat = this.selectedStore.category;
+    if (cat === 'RESTAURANT') {
+      this.catalogSvc.createRestaurantItem({
+        ...base, foodCategories: fv.foodCategories || [],
+        availableExtras: (fv.availableExtras || '').split(',').filter((s: string) => s.trim()),
+        ingredients: (fv.ingredients || '').split(',').filter((s: string) => s.trim()),
+        vegetarian: fv.vegetarian, allergens: fv.allergens || ''
+      }).subscribe({ next: p => this.handleCreateSuccess(p), error: e => this.handleCreateError(e) });
+    } else if (cat === 'PHARMACY') {
+      this.catalogSvc.createPharmacyItem({
+        ...base, requiresPrescription: fv.requiresPrescription, dosage: fv.dosage,
+        activeIngredient: fv.activeIngredient, pharmacyCategories: fv.pharmacyCategories || []
+      }).subscribe({ next: p => this.handleCreateSuccess(p), error: e => this.handleCreateError(e) });
+    } else if (cat === 'SUPERMARKET') {
+      this.catalogSvc.createSupermarketItem({
+        ...base, weightInKg: fv.weightInKg, supermarketCategories: fv.supermarketCategories || []
+      }).subscribe({ next: p => this.handleCreateSuccess(p), error: e => this.handleCreateError(e) });
+    } else if (cat === 'SPECIAL_DELIVERY') {
+      this.catalogSvc.createDeliveryService({
+        ...base, pricePerKm: fv.pricePerKm, pricePerKg: fv.pricePerKg,
+        requiredVehicleType: fv.requiredVehicleType
+      }).subscribe({ next: p => this.handleCreateSuccess(p), error: e => this.handleCreateError(e) });
     } else {
-      this.catalogSvc.createOffer(requestDto).subscribe({
-        next: (product) => this.handleCreateSuccess(product),
-        error: (err) => this.handleCreateError(err)
-      });
+      this.catalogSvc.createOffer(base).subscribe({ next: p => this.handleCreateSuccess(p), error: e => this.handleCreateError(e) });
     }
   }
 
-  private handleCreateSuccess(product: CatalogResponseDto): void {
-    this.successMessage = `"${product.name}" has been created successfully!`;
+  private handleCreateSuccess(p: CatalogResponseDto): void {
+    this.successMessage = `"${p.name}" created!`;
     this.closeCreateModal();
     this.loadProducts();
     this.submitting = false;
@@ -322,31 +275,24 @@ export class Products implements OnInit {
   }
 
   private handleCreateError(err: any): void {
-    console.error('Create failed:', err);
-    this.error = 'Failed to create product. Please try again.';
+    this.error = 'Failed to create product.';
     this.submitting = false;
     this.cdr.detectChanges();
   }
 
-  // ── Edit Product ─────────────────────────────────────────
+  // ── Edit ─────────────────────────────────────────────────
 
   openEditModal(product: CatalogResponseDto): void {
     this.isEditing = true;
     this.editingProductId = product.id;
-
     this.productForm.patchValue({
-      name: product.name,
-      description: product.description,
-      basePrice: product.basePrice,
-      available: product.available,
-      imageURL: product.imageURL,
+      name: product.name, description: product.description, basePrice: product.basePrice,
+      available: product.available, imageURL: product.imageURL,
       vegetarian: (product as any).vegetarian || false,
       requiresPrescription: (product as any).requiresPrescription || false,
-      dosage: (product as any).dosage || '',
-      activeIngredient: (product as any).activeIngredient || '',
+      dosage: (product as any).dosage || '', activeIngredient: (product as any).activeIngredient || '',
       weightInKg: (product as any).weightInKg || 0
     });
-
     this.showEditModal = true;
     this.cdr.detectChanges();
   }
@@ -361,58 +307,31 @@ export class Products implements OnInit {
       this.productForm.markAllAsTouched();
       return;
     }
-
     this.submitting = true;
-    const formValues = this.productForm.value;
-
-    const baseDto: CatalogRequestDto = {
-      name: formValues.name,
-      description: formValues.description,
-      basePrice: formValues.basePrice,
-      available: formValues.available,
-      storeId: this.selectedStore.id,
-      imageURL: formValues.imageURL,
-      type: this.selectedStore.category
+    const fv = this.productForm.value;
+    const base: CatalogRequestDto = {
+      name: fv.name, description: fv.description, basePrice: fv.basePrice,
+      available: fv.available, storeId: this.selectedStore.id,
+      imageURL: fv.imageURL, type: this.selectedStore.category
     };
 
-    let requestDto: any = baseDto;
+    const cat = this.selectedStore.category;
+    let dto: any = base;
+    if (cat === 'RESTAURANT') dto = { ...base, foodCategories: fv.foodCategories || [], availableExtras: (fv.availableExtras || '').split(',').filter((s: string) => s.trim()), ingredients: (fv.ingredients || '').split(',').filter((s: string) => s.trim()), vegetarian: fv.vegetarian, allergens: fv.allergens || '' };
+    else if (cat === 'PHARMACY') dto = { ...base, requiresPrescription: fv.requiresPrescription, dosage: fv.dosage, activeIngredient: fv.activeIngredient, pharmacyCategories: fv.pharmacyCategories || [] };
+    else if (cat === 'SUPERMARKET') dto = { ...base, weightInKg: fv.weightInKg, supermarketCategories: fv.supermarketCategories || [] };
+    else if (cat === 'SPECIAL_DELIVERY') dto = { ...base, pricePerKm: fv.pricePerKm, pricePerKg: fv.pricePerKg, requiredVehicleType: fv.requiredVehicleType };
 
-    if (this.selectedStore.category === 'RESTAURANT') {
-      requestDto = {
-        ...baseDto,
-        foodCategories: formValues.foodCategories || [],
-        availableExtras: [],
-        ingredients: [],
-        vegetarian: formValues.vegetarian,
-        allergens: ''
-      };
-    } else if (this.selectedStore.category === 'PHARMACY') {
-      requestDto = {
-        ...baseDto,
-        requiresPrescription: formValues.requiresPrescription,
-        dosage: formValues.dosage,
-        activeIngredient: formValues.activeIngredient,
-        pharmacyCategories: formValues.pharmacyCategories || []
-      };
-    } else if (this.selectedStore.category === 'SUPERMARKET') {
-      requestDto = {
-        ...baseDto,
-        weightInKg: formValues.weightInKg,
-        supermarketCategories: formValues.supermarketCategories || []
-      };
-    }
-
-    this.catalogSvc.updateOffer(this.editingProductId, requestDto).subscribe({
-      next: (updated) => {
-        this.successMessage = `"${updated.name}" has been updated successfully!`;
+    this.catalogSvc.updateOffer(this.editingProductId, dto).subscribe({
+      next: u => {
+        this.successMessage = `"${u.name}" updated!`;
         this.closeEditModal();
         this.loadProducts();
         this.submitting = false;
         this.clearMessagesAfterDelay();
       },
-      error: (err) => {
-        console.error('Update failed:', err);
-        this.error = 'Failed to update product. Please try again.';
+      error: () => {
+        this.error = 'Failed to update product.';
         this.submitting = false;
         this.cdr.detectChanges();
       }
@@ -423,14 +342,13 @@ export class Products implements OnInit {
 
   toggleAvailability(product: CatalogResponseDto): void {
     this.catalogSvc.toggleAvailability(product.id).subscribe({
-      next: (updated) => {
-        Object.assign(product, updated);
-        this.successMessage = `Product ${updated.available ? 'enabled' : 'disabled'}.`;
+      next: u => {
+        Object.assign(product, u);
+        this.successMessage = `Product ${u.available ? 'enabled' : 'disabled'}.`;
         this.applyFilters();
         this.clearMessagesAfterDelay();
       },
-      error: (err) => {
-        console.error('Toggle failed:', err);
+      error: () => {
         product.available = !product.available;
         this.error = 'Failed to update availability.';
         this.cdr.detectChanges();
@@ -438,22 +356,91 @@ export class Products implements OnInit {
     });
   }
 
-  // ── Delete Product ───────────────────────────────────────
-
   deleteProduct(product: CatalogResponseDto): void {
-    if (!confirm(`Are you sure you want to delete "${product.name}"? This cannot be undone.`)) {
-      return;
-    }
-
+    if (!confirm(`Delete "${product.name}"?`)) return;
     this.catalogSvc.deleteOffer(product.id).subscribe({
       next: () => {
-        this.successMessage = `"${product.name}" has been deleted.`;
+        this.successMessage = `"${product.name}" deleted.`;
         this.loadProducts();
         this.clearMessagesAfterDelay();
       },
+      error: () => { this.error = 'Failed to delete product.'; this.cdr.detectChanges(); }
+    });
+  }
+
+  // ── Promotion ────────────────────────────────────────────
+
+  openPromotionModal(product: CatalogResponseDto): void {
+    this.promoProductId = product.id;
+    const pct = (product as any).percentage || 10;
+    this.promotionForm.patchValue({ percentage: pct });
+    this.showPromotionModal = true;
+    this.cdr.detectChanges();
+  }
+
+  closePromotionModal(): void {
+    this.showPromotionModal = false;
+    this.promoProductId = null;
+    this.promotionForm.reset({ percentage: 10 });
+  }
+
+  submitPromotion(): void {
+    if (!this.promoProductId) {
+      this.error = 'No product selected.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    // Force validation
+    this.promotionForm.markAllAsTouched();
+    if (this.promotionForm.invalid) {
+      this.error = 'Please enter a valid percentage (1-90).';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.submitting = true;
+    this.error = '';
+    this.cdr.detectChanges();
+
+    const pct = this.promotionForm.value.percentage;
+    const pid = this.promoProductId;
+
+    this.catalogSvc.applyPromotion(pid, pct).subscribe({
+      next: u => {
+        // Update local product data
+        const p = this.products.find(x => x.id === pid);
+        if (p) Object.assign(p, u);
+
+        this.successMessage = `${pct}% promotion applied to "${u.name}"!`;
+        this.showPromotionModal = false;
+        this.promoProductId = null;
+        this.submitting = false;
+        this.promotionForm.reset({ percentage: 10 });
+        this.applyFilters();
+        this.cdr.detectChanges();
+        this.clearMessagesAfterDelay();
+      },
       error: (err) => {
-        console.error('Delete failed:', err);
-        this.error = 'Failed to delete product. Please try again.';
+        console.error('Promotion failed:', err);
+        this.error = 'Failed to apply promotion. Please try again.';
+        this.submitting = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  removePromotion(product: CatalogResponseDto): void {
+    if (!confirm(`Remove promotion from "${product.name}"?`)) return;
+    this.catalogSvc.removePromotion(product.id).subscribe({
+      next: u => {
+        Object.assign(product, u);
+        this.successMessage = `Promo removed from "${product.name}".`;
+        this.applyFilters();
+        this.clearMessagesAfterDelay();
+      },
+      error: () => {
+        this.error = 'Failed to remove promotion.';
         this.cdr.detectChanges();
       }
     });
@@ -474,63 +461,44 @@ export class Products implements OnInit {
 
   // ── Helpers ──────────────────────────────────────────────
 
+  /** Split comma-separated strings into trimmed non-empty array items */
+  splitIfNeeded(value: string | string[]): string[] {
+    if (!value) return [];
+    if (Array.isArray(value)) return value.filter(s => s.trim());
+    return value.split(',').map(s => s.trim()).filter(s => s);
+  }
+
   getCategoryClass(type: string): string {
-    const m: Record<string, string> = {
-      RESTAURANT: 'orange',
-      PHARMACY: 'green',
-      SUPERMARKET: 'blue',
-      SPECIAL_DELIVERY: 'purple'
-    };
+    const m: Record<string, string> = { RESTAURANT: 'orange', PHARMACY: 'green', SUPERMARKET: 'blue', SPECIAL_DELIVERY: 'purple' };
     return m[type] ?? 'gray';
   }
 
-  getStars(rating: number | undefined): string {
-    const r = rating ?? 0;
-    const full = Math.round(r);
-    return '★'.repeat(full) + '☆'.repeat(5 - full);
+  getStars(rating?: number): string {
+    const f = Math.round(rating ?? 0);
+    return '★'.repeat(f) + '☆'.repeat(5 - f);
   }
 
-  getStoreCategoryLabel(category: string): string {
-    const m: Record<string, string> = {
-      RESTAURANT: 'Restaurant',
-      PHARMACY: 'Pharmacy',
-      SUPERMARKET: 'Supermarket',
-      SPECIAL_DELIVERY: 'Special Delivery'
-    };
-    return m[category] ?? category;
+  getStoreCategoryLabel(cat: string): string {
+    const m: Record<string, string> = { RESTAURANT: 'Restaurant', PHARMACY: 'Pharmacy', SUPERMARKET: 'Supermarket', SPECIAL_DELIVERY: 'Special Delivery' };
+    return m[cat] ?? cat;
   }
 
-  formatCategories(categories: string[]): string {
-    if (!categories || categories.length === 0) return 'No categories';
-    return categories.join(', ');
+  getDiscountedPrice(p: CatalogResponseDto): number | null {
+    if ((p as any).isPromotion && (p as any).originalPrice) return p.basePrice;
+    return null;
   }
 
-  private clearMessagesAfterDelay(): void {
-    setTimeout(() => {
-      this.successMessage = '';
-      this.error = '';
-      this.cdr.detectChanges();
-    }, 4000);
+  clearMessagesAfterDelay(): void {
+    setTimeout(() => { this.successMessage = ''; this.error = ''; this.cdr.detectChanges(); }, 4000);
   }
 
   // ── Pagination ───────────────────────────────────────────
 
   get paginatedProducts(): CatalogResponseDto[] {
-    const start = (this.currentPage - 1) * this.pageSize;
-    return this.filteredProducts.slice(start, start + this.pageSize);
+    const s = (this.currentPage - 1) * this.pageSize;
+    return this.filteredProducts.slice(s, s + this.pageSize);
   }
-
-  get totalPages(): number {
-    return Math.ceil(this.filteredProducts.length / this.pageSize);
-  }
-
-  get pages(): number[] {
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
-  }
-
-  goToPage(page: number): void {
-    if (page >= 1 && page <= this.totalPages) {
-      this.currentPage = page;
-    }
-  }
+  get totalPages(): number { return Math.ceil(this.filteredProducts.length / this.pageSize); }
+  get pages(): number[] { return Array.from({ length: this.totalPages }, (_, i) => i + 1); }
+  goToPage(page: number): void { if (page >= 1 && page <= this.totalPages) this.currentPage = page; }
 }

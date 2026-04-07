@@ -25,6 +25,8 @@ import lombok.*;
     private String description;
     private Double basePrice;
     private Boolean available;
+    private Double originalPrice; // Pour garder le prix avant promo
+    private Boolean isPromotion = false;
   // On ajoute un champ type explicite pour aider le Front-end (React/Angular)
     private String type;
     private String storeId;

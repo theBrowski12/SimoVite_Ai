@@ -23,6 +23,8 @@ public class Catalog {
     private String description;
     private Double basePrice;
     private Boolean available = true;
+    private Double originalPrice; // Pour garder le prix avant promo
+    private Boolean isPromotion = false;
 
     @JsonProperty("imageURL")
     private String imageURL;

@@ -158,6 +158,7 @@
             <th>Distance</th>
             <th>Cost</th>
             <th>ETA</th>
+            <th>Actual Time</th>
             <th>COD</th>
             <th>Status</th>
             <th>Date</th>
@@ -227,6 +228,23 @@
                 ⏱ {{ d.estimatedTimeInMinutes }} min
               </span>
               <span *ngIf="!d.estimatedTimeInMinutes" class="na-text">—</span>
+            </td>
+
+            <!-- Actual Delivery Time -->
+            <td>
+              <ng-container *ngIf="d.status === 'DELIVERED'; else notDelivered">
+                <div class="time-cell">
+                  <span class="actual-time" [class.on-time]="isOnTime(d)" [class.late]="isLate(d)">
+                    {{ d.actualDeliveryTimeInMinutes || '?' }} min
+                  </span>
+                  <span *ngIf="getTimeDiff(d)" class="time-diff" [class.on-time]="isOnTime(d)" [class.late]="isLate(d)">
+                    {{ getTimeDiff(d) }}
+                  </span>
+                </div>
+              </ng-container>
+              <ng-template #notDelivered>
+                <span class="na-text">—</span>
+              </ng-template>
             </td>
 
             <!-- COD -->
@@ -426,7 +444,17 @@
             <div class="ml-card">
               <div class="ml-icon">⏱️</div>
               <div class="ml-val">{{ d.estimatedTimeInMinutes || '—' }} <span *ngIf="d.estimatedTimeInMinutes">min</span></div>
-              <div class="ml-lbl">ETA</div>
+              <div class="ml-lbl">ETA (Est.)</div>
+            </div>
+            <div class="ml-card" *ngIf="d.status === 'DELIVERED'">
+              <div class="ml-icon">⏰</div>
+              <div class="ml-val" [class.on-time]="isOnTime(d)" [class.late]="isLate(d)">
+                {{ d.actualDeliveryTimeInMinutes || '?' }} <span *ngIf="d.actualDeliveryTimeInMinutes">min</span>
+              </div>
+              <div class="ml-lbl">Actual Time</div>
+              <div class="ml-diff" *ngIf="getTimeDiff(d)" [class.on-time]="isOnTime(d)" [class.late]="isLate(d)">
+                {{ getTimeDiff(d) }}
+              </div>
             </div>
             <div class="ml-card">
               <div class="ml-icon">💰</div>

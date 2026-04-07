@@ -1,89 +1,152 @@
 <div class="admin-couriers">
+  <!-- Header -->
   <header class="page-header">
-    <div class="header-main">
-      <h1>Livreurs (Couriers)</h1>
-      <p class="page-sub">Gestion des performances et statuts des livreurs en temps réel</p>
+    <div class="header-left">
+      <h1>Couriers 🚚</h1>
+      <p class="page-sub">Manage delivery couriers and their performance</p>
     </div>
-    <div class="header-actions">
-      <button class="reset-btn" (click)="reset()">Réinitialiser</button>
+    <div class="header-stats">
+      <span class="stat-pill">Total <strong>{{ couriers.length }}</strong></span>
+      <span class="stat-pill active" *ngIf="filtered.length !== couriers.length">Showing <strong>{{ filtered.length }}</strong></span>
     </div>
   </header>
 
-  <div class="filter-card">
-    <div class="search-box">
-      <input type="text" [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="Rechercher par nom ou email...">
-    </div>
-    <div class="filter-group">
-      <select [(ngModel)]="filterStatus" (change)="applyFilters()">
-        <option value="">Tous les statuts</option>
-        <option value="online">En ligne 🟢</option>
-        <option value="offline">Hors ligne ⚪</option>
+  <!-- Table Card -->
+  <div class="table-card">
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <div class="search-wrap">
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input class="search-in" [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()" placeholder="Search by courier name or email…">
+        <button class="search-clear" *ngIf="searchTerm" (click)="searchTerm=''; applyFilters()">×</button>
+      </div>
+
+      <select class="filter-sel" [(ngModel)]="filterStatus" (ngModelChange)="applyFilters()">
+        <option value="">All Status</option>
+        <option value="online">🟢 Online</option>
+        <option value="offline">⚫ Offline</option>
       </select>
-      <select [(ngModel)]="filterVehicle" (change)="applyFilters()">
-        <option value="">Tous les véhicules</option>
-        <option value="MOTORCYCLE">Moto</option>
-        <option value="CAR">Voiture</option>
-        <option value="BICYCLE">Vélo</option>
-        <option value="TRUCK">Camion</option>
+
+      <select class="filter-sel" [(ngModel)]="filterVehicle" (ngModelChange)="applyFilters()">
+        <option value="">All Vehicles</option>
+        <option value="MOTORCYCLE">🛵 Motorcycle</option>
+        <option value="CAR">🚗 Car</option>
+        <option value="BICYCLE">🚲 Bicycle</option>
+        <option value="TRUCK">🚛 Truck</option>
       </select>
+
+      <button class="btn-reset" *ngIf="searchTerm || filterStatus || filterVehicle" (click)="reset()">↺ Reset</button>
     </div>
-  </div>
 
-  <div class="loading-wrap" *ngIf="loading">
-    <div class="spinner"></div>
-  </div>
+    <!-- Loading -->
+    <div class="loading-wrap" *ngIf="loading">
+      <div class="spinner"></div>
+      <span>Loading couriers…</span>
+    </div>
 
-  <div class="table-card" *ngIf="!loading">
-    <table>
-      <thead>
-        <tr>
-          <th>Livreur</th>
-          <th>Véhicule</th>
-          <th>Performance</th>
-          <th>Livraisons</th>
-          <th>Gains Totaux</th>
-          <th>Dernière activité</th>
-          <th>Statut</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let c of filtered">
-          <td>
-            <div class="courier-profile">
-              <div class="avatar">{{ getInitials(c.name) }}</div>
-              <div class="info">
-                <span class="name">{{ c.name }}</span>
-                <span class="email">{{ c.email }}</span>
+    <!-- Table -->
+    <div class="table-wrap" *ngIf="!loading">
+      <table>
+        <thead>
+          <tr>
+            <th>COURIER</th>
+            <th>VEHICLE</th>
+            <th>DELIVERIES</th>
+            <th>COMPLETION</th>
+            <th>EARNINGS</th>
+            <th>ONLINE</th>
+            <th>LAST SEEN</th>
+            <th>ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of paginated">
+            <!-- Courier -->
+            <td>
+              <div class="courier-cell">
+                <div class="avatar" [class.online]="c.online">{{ getInitials(c.name) }}</div>
+                <div>
+                  <span class="courier-name">{{ c.name }}</span>
+                  <span class="courier-email">{{ c.email }}</span>
+                </div>
               </div>
-            </div>
-          </td>
-          <td>
-            <span class="badge" [ngClass]="getVehicleClass(c.vehicleType)">
-              {{ getVehicleIcon(c.vehicleType) }} {{ c.vehicleType }}
-            </span>
-          </td>
-          <td>
-            <div class="perf-cell">
-              <span class="rating">⭐ {{ c.rating }}</span>
-              <div class="progress-bg">
-                <div class="progress-bar" [style.width.%]="c.completionRate"></div>
-              </div>
-              <span class="rate-text">{{ c.completionRate }}% complétion</span>
-            </div>
-          </td>
-          <td class="text-bold">{{ c.totalDeliveries }}</td>
-          <td class="text-price">{{ c.earnings | number:'1.0-0' }} DH</td>
-          <td class="text-muted">{{ c.lastSeen }}</td>
-          <td>
-            <span class="status-dot" [class.online]="c.online"></span>
-            {{ c.online ? 'En ligne' : 'Déconnecté' }}
-          </td>
-        </tr>
-      </tbody>
-    </table>
+            </td>
 
-    <div class="empty-state" *ngIf="filtered.length === 0">
-      <p>Aucun livreur trouvé pour cette recherche.</p>
+            <!-- Vehicle -->
+            <td>
+              <span class="badge {{ getVehicleClass(c.vehicleType) }}">
+                {{ getVehicleIcon(c.vehicleType) }} {{ c.vehicleType }}
+              </span>
+            </td>
+
+            <!-- Deliveries -->
+            <td class="deliveries-cell">
+              <span class="deliveries-count">{{ c.totalDeliveries }}</span>
+              <span class="deliveries-label">delivered</span>
+            </td>
+
+            <!-- Completion Rate -->
+            <td class="completion-cell">
+              <div class="completion-bar">
+                <div class="completion-fill" [style.width.%]="c.completionRate"
+                     [class.high]="c.completionRate >= 80"
+                     [class.medium]="c.completionRate >= 50 && c.completionRate < 80"
+                     [class.low]="c.completionRate < 50"></div>
+              </div>
+              <span class="completion-pct">{{ c.completionRate }}%</span>
+            </td>
+
+            <!-- Earnings -->
+            <td class="earnings-cell">
+              <span class="earnings-value">{{ c.earnings | number:'1.0-0' }} DH</span>
+            </td>
+
+            <!-- Online Status -->
+            <td class="online-cell">
+              <span class="online-badge" *ngIf="c.online">🟢 Online</span>
+              <span class="offline-badge" *ngIf="!c.online">⚫ Offline</span>
+            </td>
+
+            <!-- Last Seen -->
+            <td class="date-cell">{{ c.lastSeen }}</td>
+
+            <!-- Actions -->
+            <td class="actions-cell">
+              <button class="action-btn toggle-btn" (click)="toggleCourierStatus(c)" title="{{ c.enabled ? 'Suspend' : 'Activate' }}">
+                {{ c.enabled ? '⏸️' : '✅' }}
+              </button>
+              <button class="action-btn delete-btn" (click)="deleteCourier(c)" title="Delete">
+                🗑️
+              </button>
+            </td>
+          </tr>
+
+          <!-- Empty -->
+          <tr *ngIf="paginated.length === 0">
+            <td colspan="8">
+              <div class="empty-state">
+                <span class="empty-icon">🚚</span>
+                <strong>No couriers found</strong>
+                <span>Try adjusting your filters</span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="!loading && totalPages > 1">
+      <span class="page-info">
+        Showing {{ (currentPage - 1) * pageSize + 1 }}–{{ Math.min(currentPage * pageSize, filtered.length) }} of {{ filtered.length }}
+      </span>
+      <div class="page-btns">
+        <button class="page-btn" [disabled]="currentPage === 1" (click)="currentPage = currentPage - 1">‹</button>
+        <button class="page-btn" *ngFor="let p of pages" [class.active]="p === currentPage" (click)="currentPage = p">{{ p }}</button>
+        <button class="page-btn" [disabled]="currentPage === totalPages" (click)="currentPage = currentPage + 1">›</button>
+      </div>
     </div>
   </div>
 </div>

@@ -49,7 +49,12 @@ export class AdminDeliveries implements OnInit {
     this.error   = '';
     this.deliverySvc.getAll().subscribe({
       next: data => {
-        this.deliveries = data;
+        this.deliveries = data.sort((a, b) => {
+          // Sort by most recent date
+          const dateA = new Date(a.deliveredAt || a.updatedAt || a.createdAt).getTime();
+          const dateB = new Date(b.deliveredAt || b.updatedAt || b.createdAt).getTime();
+          return dateB - dateA; // Descending: newest first
+        });
         this.applyFilters();
         this.loading = false;
         this.cdr.detectChanges();
@@ -202,5 +207,24 @@ export class AdminDeliveries implements OnInit {
 
   getInitials(name: string): string {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  }
+
+  // ── Delivery time helpers ──────────────────────────────────
+
+  isOnTime(d: Delivery): boolean {
+    return !!(d.status === 'DELIVERED' && d.actualDeliveryTimeInMinutes && d.estimatedTimeInMinutes
+      && d.actualDeliveryTimeInMinutes <= d.estimatedTimeInMinutes);
+  }
+
+  isLate(d: Delivery): boolean {
+    return !!(d.status === 'DELIVERED' && d.actualDeliveryTimeInMinutes && d.estimatedTimeInMinutes
+      && d.actualDeliveryTimeInMinutes > d.estimatedTimeInMinutes);
+  }
+
+  getTimeDiff(d: Delivery): string {
+    if (!d.actualDeliveryTimeInMinutes || !d.estimatedTimeInMinutes) return '';
+    const diff = d.actualDeliveryTimeInMinutes - d.estimatedTimeInMinutes;
+    if (diff === 0) return '';
+    return diff > 0 ? `+${diff} min` : `${diff} min`;
   }
 }

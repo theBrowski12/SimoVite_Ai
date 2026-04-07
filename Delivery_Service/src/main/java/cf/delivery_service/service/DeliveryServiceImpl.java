@@ -230,11 +230,13 @@ public class DeliveryServiceImpl implements DeliveryService {
 
             delivery.setEstimatedTimeInMinutes(calculatedETA);
         }
+        delivery.setAcceptedAt(LocalDateTime.now());
 
         Delivery savedDelivery = deliveryRepository.save(delivery);
         log.info("💾 ETA final sauvegardé en DB : {} min", savedDelivery.getEstimatedTimeInMinutes());
 
         orderClient.updateOrderStatus(savedDelivery.getOrderRef(), ACCEPTED);
+
 
         DeliveryNotificationEvent event = DeliveryNotificationEvent.builder()
                 .eventType("COURIER_ASSIGNED")
@@ -269,6 +271,13 @@ public class DeliveryServiceImpl implements DeliveryService {
 
         delivery.setStatus(DeliveryStatus.DELIVERED);
         delivery.setDeliveredAt(LocalDateTime.now());
+        if (delivery.getAcceptedAt() != null) {
+            long actualMinutes = java.time.temporal.ChronoUnit.MINUTES.between(
+                    delivery.getAcceptedAt(),
+                    delivery.getDeliveredAt()
+            );
+            delivery.setActualDeliveryTimeInMinutes(actualMinutes);
+        }
         Delivery savedDelivery = deliveryRepository.save(delivery);
 
         orderClient.updateOrderStatus(savedDelivery.getOrderRef(), COMPLETED);

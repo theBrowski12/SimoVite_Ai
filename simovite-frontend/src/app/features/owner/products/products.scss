@@ -478,61 +478,34 @@
   display: inline-flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.3rem;
   cursor: pointer;
-  position: relative;
   user-select: none;
 
-  input[type="checkbox"] {
-    display: none;
-  }
-
-  .slider-text {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #9ca3af;
-    transition: all 0.3s ease;
-    white-space: nowrap;
-  }
+  input[type="checkbox"] { display: none; }
 
   .slider {
-    width: 48px;
-    height: 26px;
-    background: #e5e7eb;
-    border-radius: 13px;
-    position: relative;
-    transition: all 0.3s ease;
-
+    width: 46px; height: 24px;
+    background: #e5e7eb; border-radius: 12px;
+    position: relative; transition: all 0.3s ease;
     &::before {
-      content: '';
-      position: absolute;
-      left: 3px;
-      top: 3px;
-      width: 20px;
-      height: 20px;
-      background: white;
-      border-radius: 50%;
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+      content: ''; position: absolute; left: 3px; top: 3px;
+      width: 18px; height: 18px; background: #fff; border-radius: 50%;
+      transition: all 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,.15);
     }
   }
 
-  input:checked ~ .slider-text {
-    color: #16a34a;
+  .slider-text {
+    font-size: 0.7rem; font-weight: 600;
+    color: #9ca3af; transition: color 0.3s ease; white-space: nowrap;
   }
 
   input:checked + .slider {
     background: #dcfce7;
-
-    &::before {
-      left: 25px;
-      background: #16a34a;
-    }
+    &::before { left: 25px; background: #16a34a; }
   }
-
-  &:hover .slider {
-    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
-  }
+  input:checked + .slider ~ .slider-text { color: #16a34a; }
+  &:hover .slider { box-shadow: 0 0 0 3px rgba(22,163,74,.1); }
 }
 
 .rating-cell {
@@ -835,6 +808,77 @@
   }
 }
 
+// Tag lists for ingredients, categories, extras
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  display: inline-block;
+  padding: 4px 10px;
+  background: #f3f4f6;
+  color: #374151;
+  border-radius: 16px;
+  font-size: 0.75rem;
+  font-weight: 600;
+
+  &.tag-extra {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  &.tag-cat {
+    background: #ffedd5;
+    color: #c2410c;
+  }
+
+  &.tag-pharma {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  &.tag-super {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+}
+
+.badge-veg {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: #dcfce7;
+  color: #166534;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.badge-rx {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: #f3e8ff;
+  color: #6b21a5;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.allergen-text {
+  display: inline-block;
+  padding: 6px 12px;
+  background: #fef2f2;
+  color: #dc2626;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
 .price-large {
   font-size: 1.5rem !important;
   font-weight: 700 !important;
@@ -900,7 +944,94 @@
   }
 }
 
-// Responsive
+// ═══════════════════════════════════════════════════════════
+// PROMOTION
+// ═══════════════════════════════════════════════════════════
+.product-row.has-promo {
+  background: linear-gradient(90deg, #fffbeb, #fff);
+  border-left: 3px solid #f59e0b;
+}
+
+.product-thumb-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.promo-badge {
+  position: absolute;
+  top: 4px; left: 4px;
+  padding: 2px 8px;
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+  color: #fff; font-size: 0.65rem; font-weight: 700;
+  border-radius: 10px; white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(220,38,38,.3);
+  animation: pulse-promo 2s infinite;
+}
+@keyframes pulse-promo { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+
+.original-price {
+  display: block; font-size: 0.8rem; color: #9ca3af;
+  text-decoration: line-through; margin-bottom: 2px;
+}
+.sale-price {
+  display: block; font-size: 1.1rem; font-weight: 800; color: #dc2626;
+}
+
+.btn-icon-promo:hover { background: #fef3c7; color: #d97706; }
+.btn-icon-remove-promo:hover { background: #fee2e2; color: #dc2626; }
+
+// Promotion Modal
+.promo-modal { max-width: 480px; }
+.promo-modal .modal-subtitle { margin: 0.25rem 0 0; font-size: 0.85rem; color: #6b7280; }
+
+.promo-preview {
+  background: linear-gradient(135deg, #fef3c7, #fffbeb);
+  border-radius: 12px; padding: 18px; text-align: center;
+  margin-bottom: 18px; border: 1px solid #fde68a;
+}
+.promo-label {
+  display: block; font-size: 0.75rem; font-weight: 600; color: #92400e;
+  margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.promo-slider-wrap { display: flex; align-items: center; gap: 14px; }
+
+.promo-range {
+  flex: 1; height: 6px; -webkit-appearance: none; appearance: none;
+  background: linear-gradient(90deg, #f59e0b, #dc2626); border-radius: 3px; outline: none;
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 22px; height: 22px; background: #fff;
+    border: 3px solid #f59e0b; border-radius: 50%; cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,.15);
+  }
+  &::-moz-range-thumb {
+    width: 22px; height: 22px; background: #fff;
+    border: 3px solid #f59e0b; border-radius: 50%; cursor: pointer;
+  }
+}
+.promo-value { font-size: 1.4rem; font-weight: 800; color: #dc2626; min-width: 50px; text-align: center; }
+
+.promo-form-group { margin-bottom: 14px;
+  label { display: block; margin-bottom: 5px; font-size: 0.85rem; font-weight: 600; color: #374151; }
+}
+.promo-input { text-align: center; font-size: 1.2rem; font-weight: 700; padding: 10px; }
+
+.promo-info {
+  background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px;
+  padding: 10px 14px; font-size: 0.8rem; color: #166534;
+}
+
+.btn-promo {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.6rem 1.5rem;
+  background: linear-gradient(135deg, #f59e0b, #dc2626);
+  color: #fff; border: none; border-radius: 8px;
+  font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.2s;
+  &:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(220,38,38,.3); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+// ═══════════════════════════════════════════════════════════
+// RESPONSIVE
 @media (max-width: 1024px) {
   .main-content {
     grid-template-columns: 1fr;

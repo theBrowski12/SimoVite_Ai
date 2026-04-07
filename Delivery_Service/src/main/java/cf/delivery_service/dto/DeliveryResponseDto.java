@@ -42,10 +42,13 @@ public class DeliveryResponseDto {
     // Paiement
     private boolean cashOnDelivery;
     private BigDecimal amountToCollect;
-
+    // Temps réel calculé à la fin de la course
+    private Long actualDeliveryTimeInMinutes;
     // Status & dates
     private DeliveryStatus status;
     private LocalDateTime createdAt;
+    private LocalDateTime acceptedAt;
+
     private LocalDateTime updatedAt;
     private LocalDateTime deliveredAt;
 }

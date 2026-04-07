@@ -1,93 +1,138 @@
 <div class="admin-clients">
+  <!-- Header -->
   <header class="page-header">
-    <h1>Clients</h1>
-    <p class="page-sub">All registered clients from Keycloak</p>
-  </header>
-  
-  <div class="table-card">
-    <div class="filter-bar">
-      <input class="search-in" [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="Search by name or email...">
+    <div class="header-left">
+      <h1>Clients 👥</h1>
+      <p class="page-sub">Manage all registered users</p>
     </div>
-    
+    <div class="header-stats">
+      <span class="stat-pill">Total <strong>{{ clients.length }}</strong></span>
+      <span class="stat-pill active" *ngIf="filtered.length !== clients.length">Showing <strong>{{ filtered.length }}</strong></span>
+    </div>
+  </header>
+
+  <!-- Table Card -->
+  <div class="table-card">
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <div class="search-wrap">
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input class="search-in" [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()" placeholder="Search by client name or email…">
+        <button class="search-clear" *ngIf="searchTerm" (click)="searchTerm=''; applyFilters()">×</button>
+      </div>
+
+      <select class="filter-sel" [(ngModel)]="filterStatus" (ngModelChange)="applyFilters()">
+        <option value="">All Status</option>
+        <option value="active">✅ Active</option>
+        <option value="suspended">⏸️ Suspended</option>
+      </select>
+
+      <button class="btn-reset" *ngIf="searchTerm || filterStatus" (click)="reset()">↺ Reset</button>
+    </div>
+
+    <!-- Loading -->
     <div class="loading-wrap" *ngIf="loading">
       <div class="spinner"></div>
+      <span>Loading clients…</span>
     </div>
-    
+
+    <!-- Table -->
     <div class="table-wrap" *ngIf="!loading">
       <table>
         <thead>
           <tr>
-            <th>Client</th>
-            <th>Email</th>
-            <th>Status</th> 
-            <th>Connexion</th> <th>Keycloak ID</th>
-            <th>Orders</th>
-            <th>Total Spent</th>
-            <th>Reviews</th>
-            <th>Joined</th>
-            <th>Actions</th>
+            <th>CLIENT</th>
+            <th>EMAIL</th>
+            <th>ORDERS</th>
+            <th>TOTAL SPENT</th>
+            <th>ONLINE</th>
+            <th>STATUS</th>
+            <th>JOINED</th>
+            <th>ACTIONS</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let c of paginated">
+            <!-- Client -->
             <td>
               <div class="client-cell">
-                <div class="cav">{{ getInitials(c.name) }}</div>
-                <b>{{ c.name }}</b>
+                <div class="avatar" [class.online]="c.isOnline">{{ getInitials(c.name) }}</div>
+                <div>
+                  <span class="client-name">{{ c.name }}</span>
+                  <span class="client-id">{{ c.id | slice:0:8 }}</span>
+                </div>
               </div>
             </td>
-            <td>
+
+            <!-- Email -->
+            <td class="email-cell">
               {{ c.email }}
-              <span *ngIf="c.emailVerified" class="verified-icon" title="Email Verified">✓</span>
+              <span class="verified-badge" *ngIf="c.emailVerified" title="Email verified">✓</span>
             </td>
+
+            <!-- Orders -->
+            <td class="orders-cell">
+              <span class="orders-count">{{ c.totalOrders }}</span>
+              <span class="orders-label">orders</span>
+            </td>
+
+            <!-- Total Spent -->
+            <td class="spent-cell">
+              <span class="spent-value">{{ c.totalSpent | number:'1.0-0' }} DH</span>
+            </td>
+
+            <!-- Online Status -->
+            <td class="online-cell">
+              <span class="online-badge" *ngIf="c.isOnline">🟢 Online</span>
+              <span class="offline-badge" *ngIf="!c.isOnline">⚫ Offline</span>
+            </td>
+
+            <!-- Account Status -->
             <td>
               <span class="status-badge" [class.active]="c.enabled" [class.suspended]="!c.enabled">
                 {{ c.enabled ? 'Active' : 'Suspended' }}
               </span>
             </td>
-            <td>
-              <div style="display: flex; align-items: center; gap: 6px;">
-                <span [style.backgroundColor]="c.isOnline ? '#22c55e' : '#9ca3af'" 
-                      style="width: 10px; height: 10px; border-radius: 50%; display: inline-block;">
-                </span>
-                <span style="font-size: 0.9em; color: #555;">
-                  {{ c.isOnline ? 'En ligne' : 'Hors ligne' }}
-                </span>
-              </div>
-            </td>
-            <td class="mono" title="{{ c.id }}">{{ c.id | slice:0:8 }}...</td>
-            <td><b>{{ c.totalOrders }}</b></td>
-            <td><b style="color:#FF6B35">{{ c.totalSpent | number:'1.0-0' }} DH</b></td>
-            <td>{{ c.reviewsCount }} reviews</td>
-            <td>{{ c.joinedAt | date:'dd MMM yyyy' }}</td>
-            <td>
-              <div class="actions-cell">
-                <button class="action-btn status" 
-                        [title]="c.enabled ? 'Suspendre' : 'Activer'"
-                        (click)="toggleClientStatus(c)">
-                  {{ c.enabled ? '🚫' : '✅' }}
-                </button>
 
-                <button class="action-btn delete" 
-                        title="Supprimer définitivement"
-                        (click)="deleteClient(c)">
-                  🗑️
-                </button>
-              </div>
+            <!-- Joined -->
+            <td class="date-cell">{{ c.joinedAt | date:'dd MMM yyyy' }}</td>
+
+            <!-- Actions -->
+            <td class="actions-cell">
+              <button class="action-btn toggle-btn" (click)="toggleClientStatus(c)" title="{{ c.enabled ? 'Suspend' : 'Activate' }}">
+                {{ c.enabled ? '⏸️' : '✅' }}
+              </button>
+              <button class="action-btn delete-btn" (click)="deleteClient(c)" title="Delete">
+                🗑️
+              </button>
             </td>
           </tr>
+
+          <!-- Empty -->
           <tr *ngIf="paginated.length === 0">
-            <td colspan="10" class="empty-row">No clients found matching your search.</td>
+            <td colspan="8">
+              <div class="empty-state">
+                <span class="empty-icon">👥</span>
+                <strong>No clients found</strong>
+                <span>Try adjusting your search</span>
+              </div>
+            </td>
           </tr>
         </tbody>
-
       </table>
-      
-      <div class="pagination" *ngIf="totalPages > 1">
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="!loading && totalPages > 1">
+      <span class="page-info">
+        Showing {{ (currentPage - 1) * pageSize + 1 }}–{{ Math.min(currentPage * pageSize, filtered.length) }} of {{ filtered.length }}
+      </span>
+      <div class="page-btns">
         <button class="page-btn" [disabled]="currentPage === 1" (click)="currentPage = currentPage - 1">‹</button>
         <button class="page-btn" *ngFor="let p of pages" [class.active]="p === currentPage" (click)="currentPage = p">{{ p }}</button>
         <button class="page-btn" [disabled]="currentPage === totalPages" (click)="currentPage = currentPage + 1">›</button>
-        <span class="page-info">{{ filtered.length }} clients</span>
       </div>
     </div>
   </div>

@@ -1,28 +1,156 @@
 <div class="admin-owners">
-  <header class="page-header"><h1>Store Owners</h1><p class="page-sub">Users with STORE_OWNER role in Keycloak</p></header>
-  <div class="table-card">
-    <div class="filter-bar">
-      <select class="filter-sel" [(ngModel)]="filterCategory" (change)="applyFilters()"><option value="">All Categories</option><option value="RESTAURANT">RESTAURANT</option><option value="PHARMACY">PHARMACY</option><option value="SUPERMARKET">SUPERMARKET</option></select>
-      <input class="search-in" [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="Search by owner name...">
-      <button class="btn-reset" (click)="reset()">Reset</button>
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-left">
+      <h1>Store Owners 👥</h1>
+      <p class="page-sub">Manage users with the STORE_OWNER role</p>
     </div>
-    <div class="loading-wrap" *ngIf="loading"><div class="spinner"></div></div>
+    <div class="header-stats">
+      <span class="stat-pill">Total <strong>{{ owners.length }}</strong></span>
+      <span class="stat-pill active" *ngIf="filtered.length !== owners.length">Showing <strong>{{ filtered.length }}</strong></span>
+    </div>
+  </header>
+
+  <!-- Table Card -->
+  <div class="table-card">
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <div class="search-wrap">
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input class="search-in" [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()" placeholder="Search by owner name, email, or store…">
+        <button class="search-clear" *ngIf="searchTerm" (click)="searchTerm=''; applyFilters()">×</button>
+      </div>
+
+      <select class="filter-sel" [(ngModel)]="filterStatus" (ngModelChange)="applyFilters()">
+        <option value="">All Status</option>
+        <option value="active">✅ Active</option>
+        <option value="suspended">⏸️ Suspended</option>
+      </select>
+
+      <button class="btn-reset" *ngIf="searchTerm || filterStatus" (click)="reset()">↺ Reset</button>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-wrap" *ngIf="loading">
+      <div class="spinner"></div>
+      <span>Loading store owners…</span>
+    </div>
+
+    <!-- Table -->
     <div class="table-wrap" *ngIf="!loading">
       <table>
-        <thead><tr><th>Owner</th><th>Email</th><th>Store</th><th>Category</th><th>Products</th><th>Rating</th><th>Store Status</th></tr></thead>
-        <tbody>
-          <tr *ngFor="let o of filtered">
-            <td><div class="client-cell"><div class="cav">{{ getInitials(o.name) }}</div><b>{{ o.name }}</b></div></td>
-            <td>{{ o.email }}</td>
-            <td><b>{{ o.storeName }}</b></td>
-            <td><span class="badge {{ getCategoryClass(o.storeCategory) }}">{{ o.storeCategory }}</span></td>
-            <td>{{ o.productCount }} products</td>
-            <td><span style="color:#F59E0B">★</span> <b>{{ o.rating }}</b></td>
-            <td><span class="badge {{ o.storeOpen ? 'badge-green' : 'badge-gray' }}">{{ o.storeOpen ? 'OPEN' : 'CLOSED' }}</span></td>
+        <thead>
+          <tr>
+            <th>OWNER</th>
+            <th>EMAIL</th>
+            <th>STORES</th>
+            <th>CATEGORIES</th>
+            <th>PRODUCTS</th>
+            <th>AVG RATING</th>
+            <th>STORES OPEN</th>
+            <th>STATUS</th>
+            <th>JOINED</th>
+            <th>ACTIONS</th>
           </tr>
-          <tr *ngIf="filtered.length===0"><td colspan="7" class="empty-row">No store owners found</td></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let owner of paginated">
+            <!-- Owner -->
+            <td>
+              <div class="owner-cell">
+                <div class="avatar" [class.online]="owner.isOnline">{{ getInitials(owner.name) }}</div>
+                <div>
+                  <span class="owner-name">{{ owner.name }}</span>
+                  <span class="owner-id">{{ owner.id | slice:0:8 }}</span>
+                </div>
+              </div>
+            </td>
+
+            <!-- Email -->
+            <td class="email-cell">{{ owner.email }}</td>
+
+            <!-- Stores -->
+            <td>
+              <div class="stores-cell">
+                <span class="store-name" *ngFor="let s of owner.stores">{{ s.name }}</span>
+                <span class="no-stores" *ngIf="owner.stores.length === 0">No stores</span>
+              </div>
+            </td>
+
+            <!-- Categories -->
+            <td>
+              <div class="categories-cell">
+                <span class="badge {{ getCategoryClass(s.category) }}" *ngFor="let s of owner.stores | slice:0:2">{{ s.category }}</span>
+                <span class="more-badge" *ngIf="owner.stores.length > 2">+{{ owner.stores.length - 2 }}</span>
+                <span class="na-text" *ngIf="owner.stores.length === 0">—</span>
+              </div>
+            </td>
+
+            <!-- Products -->
+            <td class="products-cell">
+              <span class="products-count">{{ owner.totalProducts }}</span>
+              <span class="products-label">items</span>
+            </td>
+
+            <!-- Rating -->
+            <td class="rating-cell">
+              <span class="stars">★</span>
+              <span class="rating-value">{{ owner.avgRating > 0 ? (owner.avgRating | number:'1.1-1') : '—' }}</span>
+            </td>
+
+            <!-- Stores Open -->
+            <td class="open-cell">
+              <span class="open-badge" *ngIf="owner.storesOpen > 0">{{ owner.storesOpen }}/{{ owner.stores.length }}</span>
+              <span class="na-text" *ngIf="owner.storesOpen === 0">None</span>
+            </td>
+
+            <!-- Status -->
+            <td>
+              <span class="status-badge" [class.active]="owner.enabled" [class.suspended]="!owner.enabled">
+                {{ owner.enabled ? 'Active' : 'Suspended' }}
+              </span>
+            </td>
+
+            <!-- Joined -->
+            <td class="date-cell">{{ owner.joinedAt }}</td>
+
+            <!-- Actions -->
+            <td class="actions-cell">
+              <button class="action-btn toggle-btn" (click)="toggleOwnerStatus(owner)" title="{{ owner.enabled ? 'Suspend' : 'Activate' }}">
+                {{ owner.enabled ? '⏸️' : '✅' }}
+              </button>
+              <button class="action-btn delete-btn" (click)="deleteOwner(owner)" title="Delete">
+                🗑️
+              </button>
+            </td>
+          </tr>
+
+          <!-- Empty -->
+          <tr *ngIf="paginated.length === 0">
+            <td colspan="10">
+              <div class="empty-state">
+                <span class="empty-icon">👥</span>
+                <strong>No store owners found</strong>
+                <span>Try adjusting your filters</span>
+              </div>
+            </td>
+          </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="!loading && totalPages > 1">
+      <span class="page-info">
+        Showing {{ (currentPage - 1) * pageSize + 1 }}–{{ Math.min(currentPage * pageSize, filtered.length) }} of {{ filtered.length }}
+      </span>
+      <div class="page-btns">
+        <button class="page-btn" [disabled]="currentPage === 1" (click)="currentPage = currentPage - 1">‹</button>
+        <button class="page-btn" *ngFor="let p of pages" [class.active]="p === currentPage" (click)="currentPage = p">{{ p }}</button>
+        <button class="page-btn" [disabled]="currentPage === totalPages" (click)="currentPage = currentPage + 1">›</button>
+      </div>
     </div>
   </div>
 </div>

@@ -57,6 +57,7 @@ public class Delivery {
     private BigDecimal deliveryCost; // Coût de livraison (camelCase)
 
     private BigDecimal amountToCollect;
+    private Long actualDeliveryTimeInMinutes;
 
     private Integer estimatedTimeInMinutes; // ETA
     // Delivery.java
@@ -74,6 +75,7 @@ public class Delivery {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime acceptedAt;
     private LocalDateTime deliveredAt;
     @PrePersist
     protected void onCreate() {

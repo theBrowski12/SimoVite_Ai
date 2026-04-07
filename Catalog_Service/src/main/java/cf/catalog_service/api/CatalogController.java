@@ -204,4 +204,29 @@ public class CatalogController {
         double finalPrice = catalogService.calculateDeliveryPrice(id, distanceKm, weightKg);
         return ResponseEntity.ok(finalPrice);
     }
+
+    // ==========================================
+    // GESTION DES PROMOTIONS
+    // ==========================================
+
+    @PatchMapping("/{id}/promotion")
+    @PreAuthorize("hasAnyRole('STORE_OWNER', 'ADMIN')")
+    @Operation(summary = "Appliquer une promotion en pourcentage sur un produit")
+    public ResponseEntity<CatalogResponseDto> applyPromotion(
+            @PathVariable String id,
+            @RequestParam Double percentage) {
+
+        CatalogResponseDto updatedProduct = catalogService.applyPromotion(id, percentage);
+        return ResponseEntity.ok(updatedProduct);
+    }
+
+    @DeleteMapping("/{id}/promotion")
+    @PreAuthorize("hasAnyRole('STORE_OWNER', 'ADMIN')")
+    @Operation(summary = "Retirer la promotion d'un produit et restaurer son prix de base")
+    public ResponseEntity<CatalogResponseDto> removePromotion(
+            @PathVariable String id) {
+
+        CatalogResponseDto restoredProduct = catalogService.removePromotion(id);
+        return ResponseEntity.ok(restoredProduct);
+    }
 }

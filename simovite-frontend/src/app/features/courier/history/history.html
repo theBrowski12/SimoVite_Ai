@@ -1,34 +1,156 @@
 <div class="history-container">
-  <h2>Mon Historique</h2>
-
-  <div *ngIf="isLoading" class="loading-state">
-    <p>Chargement de vos anciennes courses...</p>
+  <!-- Header -->
+  <header class="history-header">
+    <div>
+      <h1 class="history-title">Delivery History 📋</h1>
+      <p class="history-subtitle">Your completed and cancelled deliveries</p>
     </div>
+    <div class="header-right">
+      <!-- Filter Buttons -->
+      <div class="filter-group">
+        <button class="filter-btn" [class.active]="statusFilter === 'ALL'" (click)="setFilter('ALL')">
+          All ({{ allDeliveries.length }})
+        </button>
+        <button class="filter-btn filter-delivered" [class.active]="statusFilter === 'DELIVERED'" (click)="setFilter('DELIVERED')">
+          ✅ Delivered ({{ deliveredCount }})
+        </button>
+        <button class="filter-btn filter-cancelled" [class.active]="statusFilter === 'CANCELLED'" (click)="setFilter('CANCELLED')">
+          ❌ Cancelled ({{ cancelledCount }})
+        </button>
+      </div>
+    </div>
+  </header>
 
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="loading-spinner"></div>
+    <p>Loading your delivery history...</p>
+  </div>
+
+  <!-- Error State -->
   <div *ngIf="errorMessage" class="error-state">
+    <span class="error-icon">😕</span>
     <p>{{ errorMessage }}</p>
-    <button (click)="ngOnInit()">Réessayer</button>
+    <button (click)="ngOnInit()">↻ Retry</button>
   </div>
 
+  <!-- Empty State -->
   <div *ngIf="!isLoading && !errorMessage && pastDeliveries.length === 0" class="empty-state">
-    <p>Vous n'avez pas encore terminé de livraisons.</p>
+    <span class="empty-icon">📦</span>
+    <h2>No History Yet</h2>
+    <p>Completed and cancelled deliveries will appear here.</p>
   </div>
 
-  <div *ngIf="!isLoading && pastDeliveries.length > 0" class="deliveries-list">
-    
-    <div class="delivery-card" *ngFor="let delivery of pastDeliveries">
-      <div class="card-header">
-        <span class="delivery-id">Course #{{ delivery.id }}</span>
-        <span class="status-badge" [ngClass]="delivery.status | lowercase">
-          {{ delivery.status === 'DELIVERED' ? 'Livrée' : 'Annulée' }}
+  <!-- Deliveries Timeline -->
+  <div *ngIf="!isLoading && pastDeliveries.length > 0" class="timeline">
+    <div class="delivery-card" *ngFor="let d of pastDeliveries"
+         [class.delivered]="d.status === 'DELIVERED'"
+         [class.cancelled]="d.status === 'CANCELLED'">
+
+      <!-- Card Header -->
+      <div class="card-head">
+        <div class="head-left">
+          <span class="delivery-id">#{{ d.orderRef }}</span>
+          <span class="store-category" *ngIf="d.storeCategory">
+            {{ d.storeCategory === 'RESTAURANT' ? '🍕'
+             : d.storeCategory === 'PHARMACY'   ? '💊'
+             : d.storeCategory === 'SUPERMARKET' ? '🛒' : '📦' }}
+            {{ d.storeCategory }}
+          </span>
+        </div>
+        <span class="status-badge" [class.delivered]="d.status === 'DELIVERED'"
+                                     [class.cancelled]="d.status === 'CANCELLED'">
+          {{ d.status === 'DELIVERED' ? '✅ Delivered' : '❌ Cancelled' }}
         </span>
       </div>
-      
-      <div class="card-body">
-        <p><strong>Statut final :</strong> {{ delivery.status }}</p>
-        
-        </div>
-    </div>
 
+      <!-- Route Info -->
+      <div class="route-section">
+        <div class="route-point pickup">
+          <span class="route-dot"></span>
+          <div class="route-info">
+            <span class="route-label">Pickup</span>
+            <span class="route-address">{{ d.pickupAddress.street }}, {{ d.pickupAddress.city }}</span>
+          </div>
+        </div>
+        <div class="route-line"></div>
+        <div class="route-point dropoff">
+          <span class="route-dot"></span>
+          <div class="route-info">
+            <span class="route-label">Dropoff</span>
+            <span class="route-address">{{ d.dropoffAddress.street }}, {{ d.dropoffAddress.city }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Details Grid -->
+      <div class="details-grid">
+        <div class="detail-item">
+          <span class="detail-icon">🚲</span>
+          <div class="detail-content">
+            <span class="detail-label">Vehicle</span>
+            <span class="detail-value">{{ d.vehicleType || 'N/A' }}</span>
+          </div>
+        </div>
+        <div class="detail-item">
+          <span class="detail-icon">📏</span>
+          <div class="detail-content">
+            <span class="detail-label">Distance</span>
+            <span class="detail-value">{{ d.distanceInKm | number:'1.1-1' }} km</span>
+          </div>
+        </div>
+        <div class="detail-item" *ngIf="d.status === 'DELIVERED'">
+          <span class="detail-icon">⏱️</span>
+          <div class="detail-content">
+            <span class="detail-label">Est. Time</span>
+            <span class="detail-value">{{ d.estimatedTimeInMinutes ? (d.estimatedTimeInMinutes + ' min') : 'N/A' }}</span>
+          </div>
+        </div>
+        <div class="detail-item" *ngIf="d.status === 'DELIVERED'">
+          <span class="detail-icon">⏰</span>
+          <div class="detail-content">
+            <span class="detail-label">Actual Time</span>
+            <span class="detail-value" [class.on-time]="isOnTime(d)" [class.late]="isLate(d)">
+              {{ d.actualDeliveryTimeInMinutes ? (d.actualDeliveryTimeInMinutes + ' min') : 'N/A' }}
+            </span>
+          </div>
+        </div>
+        <div class="detail-item">
+          <span class="detail-icon">💰</span>
+          <div class="detail-content">
+            <span class="detail-label">Delivery Fee</span>
+            <span class="detail-value fee">{{ d.deliveryCost | number:'1.2-2' }} DH</span>
+          </div>
+        </div>
+        <div class="detail-item" *ngIf="d.cashOnDelivery">
+          <span class="detail-icon">💵</span>
+          <div class="detail-content">
+            <span class="detail-label">To Collect</span>
+            <span class="detail-value collect">{{ d.amountToCollect | number:'1.2-2' }} DH</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="card-foot">
+        <div class="foot-item">
+          <span class="foot-label">Created</span>
+          <span class="foot-value">{{ d.createdAt | date:'dd MMM, HH:mm' }}</span>
+        </div>
+        <div class="foot-divider"></div>
+        <div class="foot-item" *ngIf="d.deliveredAt">
+          <span class="foot-label">Completed</span>
+          <span class="foot-value">{{ d.deliveredAt | date:'dd MMM, HH:mm' }}</span>
+        </div>
+        <div class="foot-item" *ngIf="d.status === 'CANCELLED' && d.updatedAt">
+          <span class="foot-label">Cancelled</span>
+          <span class="foot-value">{{ d.updatedAt | date:'dd MMM, HH:mm' }}</span>
+        </div>
+        <div class="foot-item" *ngIf="d.customerEmail">
+          <span class="foot-label">Customer</span>
+          <span class="foot-value">{{ d.customerEmail }}</span>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

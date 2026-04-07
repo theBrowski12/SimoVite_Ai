@@ -32,6 +32,9 @@ public interface CatalogService {
     List<CatalogResponseDto> searchOffersByName(String name);
     List<CatalogResponseDto> getAvailableOffers();
 
+    CatalogResponseDto applyPromotion(String id, Double percentage);
+    CatalogResponseDto removePromotion(String id);
+
     // Filtres avancés par catégories globales (Toute l'app)
     List<CatalogResponseDto> getOffersByFoodCategory(FoodCategory category);
     List<CatalogResponseDto> getOffersByPharmacyCategory(PharmacyCategory category);

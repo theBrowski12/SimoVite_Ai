@@ -19,6 +19,8 @@ export class AdminCouriers implements OnInit {
   filterStatus = '';
   filterVehicle = '';
   searchTerm = '';
+  currentPage = 1;
+  pageSize = 10;
 
   constructor(
     private keycloakAdmin: KeycloakAdminService,
@@ -52,10 +54,11 @@ loadRealData(): void {
               name: `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.username,
               email: u.email,
               vehicleType: (u.attributes?.vehicleType ? u.attributes.vehicleType[0] : 'MOTORCYCLE') as any,
-              
+              enabled: u.enabled ?? true,
+
               // 🌟 LA CORRECTION EST ICI :
               // S'il y a au moins une session active, il est ONLINE
-              online: sessions.length > 0, 
+              online: sessions.length > 0,
               
               lastSeen: sessions.length > 0 ? 'Maintenant' : (u.attributes?.lastSeen ? u.attributes.lastSeen[0] : 'Hors ligne'),
               totalDeliveries: myDeliveries.length,
@@ -81,12 +84,27 @@ loadRealData(): void {
 }
 
   applyFilters(): void {
-    this.filtered = this.couriers.filter(c => 
+    this.filtered = this.couriers.filter(c =>
       (!this.filterStatus || (this.filterStatus === 'online' ? c.online : !c.online)) &&
       (!this.filterVehicle || c.vehicleType === this.filterVehicle) &&
       (!this.searchTerm || c.name.toLowerCase().includes(this.searchTerm.toLowerCase()) || c.email.toLowerCase().includes(this.searchTerm.toLowerCase()))
     );
+    this.currentPage = 1;
   }
+
+  get paginated(): Courier[] {
+    return this.filtered.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize);
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.filtered.length / this.pageSize) || 1;
+  }
+
+  get pages(): number[] {
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
+
+  Math = Math;
 
   getVehicleClass(v: string): string {
     const m: any = { MOTORCYCLE: 'badge-orange', CAR: 'badge-blue', BICYCLE: 'badge-purple', TRUCK: 'badge-gray' };
@@ -101,6 +119,32 @@ loadRealData(): void {
   getInitials(name: string): string {
     if(!name) return '??';
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  }
+
+
+  // ── Actions ──────────────────────────────────────────────
+
+  toggleCourierStatus(courier: Courier): void {
+    const newStatus = !courier.enabled;
+    this.keycloakAdmin.updateUser(courier.id, { enabled: newStatus }).subscribe({
+      next: () => {
+        courier.enabled = newStatus;
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Failed to toggle courier status:', err)
+    });
+  }
+
+  deleteCourier(courier: Courier): void {
+    if (!confirm(`Delete ${courier.name}? This cannot be undone.`)) return;
+    this.keycloakAdmin.deleteUser(courier.id).subscribe({
+      next: () => {
+        this.couriers = this.couriers.filter(c => c.id !== courier.id);
+        this.applyFilters();
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Failed to delete courier:', err)
+    });
   }
 
   reset(): void {

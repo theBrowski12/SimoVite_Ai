@@ -443,6 +443,31 @@ tbody tr {
   white-space: nowrap;
 }
 
+// ── Actual delivery time ──
+.time-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  align-items: center;
+}
+
+.actual-time {
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+
+  &.on-time { color: #15803d; }
+  &.late    { color: #dc2626; }
+}
+
+.time-diff {
+  font-size: 10.5px;
+  font-weight: 600;
+
+  &.on-time { color: #15803d; }
+  &.late    { color: #dc2626; }
+}
+
 .na-text { color: #cbd5e1; font-size: 13px; }
 
 // ── COD cell ──
@@ -735,9 +760,20 @@ tr:hover .edit-status-btn { opacity: 1; }
   margin-bottom: 3px;
 
   span { font-size: 11px; color: #94a3b8; font-weight: 400; }
+
+  &.on-time { color: #15803d; }
+  &.late    { color: #dc2626; }
 }
 
 .ml-lbl { font-size: 11px; color: #94a3b8; }
+
+.ml-diff {
+  font-size: 10px;
+  font-weight: 700;
+  margin-top: 2px;
+  &.on-time { color: #15803d; }
+  &.late    { color: #dc2626; }
+}
 
 // ── Detail footer ──
 .detail-footer {

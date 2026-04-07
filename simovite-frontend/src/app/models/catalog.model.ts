@@ -13,8 +13,9 @@ export enum FoodCategory {
   MOROCCAN = 'MOROCCAN',
   MEXICAN = 'MEXICAN',
   FAST_FOOD = 'FAST_FOOD',
+  FISH= 'FISH',
+  DESSERT = 'DESSERT',
   SNACKS = 'SNACKS',
-  PROMOTION = 'PROMOTION',
   TOP_SELLER = 'TOP_SELLER'
 }
 
@@ -26,7 +27,6 @@ export enum PharmacyCategory {
   BABY_CARE = 'BABY_CARE',
   HYGIENE = 'HYGIENE',
   VISION = 'VISION',
-  PROMOTION = 'PROMOTION',
   OTHER = 'OTHER'
 }
 
@@ -42,7 +42,6 @@ export enum SupermarketCategory {
   SNACKS = 'SNACKS',
   CLEANING = 'CLEANING',
   PERSONAL_CARE = 'PERSONAL_CARE',
-  PROMOTION = 'PROMOTION',
   TOP_SELLER = 'TOP_SELLER'
 }
 
@@ -69,11 +68,14 @@ export interface CatalogResponseDto {
   available: boolean;
   type: MainCategory | string;
   rating?: number;
-  reviewCount?: number;  
+  reviewCount?: number;
   storeId: string;
   imageURL?: string;
   store?: StoreResponseDto; // Utilise l'interface importée
   vegetarian?: boolean;
+  isPromotion?: boolean;
+  percentage?: number;
+  originalPrice?: number;
 }
 
 export interface RestaurantRequestDto extends CatalogRequestDto {

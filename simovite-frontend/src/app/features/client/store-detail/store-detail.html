@@ -1,4 +1,4 @@
-<div class="store-detail-page" *ngIf="!loadingStore; else skeletonStore">
+<div class="store-page" *ngIf="!loadingStore; else skeletonStore">
 
   <!-- ════════════════════════════════════════
        ERROR STATE
@@ -12,26 +12,25 @@
   <ng-container *ngIf="!error && store">
 
     <!-- ════════════════════════════════════════
-         STORE HERO
+         1. STORE HERO / INFO
          ════════════════════════════════════════ -->
     <section class="store-hero">
-      <!-- Cover image or gradient -->
+      <!-- Cover -->
       <div class="hero-cover" [class]="getCategoryClass()">
         <img *ngIf="store.imageURL" [src]="store.imageURL" [alt]="store.name" class="cover-img">
         <div class="cover-overlay"></div>
       </div>
 
       <!-- Back button -->
-      <button class="btn-back-floating" (click)="goBack()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2.5">
+      <button class="btn-back-float" (click)="goBack()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <polyline points="15 18 9 12 15 6"/>
         </svg>
       </button>
 
-      <!-- Hero content card -->
-      <div class="hero-content">
-        <div class="hero-inner">
+      <!-- Info Card -->
+      <div class="info-card">
+        <div class="info-content">
           <!-- Logo -->
           <div class="store-logo">
             <span *ngIf="!store.imageURL" class="logo-emoji">
@@ -42,33 +41,44 @@
             <img *ngIf="store.imageURL" [src]="store.imageURL" [alt]="store.name">
           </div>
 
-          <!-- Meta info -->
-          <div class="store-meta">
-            <div class="meta-top">
-              <span class="cat-pill {{ getCategoryClass() }}">{{ getCategoryLabel() }}</span>
-              <span class="status-pill" [class.open]="store.open" [class.closed]="!store.open">
+          <!-- Info -->
+          <div class="store-info">
+            <!-- Badges -->
+            <div class="badges">
+              <span class="badge-cat" [ngClass]="getCategoryClass()">{{ getCategoryLabel() }}</span>
+              <span class="badge-status" [class.open]="store.open" [class.closed]="!store.open">
                 <span class="status-dot"></span>
-                {{ store.open ? 'Open now' : 'Closed' }}
+                {{ store.open ? 'Open' : 'Closed' }}
               </span>
             </div>
-            <h1>{{ store.name }}</h1>
-            <hr class="title-separator">
+
+            <!-- Name -->
+            <h1 class="store-name">{{ store.name }}</h1>
+
+            <!-- Separator -->
+            <hr class="sep-gradient">
+
+            <!-- Description -->
             <p class="store-desc">{{ store.description }}</p>
-            <hr class="meta-separator">
-            <div class="meta-stats">
-              <div class="meta-stat" *ngIf="store.rating">
-                <span class="stat-stars">★</span>
+
+            <!-- Separator -->
+            <hr class="sep-light">
+
+            <!-- Stats -->
+            <div class="stats-row">
+              <div class="stat" *ngIf="store.rating">
+                <span class="stat-icon">⭐</span>
                 <strong>{{ store.rating | number:'1.1-1' }}</strong>
-                <span>({{ store.reviewCount || reviews.length }})</span>
+                <span class="stat-sub">({{ store.reviewCount || reviews.length }})</span>
               </div>
-              <div class="meta-divider"></div>
-              <div class="meta-stat">
-                <span>📍</span>
+              <div class="stat-divider" *ngIf="store.rating && store.address"></div>
+              <div class="stat" *ngIf="store.address">
+                <span class="stat-icon">📍</span>
                 <span>{{ store.address.street }}, {{ store.address.city }}</span>
               </div>
-              <div class="meta-divider" *ngIf="store.phone"></div>
-              <div class="meta-stat" *ngIf="store.phone">
-                <span>📞</span>
+              <div class="stat-divider" *ngIf="store.phone"></div>
+              <div class="stat" *ngIf="store.phone">
+                <span class="stat-icon">📞</span>
                 <span>{{ store.phone }}</span>
               </div>
             </div>
@@ -77,112 +87,118 @@
       </div>
     </section>
 
-
     <!-- ════════════════════════════════════════
-         MAIN CONTENT LAYOUT
+         MAIN LAYOUT: Content + Cart
          ════════════════════════════════════════ -->
-    <div class="content-layout" [class.cart-open]="cartCount > 0">
+    <div class="page-layout" [class.cart-open]="cartCount > 0">
 
-      <!-- ── MAIN AREA ── -->
-      <main class="main-area">
+      <!-- ── MAIN CONTENT ── -->
+      <main class="main-content">
 
-        <!-- ── MENU SECTION ── -->
-        <section class="menu-section">
-
-          <!-- Toolbar: Search + Categories -->
-          <div class="menu-toolbar">
-            <div class="toolbar-top">
-              <div class="search-wrap">
-                <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24"
-                     fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="11" cy="11" r="8"/>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                </svg>
-                <input class="search-in"
-                       [(ngModel)]="searchTerm"
-                       placeholder="Search in menu…">
-                <button class="search-clear" *ngIf="searchTerm"
-                        (click)="searchTerm = ''">×</button>
-              </div>
-              <div class="product-count">
-                <strong>{{ filteredProducts.length }}</strong> item{{ filteredProducts.length !== 1 ? 's' : '' }}
-              </div>
+        <!-- ════════════════════════════════════════
+             2. PRODUCTS SECTION
+             ════════════════════════════════════════ -->
+        <section class="section products-section">
+          <div class="section-header">
+            <div>
+              <span class="section-tag">Menu</span>
+              <h2 class="section-title">Our Products</h2>
             </div>
-            <div class="cat-chips" *ngIf="availableCategories.length">
-              <button class="cat-chip" [class.active]="selectedCategory === ''"
-                      (click)="selectCategory('')">All</button>
-              <button class="cat-chip"
-                      *ngFor="let c of availableCategories"
-                      [class.active]="selectedCategory === c"
-                      (click)="selectCategory(c)">
+            <span class="item-count"><strong>{{ filteredProducts.length }}</strong> item{{ filteredProducts.length !== 1 ? 's' : '' }}</span>
+          </div>
+
+          <!-- Toolbar -->
+          <div class="toolbar">
+            <div class="search-box">
+              <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input class="search-input" [(ngModel)]="searchTerm" placeholder="Search products…">
+              <button class="search-clear" *ngIf="searchTerm" (click)="searchTerm = ''">×</button>
+            </div>
+            <div class="filter-chips" *ngIf="availableCategories.length">
+              <button class="chip" [class.active]="selectedCategory === ''" (click)="selectCategory('')">All</button>
+              <button class="chip" *ngFor="let c of availableCategories"
+                      [class.active]="selectedCategory === c" (click)="selectCategory(c)">
                 {{ c }}
+              </button>
+              <button class="chip chip-promo"
+                      [class.active]="filterPromo" (click)="filterPromo = !filterPromo">
+                🏷️ On Sale
               </button>
             </div>
           </div>
 
-          <!-- Product grid -->
-          <div class="loading-products" *ngIf="loadingProducts">
-            <div class="product-skeleton" *ngFor="let _ of [1,2,3,4,5,6]"></div>
+          <!-- Loading -->
+          <div class="loading-grid" *ngIf="loadingProducts">
+            <div class="skel-card" *ngFor="let _ of [1,2,3,4]"></div>
           </div>
 
-          <div class="products-grid" *ngIf="!loadingProducts">
-            <div class="product-card"
-                 *ngFor="let p of filteredProducts"
-                 [class.unavailable]="!p.available">
-
-              <!-- Image / thumb -->
-              <div class="product-img-wrap">
-                <img *ngIf="p.imageURL" [src]="p.imageURL" [alt]="p.name" class="product-img">
-                <div *ngIf="!p.imageURL" class="product-img-placeholder">
+          <!-- Products List -->
+          <div class="products-list" *ngIf="!loadingProducts">
+            <div class="product-item" *ngFor="let p of filteredProducts"
+                 [class.unavailable]="!p.available"
+                 [class.on-promo]="p.isPromotion">
+              <!-- Thumb -->
+              <div class="product-thumb">
+                <img *ngIf="p.imageURL" [src]="p.imageURL" [alt]="p.name" class="thumb-img">
+                <div *ngIf="!p.imageURL" class="thumb-placeholder">
                   {{ store.category === 'RESTAURANT' ? '🍽️'
-                   : store.category === 'PHARMACY'   ? '💊'
-                   : '📦' }}
+                   : store.category === 'PHARMACY'   ? '💊' : '📦' }}
                 </div>
-                <span class="unavailable-tag" *ngIf="!p.available">Unavailable</span>
-                <span class="cat-tag" *ngIf="getProductCategoryTag(p)">
-                  {{ getProductCategoryTag(p) }}
-                </span>
+                <span class="tag-cat" *ngIf="getProductCategoryTag(p)">{{ getProductCategoryTag(p) }}</span>
+                <span class="tag-promo" *ngIf="p.isPromotion">🏷️ {{ p.percentage }}% OFF</span>
+                <span class="tag-unavail" *ngIf="!p.available">Unavailable</span>
               </div>
 
-              <!-- Body -->
-              <div class="product-body">
-                <div class="product-top">
-                  <div class="product-name">{{ p.name }}</div>
-                  <div class="product-price">{{ p.basePrice | number:'1.2-2' }} DH</div>
+              <!-- Info -->
+              <div class="product-info">
+                <div class="info-top">
+                  <div>
+                    <h3 class="prod-name">
+                      {{ p.name }}
+                      <span class="promo-badge-inline" *ngIf="p.isPromotion">PROMO</span>
+                    </h3>
+                    <p class="prod-desc">{{ p.description }}</p>
+                  </div>
+                  <div class="price-block">
+                    <span class="original-price" *ngIf="p.isPromotion && p.originalPrice">{{ p.originalPrice | number:'1.2-2' }} DH</span>
+                    <span class="prod-price" [class.sale-price]="p.isPromotion">{{ p.basePrice | number:'1.2-2' }} DH</span>
+                  </div>
                 </div>
-                <p class="product-desc">{{ p.description }}</p>
-
-                <div class="product-footer">
-                  <div class="product-rating" *ngIf="p.rating">
-                    <span class="stars-sm">★</span>
+                <div class="info-bottom">
+                  <div class="prod-rating" *ngIf="p.rating">
+                    <span class="stars">★</span>
                     <span>{{ p.rating | number:'1.1-1' }}</span>
                   </div>
-
-                  <div class="cart-controls" *ngIf="p.available">
-                    <ng-container *ngIf="!isInCart(p.id); else qtyControls">
-                      <button class="btn-add" (click)="addToCart(p)">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                             stroke="currentColor" stroke-width="2.5">
-                          <line x1="12" y1="5" x2="12" y2="19"/>
-                          <line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
-                        Add
-                      </button>
+                  <div class="prod-actions">
+                    <ng-container *ngIf="p.available; else unavailMsg">
+                      <ng-container *ngIf="!isInCart(p.id); else qtyCtrl">
+                        <button class="btn-add-cart" (click)="addToCart(p)">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                          </svg>
+                          Add to Order
+                        </button>
+                      </ng-container>
+                      <ng-template #qtyCtrl>
+                        <div class="qty-ctrl">
+                          <button class="qty-btn" (click)="updateQty(p.id, -1)">−</button>
+                          <span class="qty-num">{{ getCartQty(p.id) }}</span>
+                          <button class="qty-btn" (click)="updateQty(p.id, +1)">+</button>
+                        </div>
+                      </ng-template>
                     </ng-container>
-                    <ng-template #qtyControls>
-                      <div class="qty-row">
-                        <button class="qty-btn" (click)="updateQty(p.id, -1)">−</button>
-                        <span class="qty-val">{{ getCartQty(p.id) }}</span>
-                        <button class="qty-btn" (click)="updateQty(p.id, +1)">+</button>
-                      </div>
+                    <ng-template #unavailMsg>
+                      <span class="unavail-text">Currently unavailable</span>
                     </ng-template>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Empty search -->
-            <div class="empty-menu" *ngIf="filteredProducts.length === 0 && !loadingProducts">
+            <!-- Empty -->
+            <div class="empty-state" *ngIf="filteredProducts.length === 0 && !loadingProducts">
               <span>🔍</span>
               <strong>No items found</strong>
               <span>Try a different search or category</span>
@@ -190,60 +206,62 @@
           </div>
         </section>
 
-        <!-- ── REVIEWS SECTION ── -->
-        <section class="reviews-section">
+        <!-- ════════════════════════════════════════
+             3. FEEDBACK / REVIEWS SECTION
+             ════════════════════════════════════════ -->
+        <section class="section reviews-section">
           <div class="section-header">
             <div>
-              <div class="section-tag">Feedback</div>
+              <span class="section-tag">Feedback</span>
               <h2 class="section-title">Customer Reviews</h2>
             </div>
-            <button class="btn-write-review" (click)="showReviewForm = !showReviewForm">
+            <button class="btn-write" (click)="showReviewForm = !showReviewForm">
               {{ showReviewForm ? '✕ Cancel' : '✍️ Write a review' }}
             </button>
           </div>
 
-          <!-- Rating summary -->
+          <!-- Rating Summary -->
           <div class="rating-summary" *ngIf="reviews.length > 0">
-            <div class="big-rating">{{ avgRating | number:'1.1-1' }}</div>
-            <div class="rating-details">
-              <div class="big-stars">
+            <div class="rating-big">
+              <span class="rating-num">{{ avgRating | number:'1.1-1' }}</span>
+              <div class="rating-stars-big">
                 <span *ngFor="let s of [1,2,3,4,5]"
                       [style.color]="s <= avgRating ? '#F59E0B' : '#e2e8f0'">★</span>
               </div>
-              <div class="rating-count">{{ reviews.length }} review{{ reviews.length > 1 ? 's' : '' }}</div>
-              <div class="rating-bars">
-                <div *ngFor="let star of [5,4,3,2,1]" class="rating-bar-row">
-                  <span class="bar-label">{{ star }}★</span>
-                  <div class="bar-track">
-                    <div class="bar-fill" [style.width.%]="getRatingBar(star)"></div>
-                  </div>
-                  <span class="bar-pct">{{ getRatingBar(star) }}%</span>
+              <span class="rating-count">{{ reviews.length }} review{{ reviews.length > 1 ? 's' : '' }}</span>
+            </div>
+            <div class="rating-bars">
+              <div *ngFor="let star of [5,4,3,2,1]" class="bar-row">
+                <span class="bar-label">{{ star }}★</span>
+                <div class="bar-track">
+                  <div class="bar-fill" [style.width.%]="getRatingBar(star)"></div>
                 </div>
+                <span class="bar-pct">{{ getRatingBar(star) }}%</span>
               </div>
             </div>
           </div>
 
-          <!-- Review form -->
-          <div class="review-form" *ngIf="showReviewForm">
-            <div class="form-title">Share your experience</div>
+          <!-- Review Form -->
+          <div class="review-form-card" *ngIf="showReviewForm">
+            <h3 class="form-title">Share your experience</h3>
             <div class="star-picker">
               <span *ngFor="let s of [1,2,3,4,5]"
-                    class="star-pick"
+                    class="picker-star"
                     [class.filled]="s <= (reviewHover || reviewRating)"
                     (mouseenter)="reviewHover = s"
                     (mouseleave)="reviewHover = 0"
                     (click)="reviewRating = s">★</span>
-              <span class="pick-label" *ngIf="reviewRating">
+              <span class="picker-label" *ngIf="reviewRating">
                 {{ ['','Terrible','Poor','Average','Good','Excellent'][reviewRating] }}
               </span>
             </div>
-            <textarea class="review-textarea"
+            <textarea class="review-input"
                       [(ngModel)]="reviewComment"
-                      placeholder="Tell others about your experience with this store…"
-                      rows="4"></textarea>
-            <div class="form-actions">
-              <button class="btn-cancel-review" (click)="showReviewForm = false">Cancel</button>
-              <button class="btn-submit-review"
+                      placeholder="Tell others about your experience…"
+                      rows="3"></textarea>
+            <div class="form-btns">
+              <button class="btn-cancel" (click)="showReviewForm = false">Cancel</button>
+              <button class="btn-submit"
                       [disabled]="reviewRating === 0 || !reviewComment.trim() || submittingReview"
                       (click)="submitReview()">
                 {{ submittingReview ? 'Submitting…' : 'Submit Review' }}
@@ -251,29 +269,31 @@
             </div>
           </div>
 
-          <!-- Review list -->
+          <!-- Loading -->
           <div class="loading-wrap" *ngIf="loadingReviews">
             <div class="spinner"></div>
           </div>
 
-          <div class="reviews-grid" *ngIf="!loadingReviews">
-            <div class="review-card" *ngFor="let r of reviews">
+          <!-- Reviews List -->
+          <div class="reviews-list" *ngIf="!loadingReviews">
+            <div class="review-item" *ngFor="let r of reviews">
               <div class="review-top">
                 <div class="rev-avatar">{{ getInitials(r.clientName || 'Client') }}</div>
-                <div>
-                  <div class="rev-name">{{ r.clientName || 'Anonymous Client' }}</div>
-                  <div class="rev-date">{{ r.createdAt | date:'dd MMM yyyy' }}</div>
+                <div class="rev-info">
+                  <span class="rev-name">{{ r.clientName || 'Anonymous' }}</span>
+                  <span class="rev-date">{{ r.createdAt | date:'dd MMM yyyy' }}</span>
                 </div>
                 <div class="rev-stars">{{ getStars(r.rating) }}</div>
               </div>
-              <p class="rev-text">{{ r.comment }}</p>
+              <p class="rev-comment">{{ r.comment }}</p>
               <div class="rev-footer" *ngIf="r.sentiment">
-                <span class="sentiment-badge" [ngClass]="getSentimentClass(r.sentiment)">
+                <span class="rev-sentiment" [ngClass]="getSentimentClass(r.sentiment)">
                   {{ getSentimentIcon(r.sentiment) }} {{ r.sentiment }}
                 </span>
               </div>
             </div>
-            <div class="no-reviews" *ngIf="reviews.length === 0">
+
+            <div class="empty-state" *ngIf="reviews.length === 0">
               <span>💬</span>
               <strong>No reviews yet</strong>
               <span>Be the first to share your experience!</span>
@@ -283,60 +303,53 @@
 
       </main>
 
-      <!-- ── RIGHT: Sticky cart ── -->
-      <aside class="cart-sidebar" *ngIf="cartCount > 0">
-        <div class="cart-header">
-          <div class="cart-title">
-            🛒 Your Order
-            <span class="cart-count-badge">{{ cartCount }}</span>
-          </div>
-          <div class="cart-store">{{ store.name }}</div>
+      <!-- ── CART SIDEBAR ── -->
+      <aside class="cart-panel" *ngIf="cartCount > 0">
+        <div class="cart-head">
+          <span class="cart-title">🛒 Your Order <span class="cart-badge">{{ cartCount }}</span></span>
+          <span class="cart-store">{{ store.name }}</span>
         </div>
-        <div class="cart-items">
-          <div class="cart-item" *ngFor="let item of cart">
-            <div class="ci-info">
-              <div class="ci-name">{{ item.product.name }}</div>
-              <div class="ci-price">{{ item.product.basePrice | number:'1.2-2' }} DH</div>
+        <div class="cart-body">
+          <div class="cart-row" *ngFor="let item of cart">
+            <div class="cart-row-info">
+              <span class="cart-row-name">{{ item.product.name }}</span>
+              <span class="cart-row-price">{{ item.product.basePrice | number:'1.2-2' }} DH</span>
             </div>
-            <div class="ci-controls">
-              <button class="ci-btn" (click)="updateQty(item.product.id, -1)">−</button>
-              <span class="ci-qty">{{ item.quantity }}</span>
-              <button class="ci-btn" (click)="updateQty(item.product.id, +1)">+</button>
-              <button class="ci-remove" (click)="removeFromCart(item.product.id)">✕</button>
+            <div class="cart-row-ctrl">
+              <button class="mini-btn" (click)="updateQty(item.product.id, -1)">−</button>
+              <span class="mini-num">{{ item.quantity }}</span>
+              <button class="mini-btn" (click)="updateQty(item.product.id, +1)">+</button>
+              <button class="mini-remove" (click)="removeFromCart(item.product.id)">✕</button>
             </div>
-            <div class="ci-subtotal">
+            <div class="cart-row-sub">
               {{ item.product.basePrice * item.quantity | number:'1.2-2' }} DH
             </div>
           </div>
         </div>
-        <div class="cart-footer">
-          <div class="cart-total-row">
+        <div class="cart-foot">
+          <div class="cart-total">
             <span>Subtotal</span>
             <strong>{{ cartTotal | number:'1.2-2' }} DH</strong>
           </div>
-          <div class="cart-note">+ delivery calculated at checkout</div>
-          <button class="btn-checkout" (click)="goToCheckout()">Proceed to Checkout →</button>
-          <button class="btn-clear-cart" (click)="clearCart()">Clear cart</button>
+          <p class="cart-note">+ delivery at checkout</p>
+          <button class="btn-checkout" (click)="goToCheckout()">Checkout →</button>
+          <button class="btn-clear" (click)="clearCart()">Clear cart</button>
         </div>
       </aside>
 
     </div>
-    <!-- /content-layout -->
 
   </ng-container>
 </div>
 
-
-<!-- ════════════════════════════════════════
-     STORE SKELETON
-     ════════════════════════════════════════ -->
+<!-- SKELETON -->
 <ng-template #skeletonStore>
   <div class="skeleton-page">
-    <div class="skeleton hero-skeleton"></div>
+    <div class="skeleton-cover"></div>
     <div class="skeleton-body">
       <div class="skeleton line w60"></div>
       <div class="skeleton line w40"></div>
-      <div class="product-skeleton-grid">
+      <div class="skeleton-grid">
         <div class="skeleton prod-skel" *ngFor="let _ of [1,2,3,4,5,6]"></div>
       </div>
     </div>

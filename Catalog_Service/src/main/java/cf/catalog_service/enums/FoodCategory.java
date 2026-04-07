@@ -12,6 +12,8 @@ public enum FoodCategory {
     MEXICAN,
     FAST_FOOD,
     SNACKS,
+    FISH,
+    DESSERT ,
     PROMOTION,
     TOP_SELLER
 }

@@ -347,18 +347,30 @@ export class Analytics implements OnInit, AfterViewInit {
   }
 
   private computeStoreRatings(): void {
-    if (this.stores.length <= 1) {
-      this.storeRatingsData = this.stores.map(s => ({
-        storeName: s.name,
-        rating: s.rating || 0,
-        reviewCount: s.reviewCount || 0
-      }));
-    } else {
-      this.storeRatingsData = this.stores.map(s => ({
-        storeName: s.name,
-        rating: s.rating || 0,
-        reviewCount: s.reviewCount || 0
-      }));
+    const total = this.reviews.length;
+    const avgRating = total > 0
+      ? Math.round((this.reviews.reduce((s, r) => s + r.rating, 0) / total) * 10) / 10
+      : (this.selectedStore?.rating || 0);
+
+    this.storeRatingsData = [{
+      storeName: this.selectedStore?.name || 'Store',
+      rating: avgRating,
+      reviewCount: total
+    }];
+
+    // If multiple stores, show all
+    if (this.stores.length > 1) {
+      this.storeRatingsData = this.stores.map(s => {
+        const storeReviews = this.reviews.filter(r => r.targetId === s.id);
+        const storeAvg = storeReviews.length > 0
+          ? Math.round((storeReviews.reduce((sum, r) => sum + r.rating, 0) / storeReviews.length) * 10) / 10
+          : (s.rating || 0);
+        return {
+          storeName: s.name,
+          rating: storeAvg,
+          reviewCount: storeReviews.length
+        };
+      });
     }
   }
 

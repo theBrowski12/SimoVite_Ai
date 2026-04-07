@@ -206,6 +206,60 @@ public class CatalogServiceImpl implements CatalogService {
     }
 
     @Override
+    @McpTool(description = "Apply a percentage discount to a product. Restores original price on removal.")
+    public CatalogResponseDto applyPromotion(
+            @McpToolParam(description = "MongoDB ObjectId of the product") String id,
+            @McpToolParam(description = "Discount percentage (1 to 100)") Double percentage) {
+        if (percentage == null || percentage <= 0 || percentage > 100) {
+            throw new IllegalArgumentException("Le pourcentage de réduction doit être compris entre 1 et 100.");
+        }
+
+        // 1. Récupération du produit
+        Catalog product = catalogRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Produit introuvable avec l'ID : " + id));
+
+        // 2. Gestion de l'état promotionnel
+        // Si le produit n'est pas encore en promotion, on sauvegarde son prix actuel comme prix d'origine
+        if (!Boolean.TRUE.equals(product.getIsPromotion())) {
+            product.setOriginalPrice(product.getBasePrice());
+            product.setIsPromotion(true);
+        }
+
+        // 3. Calcul du nouveau prix par rapport au prix d'origine !
+        Double referencePrice = product.getOriginalPrice();
+        Double newPrice = referencePrice - (referencePrice * (percentage / 100.0));
+
+        // On met à jour le prix de vente final (arrondi à 2 décimales)
+        product.setBasePrice(Math.round(newPrice * 100.0) / 100.0);
+
+        // 4. Sauvegarde
+        Catalog updatedProduct = catalogRepository.save(product);
+        return catalogMapper.toDto(updatedProduct);
+    }
+
+    @Override
+    @McpTool(description = "Remove a promotion and restore the original base price")
+    public CatalogResponseDto removePromotion(@McpToolParam(description = "MongoDB ObjectId of the product") String id) {
+        Catalog product = catalogRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Produit introuvable avec l'ID : " + id));
+
+        // Si le produit est en promotion et a un prix d'origine sauvegardé
+        if (Boolean.TRUE.equals(product.getIsPromotion()) && product.getOriginalPrice() != null) {
+            // On restaure le prix normal
+            product.setBasePrice(product.getOriginalPrice());
+
+            // On nettoie les champs de promotion
+            product.setOriginalPrice(null);
+            product.setIsPromotion(false);
+
+            return catalogMapper.toDto(catalogRepository.save(product));
+        }
+
+        // Si le produit n'était pas en promotion, on le retourne tel quel
+        return catalogMapper.toDto(product);
+    }
+
+    @Override
     @McpTool(description = "Filter food items by category. Values: PIZZA,BURGER,SANDWICH,TACOS,ITALIAN,ASIAN,MOROCCAN,MEXICAN,FAST_FOOD,SNACKS,PROMOTION,TOP_SELLER")
     public List<CatalogResponseDto> getOffersByFoodCategory(
             @McpToolParam(description = "FoodCategory: PIZZA|BURGER|SANDWICH|TACOS|ITALIAN|ASIAN|MOROCCAN|MEXICAN|FAST_FOOD|SNACKS|PROMOTION|TOP_SELLER") FoodCategory category) {

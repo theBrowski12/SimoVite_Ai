@@ -95,6 +95,11 @@
             <option value="available">Available</option>
             <option value="unavailable">Unavailable</option>
           </select>
+          <select [(ngModel)]="filterPromotion" (ngModelChange)="applyFilters()" class="filter-select">
+            <option value="">All Products</option>
+            <option value="promo">🏷️ On Promotion</option>
+            <option value="normal">No Promotion</option>
+          </select>
           <button (click)="resetFilters()" class="btn-reset">Reset</button>
         </div>
       </div>
@@ -112,12 +117,15 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let product of paginatedProducts" class="product-row">
+            <tr *ngFor="let product of paginatedProducts" class="product-row" [class.has-promo]="product.isPromotion">
               <td class="product-cell">
                 <div class="product-info">
-                  <img *ngIf="product.imageURL" [src]="product.imageURL" [alt]="product.name" class="product-thumb">
-                  <div *ngIf="!product.imageURL" class="product-thumb-placeholder">
-                    <span>📦</span>
+                  <div class="product-thumb-wrap">
+                    <img *ngIf="product.imageURL" [src]="product.imageURL" [alt]="product.name" class="product-thumb">
+                    <div *ngIf="!product.imageURL" class="product-thumb-placeholder">
+                      <span>📦</span>
+                    </div>
+                    <span class="promo-badge" *ngIf="product.isPromotion">🏷️ {{ product.percentage }}% OFF</span>
                   </div>
                   <div class="product-details">
                     <h4 class="product-name">{{ product.name }}</h4>
@@ -126,14 +134,20 @@
                 </div>
               </td>
               <td class="price-cell">
-                <span class="price">{{ product.basePrice }} DH</span>
+                <ng-container *ngIf="product.isPromotion && product.originalPrice; else regularPrice">
+                  <span class="original-price">{{ product.originalPrice }} DH</span>
+                  <span class="sale-price">{{ product.basePrice }} DH</span>
+                </ng-container>
+                <ng-template #regularPrice>
+                  <span class="price">{{ product.basePrice }} DH</span>
+                </ng-template>
               </td>
               <td class="status-cell">
                 <label class="slide-toggle">
-                  <span class="slider-text">{{ product.available ? 'Available' : 'Unavailable' }}</span>
-                  <input type="checkbox" [checked]="product.available" 
+                  <input type="checkbox" [checked]="product.available"
                          (change)="toggleAvailability(product)">
                   <span class="slider"></span>
+                  <span class="slider-text">{{ product.available ? 'Available' : 'Unavailable' }}</span>
                 </label>
               </td>
               <td class="rating-cell">
@@ -145,6 +159,19 @@
                 <span *ngIf="product.rating === undefined" class="no-rating">No reviews</span>
               </td>
               <td class="actions-cell">
+                <button *ngIf="!product.isPromotion" (click)="openPromotionModal(product)" class="btn-icon btn-icon-promo" title="Add Promotion">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                    <line x1="7" y1="7" x2="7.01" y2="7"/>
+                  </svg>
+                </button>
+                <button *ngIf="product.isPromotion" (click)="removePromotion(product)" class="btn-icon btn-icon-remove-promo" title="Remove Promotion">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                    <line x1="7" y1="7" x2="7.01" y2="7"/>
+                    <line x1="3" y1="21" x2="21" y2="3"/>
+                  </svg>
+                </button>
                 <button (click)="viewDetails(product)" class="btn-icon" title="View Details">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
@@ -244,7 +271,7 @@
         <!-- Restaurant-specific fields -->
         <div *ngIf="selectedStore?.category === 'RESTAURANT'" class="form-section">
           <h3 class="form-section-title">Restaurant Details</h3>
-          
+
           <div class="form-group">
             <label class="checkbox-label">
               <input type="checkbox" formControlName="vegetarian">
@@ -258,6 +285,23 @@
               <option *ngFor="let cat of FoodCategory | keyvalue" [value]="cat.value">{{ cat.value }}</option>
             </select>
             <p class="form-hint">Hold Ctrl/Cmd to select multiple categories</p>
+          </div>
+
+          <div class="form-group">
+            <label for="ingredients">Ingredients</label>
+            <input id="ingredients" formControlName="ingredients" type="text" class="form-control" placeholder="e.g., Flour, Cheese, Tomato">
+            <p class="form-hint">Separate with commas</p>
+          </div>
+
+          <div class="form-group">
+            <label for="availableExtras">Available Extras</label>
+            <input id="availableExtras" formControlName="availableExtras" type="text" class="form-control" placeholder="e.g., Extra Cheese, Large Size">
+            <p class="form-hint">Separate with commas</p>
+          </div>
+
+          <div class="form-group">
+            <label for="allergens">Allergens</label>
+            <input id="allergens" formControlName="allergens" type="text" class="form-control" placeholder="e.g., Gluten, Dairy, Nuts">
           </div>
         </div>
 
@@ -296,7 +340,7 @@
         <!-- Supermarket-specific fields -->
         <div *ngIf="selectedStore?.category === 'SUPERMARKET'" class="form-section">
           <h3 class="form-section-title">Supermarket Details</h3>
-          
+
           <div class="form-row">
             <div class="form-group">
               <label for="weightInKg">Weight (kg)</label>
@@ -310,6 +354,30 @@
               <option *ngFor="let cat of SupermarketCategory | keyvalue" [value]="cat.value">{{ cat.value }}</option>
             </select>
             <p class="form-hint">Hold Ctrl/Cmd to select multiple categories</p>
+          </div>
+        </div>
+
+        <!-- Special Delivery-specific fields -->
+        <div *ngIf="selectedStore?.category === 'SPECIAL_DELIVERY'" class="form-section">
+          <h3 class="form-section-title">Delivery Service Details</h3>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="pricePerKm">Price per km (DH)</label>
+              <input id="pricePerKm" formControlName="pricePerKm" type="number" class="form-control" placeholder="0.00" step="0.01" min="0">
+            </div>
+            <div class="form-group">
+              <label for="pricePerKg">Price per kg (DH)</label>
+              <input id="pricePerKg" formControlName="pricePerKg" type="number" class="form-control" placeholder="0.00" step="0.01" min="0">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="requiredVehicleType">Required Vehicle</label>
+            <select id="requiredVehicleType" formControlName="requiredVehicleType" class="form-control">
+              <option value="">Select vehicle type</option>
+              <option *ngFor="let v of VehicleTypes | keyvalue" [value]="v.value">{{ v.value }}</option>
+            </select>
           </div>
         </div>
 
@@ -341,6 +409,7 @@
       <div class="modal-body">
         <img *ngIf="selectedProduct.imageURL" [src]="selectedProduct.imageURL" [alt]="selectedProduct.name" class="detail-image">
         <div class="detail-grid">
+          <!-- Common fields -->
           <div class="detail-item">
             <label>Description</label>
             <p>{{ selectedProduct.description || 'No description provided' }}</p>
@@ -372,10 +441,146 @@
               </span>
             </p>
           </div>
+
+          <!-- Restaurant-specific -->
+          <ng-container *ngIf="selectedProduct.type === 'RESTAURANT'">
+            <div class="detail-item" *ngIf="$any(selectedProduct)?.vegetarian">
+              <label>Vegetarian</label>
+              <p><span class="badge-veg">🥬 Yes</span></p>
+            </div>
+            
+            <div class="detail-item" *ngIf="$any(selectedProduct).ingredients">
+              <label>Ingredients</label>
+              <div class="tag-list">
+                <span class="tag" *ngFor="let ing of splitIfNeeded($any(selectedProduct).ingredients)">{{ ing }}</span>
+              </div>
+            </div>
+
+            <div class="detail-item" *ngIf="$any(selectedProduct).availableExtras">
+              <label>Available Extras</label>
+              <div class="tag-list">
+                <span class="tag tag-extra" *ngFor="let ext of splitIfNeeded($any(selectedProduct).availableExtras)">{{ ext }}</span>
+              </div>
+            </div>
+            
+            <div class="detail-item" *ngIf="$any(selectedProduct).allergens">
+              <label>Allergens</label>
+              <p class="allergen-text">⚠️ {{ $any(selectedProduct).allergens }}</p>
+            </div>
+            
+            <div class="detail-item" *ngIf="$any(selectedProduct).foodCategories?.length > 0">
+              <label>Food Categories</label>
+              <div class="tag-list">
+                <span class="tag tag-cat" *ngFor="let cat of $any(selectedProduct).foodCategories">{{ cat }}</span>
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- Pharmacy-specific -->
+          <ng-container *ngIf="selectedProduct.type === 'PHARMACY'">
+            <div class="detail-item" *ngIf="$any(selectedProduct).requiresPrescription">
+              <label>Prescription Required</label>
+              <p><span class="badge-rx">💊 Yes</span></p>
+            </div>
+            <div class="detail-item" *ngIf="$any(selectedProduct).dosage">
+              <label>Dosage</label>
+              <p>{{ $any(selectedProduct).dosage }}</p>
+            </div>
+            <div class="detail-item" *ngIf="$any(selectedProduct).activeIngredient">
+              <label>Active Ingredient</label>
+              <p>{{ $any(selectedProduct).activeIngredient }}</p>
+            </div>
+            <div class="detail-item" *ngIf="$any(selectedProduct).pharmacyCategories && $any(selectedProduct).pharmacyCategories.length > 0">
+              <label>Pharmacy Categories</label>
+              <div class="tag-list">
+                <span class="tag tag-pharma" *ngFor="let cat of $any(selectedProduct).pharmacyCategories">{{ cat }}</span>
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- Supermarket-specific -->
+          <ng-container *ngIf="selectedProduct.type === 'SUPERMARKET'">
+            <div class="detail-item" *ngIf="$any(selectedProduct).weightInKg">
+              <label>Weight</label>
+              <p>{{ $any(selectedProduct).weightInKg }} kg</p>
+            </div>
+            <div class="detail-item" *ngIf="$any(selectedProduct).supermarketCategories && $any(selectedProduct).supermarketCategories.length > 0">
+              <label>Supermarket Categories</label>
+              <div class="tag-list">
+                <span class="tag tag-super" *ngFor="let cat of $any(selectedProduct).supermarketCategories">{{ cat }}</span>
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- Special Delivery-specific -->
+          <ng-container *ngIf="selectedProduct.type === 'SPECIAL_DELIVERY'">
+            <div class="detail-item" *ngIf="$any(selectedProduct).pricePerKm">
+              <label>Price per km</label>
+              <p>{{ $any(selectedProduct).pricePerKm }} DH/km</p>
+            </div>
+            <div class="detail-item" *ngIf="$any(selectedProduct).pricePerKg">
+              <label>Price per kg</label>
+              <p>{{ $any(selectedProduct).pricePerKg }} DH/kg</p>
+            </div>
+            <div class="detail-item" *ngIf="$any(selectedProduct).requiredVehicleType">
+              <label>Required Vehicle</label>
+              <p>{{ $any(selectedProduct).requiredVehicleType }}</p>
+            </div>
+          </ng-container>
         </div>
       </div>
       <div class="modal-footer">
         <button (click)="closeDetailModal()" class="btn-secondary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Promotion Modal -->
+  <div *ngIf="showPromotionModal" class="modal-overlay" (click)="closePromotionModal()">
+    <div class="modal-content promo-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h2>🏷️ Apply Promotion</h2>
+          <p class="modal-subtitle">Set a discount percentage for this product</p>
+        </div>
+        <button (click)="closePromotionModal()" class="btn-close">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="promo-preview">
+          <span class="promo-label">Discount Percentage</span>
+          <div class="promo-slider-wrap">
+            <input type="range"
+                   min="1" max="90"
+                   [ngModel]="promotionForm.get('percentage')?.value"
+                   (ngModelChange)="promotionForm.get('percentage')?.setValue($event)"
+                   class="promo-range">
+            <span class="promo-value">{{ promotionForm.get('percentage')?.value }}%</span>
+          </div>
+        </div>
+        <div class="promo-form-group">
+          <label>Enter percentage (1-90)</label>
+          <input type="number"
+                 [ngModel]="promotionForm.get('percentage')?.value"
+                 (ngModelChange)="promotionForm.get('percentage')?.setValue($event)"
+                 class="form-control promo-input" min="1" max="90" step="1">
+          <div *ngIf="promotionForm.get('percentage')?.invalid && promotionForm.get('percentage')?.touched" class="error-message">
+            Enter a value between 1 and 90
+          </div>
+        </div>
+        <div class="promo-info">
+          <span>💡 Promotions attract more customers and boost sales!</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" (click)="closePromotionModal()" class="btn-secondary">Cancel</button>
+        <button type="button" (click)="submitPromotion()" class="btn-promo" [disabled]="promotionForm.invalid || submitting">
+          <span *ngIf="submitting" class="spinner"></span>
+          {{ submitting ? 'Applying...' : 'Apply Promotion' }}
+        </button>
       </div>
     </div>
   </div>

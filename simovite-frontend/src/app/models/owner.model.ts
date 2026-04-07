@@ -6,12 +6,14 @@ export interface Owner {
   email: string;
   name: string;
   storeId: string;
-  //storeName: string; store infos are retrieved from storeId ?
+  //store : storeResponseDto; ? store infos are retrieved from storeId ?
+  storeName: string; 
   //storeCategory: string;
   //storeAddress: Address;
   //storeComments:string;
   //storeRating: number;
   totalOrders: number;
+  totalDeliveries: number;
   //storeProducts: CatalogResponseDto; ?
   earnings: number;
   online: boolean;

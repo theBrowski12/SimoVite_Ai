@@ -49,7 +49,12 @@ export class AdminOrders implements OnInit {
     this.error   = '';
     this.orderSvc.getAll().subscribe({
       next: orders => {
-        this.orders  = orders;
+        this.orders  = orders.sort((a, b) => {
+          // Sort by most recent date
+          const dateA = new Date(a.updatedAt || a.createdAt).getTime();
+          const dateB = new Date(b.updatedAt || b.createdAt).getTime();
+          return dateB - dateA; // Descending: newest first
+        });
         this.applyFilters();
         this.loading = false;
         this.cdr.detectChanges();

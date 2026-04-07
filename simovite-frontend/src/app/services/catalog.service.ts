@@ -134,4 +134,19 @@ export class CatalogService {
 
     return this.http.get<number>(`${this.apiUrl}/${id}/calculate-price`, { params });
   }
+  // ==========================================
+  // GESTION DES PROMOTIONS
+  // ==========================================
+
+  applyPromotion(id: string, percentage: number): Observable<CatalogResponseDto> {
+    // Utilisation de HttpParams pour envoyer le pourcentage dans l'URL proprement (?percentage=X)
+    let params = new HttpParams().set('percentage', percentage.toString());
+    
+    // On envoie un body vide {} car c'est un PATCH et les infos sont dans l'URL
+    return this.http.patch<CatalogResponseDto>(`${this.apiUrl}/${id}/promotion`, {}, { params });
+  }
+
+  removePromotion(id: string): Observable<CatalogResponseDto> {
+    return this.http.delete<CatalogResponseDto>(`${this.apiUrl}/${id}/promotion`);
+  }
 }

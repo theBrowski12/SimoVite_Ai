@@ -15,8 +15,9 @@ export class AdminClientsComponent implements OnInit {
   clients: Client[] = []; 
   filtered: Client[] = [];
   loading = true; 
-  searchTerm = ''; 
-  currentPage = 1; 
+  searchTerm = '';
+  filterStatus = '';
+  currentPage = 1;
   pageSize = 10;
   
   constructor(
@@ -32,56 +33,47 @@ export class AdminClientsComponent implements OnInit {
   loadRealClients(): void {
     this.loading = true;
 
-    this.keycloakAdmin.getUsers().pipe(
-      // 1. On transforme les données Keycloak en base de liste Client
-      map((keycloakUsers: any[]) => {
-        return keycloakUsers.map(ku => ({
-          id: ku.id,
-          name: `${ku.firstName || ''} ${ku.lastName || ''}`.trim() || ku.username,
-          email: ku.email || 'Aucun email',
-          enabled: ku.enabled ?? true, // Gère le statut Suspendu/Actif
-          emailVerified: ku.emailVerified ?? false,
-          isOnline: false, // Valeur par défaut, on la met à jour juste après !
-          joinedAt: ku.createdTimestamp ? new Date(ku.createdTimestamp).toISOString().split('T')[0] : 'Inconnu',
-          totalOrders: 0,
-          totalSpent: 0,
-          reviewsCount: 0
-        }));
-      }),
-      
-      // 2. On enrichit avec les Commandes ET les Sessions Keycloak
-      switchMap((baseClients: Client[]) => {
-        if (baseClients.length === 0) return of([]);
+    // Fetch only users with CLIENT role, like couriers uses getCOURIER()
+    forkJoin({
+      keycloakUsers: this.keycloakAdmin.getUsersByRole('CLIENT'),
+      allOrders: this.orderService.getAll()
+    }).pipe(
+      switchMap(({ keycloakUsers, allOrders }) => {
+        if (keycloakUsers.length === 0) return of([]);
 
-        const enrichmentRequests = baseClients.map(client =>
-          // ⚡ On lance les deux requêtes en parallèle pour chaque client
-          forkJoin({
-            orders: this.orderService.getByUserId(client.id).pipe(catchError(() => of([]))),
-            sessions: this.keycloakAdmin.getUserSessions(client.id).pipe(catchError(() => of([])))
-          }).pipe(
-            map(({ orders, sessions }) => {
-              // Calcul des commandes
-              client.totalOrders = orders.length;
-              client.totalSpent = orders.reduce((sum, order) => sum + (order.price || 0), 0); 
-              
-              // 🟢 Calcul du statut En Ligne : s'il y a au moins 1 session active
-              client.isOnline = sessions && sessions.length > 0;
+        const clientRequests = keycloakUsers.map(u =>
+          this.keycloakAdmin.getUserSessions(u.id).pipe(
+            map(sessions => {
+              const myOrders = allOrders.filter(o => o.userId === u.id);
+              const completed = myOrders.filter(o => o.status === 'COMPLETED').length;
 
-              return client;
-            })
+              return {
+                id: u.id,
+                name: `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.username,
+                email: u.email || 'N/A',
+                enabled: u.enabled ?? true,
+                emailVerified: u.emailVerified ?? false,
+                isOnline: sessions.length > 0,
+                joinedAt: u.createdTimestamp ? new Date(u.createdTimestamp).toISOString().split('T')[0] : 'Unknown',
+                totalOrders: myOrders.length,
+                totalSpent: myOrders.reduce((sum, order) => sum + (order.price || 0), 0),
+                reviewsCount: 0
+              };
+            }),
+            catchError(() => of(null))
           )
         );
-        return forkJoin(enrichmentRequests);
+        return forkJoin(clientRequests);
       })
     ).subscribe({
-      next: (enrichedClients: Client[]) => {
-        this.clients = enrichedClients;
+      next: (data) => {
+        this.clients = (data.filter(c => c !== null) as Client[]);
         this.filtered = [...this.clients];
         this.loading = false;
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Erreur globale lors du chargement des clients:', err);
+        console.error('Failed to load clients:', err);
         this.loading = false;
         this.cdr.detectChanges();
       }
@@ -89,12 +81,23 @@ export class AdminClientsComponent implements OnInit {
   }
 
   applyFilters(): void {
-    this.filtered = this.clients.filter(c => 
-      !this.searchTerm || 
-      c.name.toLowerCase().includes(this.searchTerm.toLowerCase()) || 
-      c.email.toLowerCase().includes(this.searchTerm.toLowerCase())
-    );
+    this.filtered = this.clients.filter(c => {
+      const matchSearch = !this.searchTerm ||
+        c.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        c.email.toLowerCase().includes(this.searchTerm.toLowerCase());
+
+      const matchStatus = !this.filterStatus ||
+        (this.filterStatus === 'active' ? c.enabled : !c.enabled);
+
+      return matchSearch && matchStatus;
+    });
     this.currentPage = 1;
+  }
+
+  reset(): void {
+    this.searchTerm = '';
+    this.filterStatus = '';
+    this.applyFilters();
   }
 
   get paginated(): Client[] { 
@@ -105,11 +108,13 @@ export class AdminClientsComponent implements OnInit {
     return Math.ceil(this.filtered.length / this.pageSize) || 1; 
   }
   
-  get pages(): number[] { 
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1); 
+  get pages(): number[] {
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
-  
-  getInitials(name: string): string { 
+
+  Math = Math;
+
+  getInitials(name: string): string {
     if (!name) return '??';
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2); 
   }

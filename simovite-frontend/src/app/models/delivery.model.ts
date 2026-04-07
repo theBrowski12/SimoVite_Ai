@@ -16,6 +16,7 @@ export interface DistancePreviewDto {
   deliveryCost: number;
   cashOnDelivery: boolean;
   amountToCollect: number;
+
   
   estimatedEtaMinutes: number;
   etaPercentage: number;
@@ -41,8 +42,10 @@ export interface Delivery {
   status: DeliveryStatus;
   storeCategory?: string;
   orderTotal?: number;
+  actualDeliveryTimeInMinutes?: number;
   createdAt: string;
   updatedAt?: string;
+  acceptedAt?: string; 
   deliveredAt?: string;
 }
 export interface DeliveryRequestDto {
