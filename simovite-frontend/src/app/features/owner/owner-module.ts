@@ -11,6 +11,7 @@ import { Analytics } from './analytics/analytics';
 import { StoreProfile } from './store-profile/store-profile';
 import { OwnerLayout } from './owner-layout/owner-layout';
 import { Deliveries } from './deliveries/deliveries';
+import { Account } from './account/account';
 
 @NgModule({
   declarations: [
@@ -22,6 +23,7 @@ import { Deliveries } from './deliveries/deliveries';
     StoreProfile,
     OwnerLayout,
     Deliveries,
+    Account,
   ],
   imports: [CommonModule, OwnerRoutingModule, ReactiveFormsModule, FormsModule],
 })

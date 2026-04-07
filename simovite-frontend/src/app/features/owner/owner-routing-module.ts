@@ -9,6 +9,7 @@ import { Reviews } from './reviews/reviews';
 import { Analytics } from './analytics/analytics';
 import { StoreProfile } from './store-profile/store-profile';
 import { Deliveries } from './deliveries/deliveries';
+import { Account } from './account/account';
 
 const routes: Routes = [
   {
@@ -23,6 +24,7 @@ const routes: Routes = [
       { path: 'reviews', component: Reviews },
       { path: 'statistics', component: Analytics },
       { path: 'deliveries', component: Deliveries },
+      { path: 'account', component: Account}
     ]
   }
 ];
