@@ -1,39 +1,118 @@
-<div class="deliveries-container">
-  <h2>Commandes disponibles 🛵</h2>
+<div class="pending-deliveries-page">
+  <!-- Page Header -->
+  <header class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">Available Deliveries</h1>
+      <p class="page-subtitle">Browse and accept delivery requests in your area</p>
+    </div>
+    <button class="btn-refresh" (click)="fetchDeliveries()" [disabled]="isLoading">
+      <svg [class.spinning]="isLoading" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+      </svg>
+      <span>Refresh</span>
+    </button>
+  </header>
 
-  <div class="loader" *ngIf="isLoading">
-    Recherche des commandes autour de vous...
+  <!-- Stats Bar -->
+  <div class="stats-bar" *ngIf="!isLoading">
+    <div class="stat-item">
+      <span class="stat-value">{{ availableDeliveries.length }}</span>
+      <span class="stat-label">Available Orders</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-value">{{ getAverageDistance() }} km</span>
+      <span class="stat-label">Avg Distance</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-value">{{ getTotalEarnings() | number:'1.0-0' }} DH</span>
+      <span class="stat-label">Total Earnings</span>
+    </div>
   </div>
 
-  <div class="error" *ngIf="errorMessage">
-    {{ errorMessage }}
-    <button (click)="fetchDeliveries()">Réessayer</button>
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="loading-spinner">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+      </svg>
+    </div>
+    <p>Finding deliveries near you...</p>
   </div>
 
+  <!-- Error State -->
+  <div class="error-state" *ngIf="errorMessage">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <p>{{ errorMessage }}</p>
+    <button class="btn-primary" (click)="fetchDeliveries()">Try Again</button>
+  </div>
+
+  <!-- Empty State -->
   <div class="empty-state" *ngIf="!isLoading && !errorMessage && availableDeliveries.length === 0">
-    Aucune commande en attente pour le moment.
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+      <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+    </svg>
+    <h3>No Deliveries Available</h3>
+    <p>There are no pending deliveries at the moment. Check back soon!</p>
+    <button class="btn-primary" (click)="fetchDeliveries()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+      </svg>
+      Refresh List
+    </button>
   </div>
 
-  <div class="delivery-list" *ngIf="!isLoading && availableDeliveries.length > 0">
-    
+  <!-- Deliveries Grid -->
+  <div class="deliveries-grid" *ngIf="!isLoading && availableDeliveries.length > 0">
     <div class="delivery-card" *ngFor="let delivery of availableDeliveries">
+      <!-- Card Header -->
       <div class="card-header">
-        <h3>Commande #{{ delivery.orderRef || delivery.id }}</h3>
-        <span class="price">{{ delivery.deliveryCost | currency:'MAD' }}</span>
-      </div>
-      
-      <div class="card-body">
-        <p><strong>De:</strong> {{ delivery.pickupAddress?.street || 'Adresse magasin' }}</p>
-        <p><strong>À:</strong> {{ delivery.dropoffAddress?.street || 'Adresse client' }}</p>
-        <p class="distance">Distance : {{ delivery.distanceInKm | number:'1.1-1' }} km</p>
+        <div class="order-info">
+          <span class="order-ref">Order #{{ delivery.orderRef }}</span>
+          <span class="order-time">{{ delivery.createdAt | date:'shortTime' }}</span>
+        </div>
+        <div class="earnings-badge">{{ delivery.deliveryCost | number:'1.0-0' }} DH</div>
       </div>
 
-      <div class="card-actions">
-        <button class="btn-details" (click)="previewDelivery(delivery.id)">
-          Voir l'itinéraire
+      <!-- Route Info -->
+      <div class="card-route">
+        <div class="route-point pickup">
+          <div class="route-dot"></div>
+          <div class="route-details">
+            <span class="route-label">Pickup</span>
+            <span class="route-address">{{ delivery.pickupAddress?.street || 'Store location' }}</span>
+          </div>
+        </div>
+        <div class="route-line">
+          <div class="route-distance">{{ delivery.distanceInKm | number:'1.1-1' }} km</div>
+        </div>
+        <div class="route-point dropoff">
+          <div class="route-dot"></div>
+          <div class="route-details">
+            <span class="route-label">Drop-off</span>
+            <span class="route-address">{{ delivery.dropoffAddress?.street || 'Customer address' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Footer -->
+      <div class="card-footer">
+        <div class="route-meta">
+          <span class="eta-badge">⏱ {{ delivery.estimatedTimeInMinutes || '~' }} min</span>
+          <span class="cod-badge" *ngIf="delivery.cashOnDelivery">💵 {{ delivery.amountToCollect | number:'1.0-0' }} DH</span>
+        </div>
+        <button class="btn-accept" (click)="previewDelivery(delivery.id)">
+          View Route
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
         </button>
       </div>
     </div>
-
   </div>
 </div>

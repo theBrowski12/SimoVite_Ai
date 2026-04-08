@@ -26,12 +26,14 @@
     </nav>
 
     <div class="sidebar-user">
-      <div class="user-avatar">{{ storeName.charAt(0) }}</div>
-      <div class="user-info">
-        <div class="user-name">{{ storeName }}</div>
-        <div class="user-role">Store Owner</div>
-      </div>
-      <button class="btn-logout" (click)="logout()" title="Déconnexion">
+      <a [routerLink]="['/owner/account']" class="user-link" title="Account Settings">
+        <div class="user-avatar">{{ ownerName.charAt(0) }}</div>
+        <div class="user-info">
+          <div class="user-name">{{ ownerName }}</div>
+          <div class="user-role">Store Owner</div>
+        </div>
+      </a>
+      <button class="btn-logout" (click)="logout()" title="Sign Out">
         <i data-lucide="log-out"></i>
       </button>
     </div>

@@ -47,6 +47,16 @@ export class PendingDeliveries implements OnInit {
     });
   }
 
+  getAverageDistance(): string {
+    if (this.availableDeliveries.length === 0) return '0';
+    const total = this.availableDeliveries.reduce((sum, d) => sum + (d.distanceInKm || 0), 0);
+    return (total / this.availableDeliveries.length).toFixed(1);
+  }
+
+  getTotalEarnings(): number {
+    return this.availableDeliveries.reduce((sum, d) => sum + (d.deliveryCost || 0), 0);
+  }
+
   // 🌟 Méthode pour rediriger le livreur vers la page de "preview" avec la carte
   previewDelivery(deliveryId: number): void {
     this.router.navigate(['/courier/preview', deliveryId]);

@@ -11,6 +11,12 @@
       <a class="nav-link" routerLink="/courier/pending" routerLinkActive="active">Pending</a>
       <a class="nav-link" routerLink="/courier/earnings" routerLinkActive="active">Earnings</a>
       <a class="nav-link" routerLink="/courier/history" routerLinkActive="active">History</a>
+      <button *ngIf="isAdmin" 
+            routerLink="/admin/dashboard" 
+            class="btn-admin-pill">
+      <span class="icon">⚙️</span>
+      <span class="text">Admin Dashboard</span>
+    </button>
     </div>
 
     <div class="nav-actions">

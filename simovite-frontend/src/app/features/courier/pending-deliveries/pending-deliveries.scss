@@ -1,154 +1,425 @@
-// Variables globales (à mettre dans styles.scss idéalement, mais on les garde ici pour le composant)
-$primary-color: #3b82f6; // Bleu moderne
-$success-color: #10b981; // Vert action
-$text-main: #0f172a;
+// VARIABLES
+$primary: #3b82f6;
+$primary-dark: #2563eb;
+$success: #10b981;
+$success-dark: #059669;
+$warning: #f59e0b;
+$text-dark: #0f172a;
 $text-muted: #64748b;
-$bg-color: #f8fafc;
+$bg-light: #f8fafc;
 $card-bg: #ffffff;
+$border: #e2e8f0;
 
-.deliveries-container {
-  padding: 1.5rem;
-  background-color: $bg-color;
+:host {
+  display: block;
+  background: $bg-light;
   min-height: 100vh;
-  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-
-  h2 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: $text-main;
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
+  font-family: 'DM Sans', 'Inter', -apple-system, sans-serif;
 }
 
-// États de chargement et d'erreur
-.loader, .empty-state, .error {
-  text-align: center;
-  padding: 3rem 1rem;
-  border-radius: 16px;
-  font-weight: 500;
-  background: $card-bg;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+.pending-deliveries-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
 }
 
-.loader { color: $primary-color; }
-.empty-state { color: $text-muted; }
-.error { 
-  color: #ef4444; 
-  button {
-    margin-top: 1rem;
-    padding: 0.5rem 1.5rem;
-    border-radius: 8px;
-    border: none;
-    background: #fee2e2;
-    color: #ef4444;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s;
-    &:hover { background: #fca5a5; }
-  }
-}
-
-// Grille des commandes
-.delivery-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
-}
-
-// Style de la Carte de Livraison
-.delivery-card {
-  background: $card-bg;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(0,0,0,0.05);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+// HEADER
+.page-header {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: $text-dark;
+  margin: 0 0 4px;
+}
+
+.page-subtitle {
+  font-size: 0.85rem;
+  color: $text-muted;
+  margin: 0;
+}
+
+.btn-refresh {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #fff;
+  border: 1px solid $border;
+  border-radius: 10px;
+  color: $text-muted;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) {
+    border-color: $primary;
+    color: $primary;
+  }
+
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+.spinning { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// STATS BAR
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.stat-item {
+  background: $card-bg;
+  border-radius: 12px;
+  border: 1px solid $border;
+  padding: 14px 16px;
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
   }
 
-  .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.25rem 1.25rem 1rem;
-    border-bottom: 1px solid #f1f5f9;
-
-    h3 {
-      margin: 0;
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: $text-main;
-    }
-
-    .price {
-      background: #ecfdf5;
-      color: $success-color;
-      padding: 0.4rem 0.8rem;
-      border-radius: 20px;
-      font-weight: 700;
-      font-size: 0.95rem;
-    }
+  .stat-value {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: $primary;
+    margin-bottom: 4px;
   }
 
-  .card-body {
-    padding: 1.25rem;
-    flex-grow: 1;
+  .stat-label {
+    font-size: 0.75rem;
+    color: $text-muted;
+    font-weight: 500;
+  }
+}
 
-    p {
-      margin: 0 0 0.75rem 0;
-      font-size: 0.95rem;
-      color: $text-muted;
-      line-height: 1.4;
+// LOADING STATE
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
 
-      strong {
-        color: $text-main;
-        margin-right: 0.4rem;
-      }
-    }
-
-    .distance {
-      display: inline-block;
-      margin-top: 0.5rem;
-      padding: 0.3rem 0.6rem;
-      background: #f1f5f9;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #475569;
-    }
+  .loading-spinner {
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+    color: $primary;
   }
 
-  .card-actions {
-    padding: 1.25rem;
-    padding-top: 0;
+  p {
+    font-size: 0.9rem;
+    color: $text-muted;
+    margin: 0;
+  }
+}
 
-    .btn-details {
-      width: 100%;
-      padding: 0.875rem;
-      border: none;
-      border-radius: 10px;
-      background: $primary-color;
-      color: white;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s ease;
+// ERROR STATE
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 20px;
+  text-align: center;
+  color: #dc2626;
 
-      &:hover {
-        background: darken($primary-color, 10%);
-      }
-      
-      &:active {
-        transform: scale(0.98);
-      }
-    }
+  svg { margin-bottom: 16px; }
+
+  p {
+    font-size: 0.9rem;
+    margin: 0 0 16px;
+    color: $text-muted;
+  }
+}
+
+// EMPTY STATE
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  background: $card-bg;
+  border-radius: 16px;
+  border: 1px dashed $border;
+
+  svg {
+    color: #cbd5e1;
+    margin-bottom: 16px;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: $text-dark;
+    margin: 0 0 4px;
+  }
+
+  p {
+    font-size: 0.85rem;
+    color: $text-muted;
+    margin: 0 0 20px;
+    max-width: 280px;
+  }
+}
+
+// BUTTONS
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  background: $primary;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+
+  &:hover { background: $primary-dark; transform: translateY(-1px); }
+}
+
+// DELIVERIES GRID
+.deliveries-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+// DELIVERY CARD
+.delivery-card {
+  background: $card-bg;
+  border-radius: 14px;
+  border: 1px solid $border;
+  overflow: hidden;
+  transition: all 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+    border-color: $primary;
+  }
+}
+
+// CARD HEADER
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border-bottom: 1px solid $border;
+}
+
+.order-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.order-ref {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: $text-dark;
+  font-family: 'DM Mono', monospace;
+}
+
+.order-time {
+  font-size: 0.72rem;
+  color: $text-muted;
+}
+
+.earnings-badge {
+  padding: 6px 12px;
+  background: #ecfdf5;
+  color: $success-dark;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+// ROUTE INFO
+.card-route {
+  padding: 16px;
+}
+
+.route-point {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.route-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+
+  .pickup & { background: $success; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15); }
+  .dropoff & { background: $primary; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
+}
+
+.route-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.route-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+}
+
+.route-address {
+  font-size: 0.82rem;
+  color: $text-dark;
+  font-weight: 500;
+}
+
+.route-line {
+  position: relative;
+  height: 24px;
+  margin-left: 4px;
+  margin-right: 4px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, $success, $primary);
+    border-radius: 1px;
+  }
+
+  .route-distance {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: $primary;
+    background: #eff6ff;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+}
+
+// CARD FOOTER
+.card-footer {
+  padding: 12px 16px;
+  border-top: 1px solid $border;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.route-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.eta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: #f8fafc;
+  color: $text-muted;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+.cod-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: #fffbeb;
+  color: #d97706;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.btn-accept {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: $primary;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+
+  &:hover {
+    background: $primary-dark;
+    transform: translateY(-1px);
+  }
+}
+
+// RESPONSIVE
+@media (max-width: 768px) {
+  .stats-bar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .deliveries-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .card-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-accept {
+    justify-content: center;
   }
 }

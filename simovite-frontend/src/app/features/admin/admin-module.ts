@@ -22,6 +22,7 @@ import { AdminClientsComponent } from './clients/clients';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { AdminProductDetailsComponent } from './admin-product-details/admin-product-details';
 import { ProductForm } from './product-form/product-form';
+import { AdminAccount } from './admin-account/admin-account';
 // ... autres imports
 
 @NgModule({
@@ -43,6 +44,7 @@ import { ProductForm } from './product-form/product-form';
     AdminKeycloak,
     AdminProductDetailsComponent,
     ProductForm,
+    AdminAccount,
   ],
   imports: [
     CommonModule,

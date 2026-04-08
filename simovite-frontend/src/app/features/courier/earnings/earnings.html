@@ -1,1 +1,108 @@
-<p>earnings works!</p>
+<div class="earnings-page">
+  <!-- Page Header -->
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">My Earnings 💰</h1>
+      <p class="page-subtitle">Track your delivery income and performance</p>
+    </div>
+  </header>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="loading">
+    <div class="loading-spinner"></div>
+    <p>Loading earnings data...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-state" *ngIf="error && !loading">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <p>{{ error }}</p>
+    <button class="btn-primary" (click)="loadEarnings()">Try Again</button>
+  </div>
+
+  <ng-container *ngIf="!loading">
+    <!-- Period Filter Tabs -->
+    <div class="period-tabs">
+      <button class="period-btn" [class.active]="selectedPeriod === '7d'" (click)="setPeriod('7d')">Last 7 Days</button>
+      <button class="period-btn" [class.active]="selectedPeriod === '30d'" (click)="setPeriod('30d')">Last 30 Days</button>
+      <button class="period-btn" [class.active]="selectedPeriod === 'all'" (click)="setPeriod('all')">All Time</button>
+    </div>
+
+    <!-- Stats Cards Grid -->
+    <div class="stats-grid">
+      <div class="stat-card primary">
+        <div class="stat-icon">💵</div>
+        <div class="stat-content">
+          <span class="stat-label">Total Earnings</span>
+          <span class="stat-value">{{ totalEarnings | number:'1.0-0' }} DH</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📦</div>
+        <div class="stat-content">
+          <span class="stat-label">Deliveries</span>
+          <span class="stat-value">{{ totalDeliveries }}</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-content">
+          <span class="stat-label">Avg per Delivery</span>
+          <span class="stat-value">{{ avgPerDelivery | number:'1.0-0' }} DH</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">💳</div>
+        <div class="stat-content">
+          <span class="stat-label">Cash to Collect</span>
+          <span class="stat-value warning">{{ cashOnDelivery | number:'1.0-0' }} DH</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Earnings Chart -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3 class="chart-title">Earnings Overview</h3>
+      </div>
+      <div class="chart-wrapper">
+        <div class="empty-chart" *ngIf="earningsChartData.every(d => d.value === 0)">
+          <p>No earnings data for this period</p>
+        </div>
+        <canvas id="earningsChart" [hidden]="earningsChartData.every(d => d.value === 0)"></canvas>
+      </div>
+    </div>
+
+    <!-- Delivery History Table -->
+    <div class="history-card">
+      <div class="history-header">
+        <h3 class="history-title">Delivery History</h3>
+        <span class="history-count">{{ filteredDeliveries.length }} deliveries</span>
+      </div>
+
+      <div class="empty-history" *ngIf="filteredDeliveries.length === 0">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+          <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+        </svg>
+        <p>No deliveries completed in this period</p>
+      </div>
+
+      <div class="delivery-list" *ngIf="filteredDeliveries.length > 0">
+        <div class="delivery-row" *ngFor="let d of filteredDeliveries">
+          <div class="row-left">
+            <div class="row-ref">{{ d.orderRef }}</div>
+            <div class="row-meta">{{ d.distanceInKm | number:'1.1-1' }} km • {{ d.estimatedTimeInMinutes || '~' }} min</div>
+          </div>
+          <div class="row-right">
+            <span class="row-earnings">+{{ d.deliveryCost | number:'1.0-0' }} DH</span>
+            <span class="row-cod" *ngIf="d.cashOnDelivery">💵 {{ d.amountToCollect | number:'1.0-0' }} DH</span>
+            <span class="row-date">{{ formatDate(d.createdAt || d.deliveredAt || '') }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

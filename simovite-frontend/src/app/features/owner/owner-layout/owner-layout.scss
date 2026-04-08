@@ -102,41 +102,74 @@ $text-light: #ffffff;
 
   /* ── USER FOOTER ── */
   .sidebar-user {
-    padding: 20px 25px;
-    border-top: 1px solid rgba(255, 255, 255, 0.03);
+    padding: 16px 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
     display: flex;
     align-items: center;
-    gap: 15px;
-    background: rgba(0,0,0,0.1); 
+    justify-content: space-between;
+    background: rgba(0,0,0,0.15);
+    flex-shrink: 0;
+    min-height: 70px;
+
+    .user-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
+      text-decoration: none;
+      cursor: pointer;
+      padding: 6px 8px;
+      border-radius: 8px;
+      transition: background 0.2s;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+    }
 
     .user-avatar {
-      width: 42px; height: 42px;
+      width: 36px; height: 36px; min-width: 36px;
       background-color: $orange-vibrant;
-      border-radius: 50%; 
+      border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      font-weight: 700; font-size: 16px; color: white;
-      flex-shrink: 0;
+      font-weight: 700; font-size: 14px; color: white;
     }
 
     .user-info {
       flex: 1;
-      min-width: 0; // Empêche le texte de déborder
-      .user-name { font-weight: 600; font-size: 0.9rem; color: $text-light; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .user-role { font-size: 0.75rem; color: $text-muted; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      min-width: 0;
+      .user-name {
+        font-weight: 600; font-size: 0.82rem; color: $text-light;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        display: block;
+      }
+      .user-role { font-size: 0.68rem; color: $text-muted; display: block; }
     }
 
     .btn-logout {
-      background: transparent;
-      border: none;
-      color: $text-muted;
+      min-width: 32px;
+      width: 32px; height: 32px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.6);
       cursor: pointer;
-      padding: 5px;
-      transition: color 0.2s;
+      border-radius: 8px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
 
-      i { width: 18px; height: 18px; }
+      i, svg {
+        width: 16px; height: 16px;
+        display: block;
+      }
 
       &:hover {
-        color: #ef4444; 
+        color: #ef4444;
+        background: rgba(239, 68, 68, 0.15);
+        border-color: rgba(239, 68, 68, 0.3);
       }
     }
   }

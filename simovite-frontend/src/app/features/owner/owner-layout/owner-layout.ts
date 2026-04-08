@@ -10,9 +10,9 @@ declare var lucide: any;
   styleUrls: ['./owner-layout.scss']
 })
 export class OwnerLayout implements AfterViewInit {
-  storeName = 'Pizza Palace';
-  ownerEmail = 'owner@pizza.com';
-  
+  ownerName = '';
+  ownerEmail = '';
+
   navItems = [
     { section: 'Overview', links: [{ label: 'Dashboard', icon: 'layout-dashboard', route: '/owner/dashboard' }] },
     { section: 'Store', links: [
@@ -31,7 +31,10 @@ export class OwnerLayout implements AfterViewInit {
   ];
 
   // 👈 Inject KeycloakService here
-  constructor(@Inject(KeycloakService) private readonly keycloak: KeycloakService) {}
+  constructor(@Inject(KeycloakService) private readonly keycloak: KeycloakService) {
+    this.ownerName = this.keycloak.getFullName();
+    this.ownerEmail = this.keycloak.getEmail();
+  }
 
   ngAfterViewInit(): void {
     if (typeof lucide !== 'undefined') {

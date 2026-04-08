@@ -16,6 +16,7 @@ import { AdminReviews } from './reviews/reviews';
 import { AdminStatistics } from './statistics/statistics';
 import { AdminStoreOwners } from './store-owners/store-owners';
 import { AdminProductDetailsComponent } from './admin-product-details/admin-product-details';
+import { AdminAccount } from './admin-account/admin-account';
 
 const routes: Routes = [
   {
@@ -39,6 +40,7 @@ const routes: Routes = [
       { path: 'ml-insights',  component: MlInsights },
       { path: 'config',       component: Config },
       { path: 'keycloak',     component: AdminKeycloak },
+      { path: 'account',      component: AdminAccount },
       { path: 'products/:id', component: AdminProductDetailsComponent },
       
       // Si on tape juste /admin, on va vers /admin/dashboard

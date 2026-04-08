@@ -1,152 +1,309 @@
+// LAYOUT
 .admin-wrapper {
   display: flex;
-  width: 100vw;       /* Utilise toute la largeur de l'écran */
-  height: 100vh;      /* Utilise toute la hauteur */
-  background: #F0F3F8;
-  overflow: hidden;   /* Empêche le scroll sur le parent principal */
-}
-app-sidebar {
-  display: block; /* Très important pour un composant sidebar */
-  width: 260px;
-  flex-shrink: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #f0f2f5;
+  overflow: hidden;
 }
 
-.sidebar-aside {
+app-sidebar, .sidebar-aside {
+  display: block;
   width: 260px;
+  flex-shrink: 0;
   height: 100vh;
-  flex-shrink: 0;     /* Force la sidebar à garder sa largeur */
-  background-color: #0D1B2A; /* Navy du sidebar */
   z-index: 1000;
 }
 
 .main {
-  flex: 1;            /* Occupe tout l'espace restant à droite */
+  flex: 1;
   display: flex;
   flex-direction: column;
   height: 100vh;
-  min-width: 0;       /* Empêche le contenu de pousser la sidebar */
+  min-width: 0;
 }
 
-/* VARIABLES (Si tu ne les as pas déjà définies en global) */
-$topbar-bg: #ffffff;
-$orange: #FF6B35; // La couleur vive de l'image 1
-$text-dark: #2d3748;
-$text-muted: #718096;
-$border-color: #edf2f7;
+.content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  background: #f0f2f5;
+}
 
+// TOPBAR
 .topbar {
   display: flex;
   align-items: center;
-  justify-content: space-between; // 👈 Pousse greeting à gauche et actions à droite
-  padding: 15px 30px;            // Espace intérieur
-  background: $topbar-bg;
-  border-bottom: 1px solid $border-color;
-  height: 70px;                  // Hauteur fixe propre
+  justify-content: space-between;
+  padding: 0 24px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  height: 68px;
   z-index: 100;
 
-  // GAUCHE
   &-greeting {
-    font-size: 15px;
-    color: $text-dark;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 0.95rem;
+    color: #64748b;
     font-weight: 500;
 
-    span {
-      color: $orange;            // 👈 Le nom "Admin" en orange vibrant
+    .admin-name {
+      color: #0f172a;
       font-weight: 700;
+    }
+
+    .wave {
+      font-size: 1.1rem;
     }
   }
 
-  // DROITE (Le groupe d'éléments)
   &-actions {
     display: flex;
     align-items: center;
-    gap: 20px;                   // 👈 Espace régulier entre recherche, cloche et avatar
+    gap: 8px;
   }
 
-  // BARRE DE RECHERCHE
+  // SEARCH BAR
   &-search {
     position: relative;
     display: flex;
     align-items: center;
+    margin-right: 4px;
 
-    svg {
+    .search-icon {
       position: absolute;
-      left: 14px;
-      width: 17px;  /* TAILLE FIXE POUR L'ICÔNE */
-      height: 17px;
-      color: #a0aec0; // Gris clair pour l'icône
+      left: 12px;
+      width: 15px;
+      height: 15px;
+      color: #94a3b8;
       pointer-events: none;
     }
 
     input {
-      width: 320px;              // 👈 Plus large, comme sur l'image 1
-      background: #f7fafc;       // Fond gris très clair
-      border: 1px solid #e2e8f0; // Bordure discrète
-      border-radius: 12px;       // Coins arrondis prononcés
-      padding: 10px 15px 10px 42px; // Padding à gauche pour laisser place à l'icône
-      font-size: 13.5px;
-      color: $text-dark;
+      width: 200px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 8px 28px 8px 36px;
+      font-size: 13px;
+      color: #0f172a;
       outline: none;
-      transition: all 0.2s ease;
+      transition: all 0.2s;
 
-      &::placeholder { color: #a0aec0; }
+      &::placeholder { color: #94a3b8; }
 
       &:focus {
-        background: #ffffff;
-        border-color: $orange;  // 👈 Bordure orange au focus
-        box-shadow: 0 0 0 3px rgba($orange, 0.1); // Halo orange
+        background: #fff;
+        border-color: #ff6b35;
+        box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+        width: 240px;
       }
     }
-  }
 
-  // CLOCHE DE NOTIFICATION
-  .notif-btn {
-    position: relative;
-    padding: 10px;
-    background: #f7fafc;
-    border-radius: 10px;
-    cursor: pointer;
-    color: #4a5568;
-    transition: background 0.2s;
-
-    &:hover { background: rgba($orange, 0.05); color: $orange; }
-
-    .notif-badge {
+    .search-clear {
       position: absolute;
-      top: 8px;
       right: 8px;
-      width: 8px;   // 👈 Petit point rouge d'alerte
-      height: 8px;
-      background: #ef4444; // Rouge
-      border-radius: 50%;
-      border: 2px solid #ffffff; // Bordure blanche pour le faire ressortir
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 2px;
+      line-height: 1;
+      transition: color 0.2s;
+      &:hover { color: #0f172a; }
     }
   }
 
-  // AVATAR ORANGE (L'élément clé)
-  &-avatar {
+  // VIEW SWITCHER
+  .view-wrap {
+  position: relative;
+
+  .view-btn {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    height: 36px;
+    padding: 0 12px;
+    background: transparent;
+    border: 0.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #64748b;
+    cursor: pointer;
+    transition: all .15s;
+    font-family: inherit;
+
+    &:hover { background: #f8fafc; color: #0f172a; }
+    &.active { background: #FFF3EE; border-color: #FF6B35; color: #FF6B35; }
+
+    .chevron { transition: transform .2s; &.open { transform: rotate(180deg); } }
+  }
+
+  .dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    width: 240px;
+    background: #fff;
+    border: 0.5px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    z-index: 999;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  }
+
+  .dropdown-label {
+    padding: 10px 14px 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+
+  .view-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 9px 14px;
+    background: transparent;
+    border: none;
+    border-top: 0.5px solid #f1f5f9;
+    color: #0f172a;
+    font-size: 13px;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    transition: background .12s;
+
+    &:hover { background: #f8fafc; .ext-arrow { color: #FF6B35; } }
+  }
+
+  .view-dot {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    &.dot-client  { background: #EBF5FF; }
+    &.dot-courier { background: #FFF3EE; }
+    &.dot-owner   { background: #F0FFF4; }
+  }
+
+  .view-meta {
+    flex: 1;
+    &-name { font-size: 13px; font-weight: 500; color: #0f172a; }
+    &-desc { font-size: 11px; color: #94a3b8; margin-top: 1px; }
+  }
+
+  .ext-arrow { color: #cbd5e1; transition: color .15s; }
+}
+
+  // NOTIFICATION
+  .notif-btn {
+    position: relative;
     width: 38px;
     height: 38px;
-    background: $orange;         // 👈 FOND ORANGE VIF
-    color: #ffffff;
-    border-radius: 10px;         // Coins arrondis
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    font-size: 13px;
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    color: #64748b;
     cursor: pointer;
-    box-shadow: 0 4px 6px rgba($orange, 0.2); // Légère ombre orange
+    transition: all 0.2s;
+
+    &:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+
+    .notif-dot {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 7px;
+      height: 7px;
+      background: #ef4444;
+      border-radius: 50%;
+      border: 2px solid #fff;
+    }
+  }
+
+  // USER PROFILE
+  .topbar-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px 6px 6px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+
+    &:hover {
+      background: #f8fafc;
+      border-color: #e2e8f0;
+    }
+
+    .user-avatar {
+      width: 34px;
+      height: 34px;
+      background: #ff6b35;
+      color: #fff;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 12px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(255, 107, 53, 0.2);
+    }
+
+    .user-meta {
+      display: flex;
+      flex-direction: column;
+      .user-name { font-size: 0.82rem; font-weight: 600; color: #0f172a; white-space: nowrap; }
+      .user-role { font-size: 0.68rem; color: #94a3b8; white-space: nowrap; }
+    }
+  }
+
+  // LOGOUT
+  .logout-btn {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: #fef2f2;
+      color: #ef4444;
+    }
   }
 }
-.content {
-  flex: 1;            /* La zone de contenu prend le reste de la hauteur */
-  padding: 30px;
-  overflow-y: auto;   /* SEULE cette zone doit scroller */
-  background: #F0F3F8;
+
+// RESPONSIVE
+@media (max-width: 1024px) {
+  .topbar { padding: 0 16px; }
+  .topbar-search { display: none; }
+  .topbar-user .user-meta { display: none; }
 }
-$topbar-bg: #ffffff;
-$orange: #FF6B35; // La couleur vive de l'image 1
-$text-dark: #2d3748;
-$text-muted: #718096;
-$border-color: #edf2f7;
+
+@media (max-width: 768px) {
+  .topbar-user { padding: 6px; }
+  .content { padding: 16px; }
+}

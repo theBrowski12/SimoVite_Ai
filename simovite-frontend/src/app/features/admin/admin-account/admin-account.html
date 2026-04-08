@@ -1,4 +1,4 @@
-<div class="account-container">
+<div class="admin-account-container">
   <!-- Loading State -->
   <div *ngIf="loading" class="loading-container">
     <div class="loading-spinner"></div>
@@ -9,7 +9,7 @@
     <!-- Header -->
     <header class="account-header">
       <div>
-        <h1 class="account-title">Account Settings ⚙️</h1>
+        <h1 class="account-title">Admin Account ⚙️</h1>
         <p class="account-subtitle">Manage your profile and security settings</p>
       </div>
       <button class="btn-logout" (click)="logout()">
@@ -176,7 +176,7 @@
 
             <div class="form-group">
               <label>New Password *</label>
-              <input type="password" formControlName="newPassword" class="form-input" placeholder="Enter new password (min 8 chars)">
+              <input type="password" formControlName="newPassword" class="form-input" placeholder="Min 8 characters">
               <div class="error-msg" *ngIf="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched">
                 Password must be at least 8 characters
               </div>
@@ -228,7 +228,7 @@
               <span class="session-value">{{ tokenData?.typ || 'Bearer' }}</span>
             </div>
             <div class="session-item">
-              <span class="session-label">Realm Access</span>
+              <span class="session-label">Client ID</span>
               <span class="session-value">{{ tokenData?.azp || 'N/A' }}</span>
             </div>
             <div class="session-item">

@@ -9,7 +9,12 @@ export class RoleGuard implements CanActivate {
 
   canActivate(route: ActivatedRouteSnapshot): boolean {
     const requiredRole = route.data['role'] as AppRole;
+
+    // ✅ Admins can access ALL views (superuser privilege)
+    if (this.auth.hasRole('ADMIN')) return true;
+
     if (this.auth.hasRole(requiredRole)) return true;
+
     this.router.navigate(['/unauthorized']);
     return false;
   }
