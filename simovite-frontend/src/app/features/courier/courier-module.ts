@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { SharedModule } from '../../shared/shared.module'; // 🌟 LE VOICI
 import { CourierRoutingModule } from './courier-routing-module';
@@ -11,6 +11,7 @@ import { ActiveDelivery } from './active-delivery/active-delivery';
 import { History } from './history/history';
 import { Earnings } from './earnings/earnings';
 import { CourierLayout } from './courier-layout/courier-layout';
+import { CourierAccount } from './courier-account/courier-account';
 
 @NgModule({
   declarations: [
@@ -21,9 +22,11 @@ import { CourierLayout } from './courier-layout/courier-layout';
     History,
     Earnings,
     CourierLayout,
+    CourierAccount,
   ],
   imports: [
     CommonModule,
+    ReactiveFormsModule,
     CourierRoutingModule,
     FormsModule,
     TranslateModule,

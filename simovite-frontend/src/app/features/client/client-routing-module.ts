@@ -8,9 +8,10 @@ import { Categories } from './categories/categories';
 import { ProductDetail } from './product-detail/product-detail';
 import { Orders } from './orders/orders';
 import { Checkout } from './checkout/checkout';
+import { ClientAccount } from './client-account/client-account';
 
 const routes: Routes = [
-  
+
   { path: 'home', component: Home },
   { path: 'stores/:id', component: StoreDetailComponent },
   { path: 'cart', component: Cart },
@@ -20,6 +21,8 @@ const routes: Routes = [
   { path: 'product/:id', component: ProductDetail },
   { path: 'orders', component: Orders},
   { path: 'checkout', component: Checkout },
+  { path: 'account', component: ClientAccount },
+
   { path: '**', redirectTo: 'home' }
 ];
 

@@ -76,6 +76,10 @@ export class Dashboard implements OnInit, OnDestroy {
       .slice(0, 5);
   }
 
+  // Timer for active delivery banner
+  elapsedSeconds = 0;
+  private timerInterval?: any;
+  private readonly TIMER_STORAGE_KEY = 'simovite_active_delivery_timer_start';
 
   constructor(
     public  auth:        AuthService,
@@ -89,11 +93,13 @@ export class Dashboard implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadAll();
+    this.startBannerTimer();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.stopBannerTimer();
   }
 
   // ── Data loading ──────────────────────────────────────────
@@ -216,6 +222,42 @@ export class Dashboard implements OnInit, OnDestroy {
     if (this.activeDelivery) {
       this.router.navigate(['/courier/active', this.activeDelivery.id]);
     }
+  }
+
+  // ── Timer for banner ──────────────────────────────────────
+
+  private startBannerTimer(): void {
+    const stored = localStorage.getItem(this.TIMER_STORAGE_KEY);
+    const storedData = stored ? JSON.parse(stored) : null;
+
+    if (storedData && this.activeDelivery && storedData.deliveryId === this.activeDelivery.id) {
+      const now = Date.now();
+      this.elapsedSeconds = Math.floor((now - storedData.startTime) / 1000);
+    }
+
+    this.timerInterval = setInterval(() => {
+      const stored = localStorage.getItem(this.TIMER_STORAGE_KEY);
+      const storedData = stored ? JSON.parse(stored) : null;
+
+      if (storedData && this.activeDelivery && storedData.deliveryId === this.activeDelivery.id) {
+        const now = Date.now();
+        this.elapsedSeconds = Math.floor((now - storedData.startTime) / 1000);
+        this.cdr.detectChanges();
+      }
+    }, 1000);
+  }
+
+  private stopBannerTimer(): void {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = undefined;
+    }
+  }
+
+  formatElapsed(): string {
+    const mins = Math.floor(this.elapsedSeconds / 60);
+    const secs = this.elapsedSeconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   }
 
   // ── Helpers ───────────────────────────────────────────────

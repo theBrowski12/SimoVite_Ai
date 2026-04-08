@@ -20,6 +20,11 @@
       My Orders
     </a>
     <a href="#track">Track Order</a>
+    <a *ngIf="isLoggedIn"
+       routerLink="/account" 
+       routerLinkActive="active">
+      My Account
+    </a>
     <button *ngIf="isAdmin" 
             routerLink="/admin/dashboard" 
             class="btn-admin-pill">

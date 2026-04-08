@@ -1,74 +1,167 @@
-<div class="active-delivery-container" *ngIf="!isLoading && delivery">
-  
-  <div class="status-header" [ngClass]="delivery.status.toLowerCase()">
-    <div class="pulse-ring"></div>
-    <h2>
-      {{ delivery.status === 'ASSIGNED' ? 'En route vers le magasin' : 'En route vers le client' }}
-    </h2>
-    <p>Commande : #{{ delivery.orderRef }}</p>
-  </div>
+<div class="active-delivery-wrapper" *ngIf="!isLoading && delivery">
 
-  <div class="content-body">
-    <div class="address-card">
-      <div class="step" [class.completed]="delivery.status === 'PICKED_UP'">
-        <div class="icon pickup">A</div>
-        <div class="info">
-          <small>Récupération</small>
-          <p>{{ delivery.pickupAddress.street }}, {{ delivery.pickupAddress.city }}</p>
-        </div>
+  <!-- Top Header -->
+  <header class="delivery-header">
+    <div class="header-bg" [ngClass]="delivery.status.toLowerCase()"></div>
+    <div class="header-content">
+      <div class="status-badge" [ngClass]="delivery.status.toLowerCase()">
+        <span class="pulse-dot"></span>
+        <span class="status-text">{{ delivery.status === 'ASSIGNED' ? 'En route au magasin' : 'En route au client' }}</span>
       </div>
-
-      <div class="step-divider"></div>
-
-      <div class="step">
-        <div class="icon dropoff">B</div>
-        <div class="info">
-          <small>Livraison</small>
-          <p>{{ delivery.dropoffAddress.street }}, {{ delivery.dropoffAddress.city }}</p>
-        </div>
+      <h1 class="order-ref">#{{ delivery.orderRef }}</h1>
+      <div class="order-meta">
+        <span class="meta-item">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          {{ delivery.status === 'ASSIGNED' ? 'Récupération en cours' : 'Livraison en cours' }}
+        </span>
       </div>
     </div>
 
-    <div class="finance-card">
-      <div class="earning">
-        <small>Vos gains pour cette course</small>
-        <h3>{{ delivery.deliveryCost }} MAD</h3>
+    <!-- Timer & ETA Display -->
+    <div class="timer-eta-row">
+      <div class="timer-display">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span class="timer-value">{{ formatElapsed() }}</span>
       </div>
+      <div class="eta-divider"></div>
+      <div class="eta-display" *ngIf="etaMinutes">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+        <span class="eta-value">{{ etaMinutes }} min</span>
+        <span class="eta-label">ETA</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="delivery-content">
+
+    <!-- Main Box with Timeline Left + Info Right -->
+    <div class="main-box">
       
-      <div class="cod-alert" *ngIf="delivery.cashOnDelivery">
-        <span class="alert-icon">⚠️</span>
-        <div class="cod-info">
-          <strong>Espèces à collecter !</strong>
-          <p>Le client doit payer {{ delivery.amountToCollect }} MAD</p>
+      <!-- Progress Timeline - Left Side -->
+      <section class="progress-section">
+        <div class="progress-card">
+          <div class="timeline">
+            <div class="timeline-item" [class.completed]="delivery.status === 'PICKED_UP'">
+              <div class="timeline-dot" [class.active]="delivery.status === 'ASSIGNED'">
+                <svg *ngIf="delivery.status === 'PICKED_UP'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <span *ngIf="delivery.status === 'ASSIGNED'">1</span>
+              </div>
+              <div class="timeline-content">
+                <div class="timeline-label">Récupération</div>
+                <div class="timeline-address">{{ delivery.pickupAddress.street }}, {{ delivery.pickupAddress.city }}</div>
+              </div>
+            </div>
+
+            <div class="timeline-connector" [class.active]="delivery.status === 'ASSIGNED'" [class.completed]="delivery.status === 'PICKED_UP'">
+              <div class="connector-line"></div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-dot" [class.active]="delivery.status === 'PICKED_UP'">
+                <svg *ngIf="delivery.status === 'DELIVERED'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <span *ngIf="delivery.status !== 'DELIVERED'">2</span>
+              </div>
+              <div class="timeline-content">
+                <div class="timeline-label">Livraison</div>
+                <div class="timeline-address">{{ delivery.dropoffAddress.street }}, {{ delivery.dropoffAddress.city }}</div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
+
+      <!-- Info Cards - Right Side -->
+      <section class="info-section">
+        <!-- Earnings Card -->
+        <div class="info-card earnings-card">
+          <div class="card-header">
+            <svg class="card-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="1" x2="12" y2="23"/>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+            <span class="card-label">Gains</span>
+          </div>
+          <div class="earnings-amount">{{ delivery.deliveryCost }} MAD</div>
+        </div>
+
+        <!-- COD Alert -->
+        <div class="info-card cod-card" *ngIf="delivery.cashOnDelivery">
+          <div class="cod-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </div>
+          <div class="cod-content">
+            <div class="cod-title">Espèces</div>
+            <div class="cod-amount">{{ delivery.amountToCollect }} MAD</div>
+          </div>
+        </div>
+      </section>
+
     </div>
-  </div>
 
-  <div class="action-footer">
-    <button 
-      *ngIf="delivery.status === 'ASSIGNED'" 
-      class="btn-primary" 
-      [disabled]="isActionLoading"
-      (click)="markAsPickedUp()">
-      {{ isActionLoading ? 'Chargement...' : "J'ai récupéré la commande" }}
-    </button>
+    <!-- Action Footer -->
+    <footer class="action-footer">
+      <button
+        *ngIf="delivery.status === 'ASSIGNED'"
+        class="btn-action btn-pickup"
+        [disabled]="isActionLoading"
+        (click)="markAsPickedUp()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+          <line x1="12" y1="22.08" x2="12" y2="12"/>
+        </svg>
+        <span>{{ isActionLoading ? 'Chargement...' : "J'ai récupéré la commande" }}</span>
+      </button>
 
-    <button 
-      *ngIf="delivery.status === 'PICKED_UP'" 
-      class="btn-success" 
-      [disabled]="isActionLoading"
-      (click)="markAsDelivered()">
-      {{ isActionLoading ? 'Chargement...' : 'Commande Livrée !' }}
-    </button>
-    <button class="btn-cancel" (click)="cancelDelivery()" [disabled]="isActionLoading">
-    Annuler la livraison
-  </button>
-  </div>
+      <button
+        *ngIf="delivery.status === 'PICKED_UP'"
+        class="btn-action btn-deliver"
+        [disabled]="isActionLoading"
+        (click)="markAsDelivered()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span>{{ isActionLoading ? 'Chargement...' : 'Commande Livrée !' }}</span>
+      </button>
 
+      <button class="btn-secondary-action" (click)="cancelDelivery()" [disabled]="isActionLoading">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+        Annuler
+      </button>
+    </footer>
+
+  </main>
 </div>
 
-<div class="loading-state" *ngIf="isLoading">
-  <div class="spinner"></div>
-  <p>Chargement de votre course...</p>
+<!-- Loading State -->
+<div class="loading-container" *ngIf="isLoading">
+  <div class="loading-card">
+    <div class="loading-spinner">
+      <div class="spinner-ring"></div>
+      <div class="spinner-ring"></div>
+      <div class="spinner-ring"></div>
+    </div>
+    <p class="loading-text">Chargement de votre course...</p>
+  </div>
 </div>

@@ -1,20 +1,30 @@
 <div class="courier-dashboard">
-  <div class="dashboard-container">
-  
-  <div 
-  class="active-task-banner" 
-  *ngIf="activeDelivery && !loadingMine" 
+  <div class="dashboard-container" [class.has-banner]="activeDelivery && !loadingMine">
+
+  <div
+  class="active-task-banner"
+  *ngIf="activeDelivery && !loadingMine"
   (click)="goToActive()">
-    
+
     <div class="banner-left">
       <div class="pulse-dot"></div>
       <div class="banner-text">
-        <strong>Course en cours</strong>
-        <span>Cliquez pour reprendre la livraison</span>
+        <div class="banner-title-row">
+          <strong>Course en cours</strong>
+          <span class="banner-timer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            {{ formatElapsed() }}
+          </span>
+        </div>
+        <span class="banner-sub">Cliquez pour reprendre la livraison</span>
       </div>
     </div>
-    
+
     <div class="banner-right">
+      <span class="banner-ref">{{ activeDelivery.orderRef }}</span>
       <span class="arrow-icon">➔</span>
     </div>
   </div>
@@ -70,60 +80,67 @@
       <!-- Right — floating delivery cards -->
       <div class="hero-right">
 
-        <!-- Active delivery alert -->
-        <div class="float-card active-card" *ngIf="activeDelivery" (click)="goToActive()">
-          <div class="fc-top">
-            <div>
-              <div class="fc-label">🔴 Active Delivery</div>
-              <div class="fc-ref">{{ activeDelivery.orderRef }}</div>
+        <div class="floating-cards-wrapper">
+          <!-- Active delivery alert -->
+          <div class="float-card active-card" *ngIf="activeDelivery" (click)="goToActive()">
+            <div class="fc-top">
+              <div>
+                <div class="fc-label">🔴 Active Delivery</div>
+                <div class="fc-ref">{{ activeDelivery.orderRef }}</div>
+              </div>
+              <div class="fc-status badge {{ getStatusClass(activeDelivery.status) }}">
+                {{ getStatusIcon(activeDelivery.status) }} {{ activeDelivery.status }}
+              </div>
             </div>
-            <div class="fc-status badge {{ getStatusClass(activeDelivery.status) }}">
-              {{ getStatusIcon(activeDelivery.status) }} {{ activeDelivery.status }}
+            <div class="fc-route">
+              <span class="fc-city">{{ activeDelivery.pickupAddress.city }}</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              <span class="fc-city">{{ activeDelivery.dropoffAddress.city }}</span>
             </div>
+            <button class="btn-fc-action">Continue →</button>
           </div>
-          <div class="fc-route">
-            <span class="fc-city">{{ activeDelivery.pickupAddress.city }}</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-            <span class="fc-city">{{ activeDelivery.dropoffAddress.city }}</span>
-          </div>
-          <button class="btn-fc-action">Continue →</button>
-        </div>
 
-        <!-- First pending delivery preview -->
-        <div class="float-card pending-card"
-             *ngIf="pendingDeliveries.length > 0 && !activeDelivery">
-          <div class="fc-top">
-            <div>
-              <div class="fc-label">New Delivery!</div>
-              <div class="fc-dist">{{ pendingDeliveries[0].distanceInKm | number:'1.1-1' }} km away</div>
+          <!-- First pending delivery preview -->
+          <div class="float-card pending-card"
+               *ngIf="pendingDeliveries.length > 0 && !activeDelivery">
+            <div class="fc-top">
+              <div>
+                <div class="fc-label">New Delivery!</div>
+                <div class="fc-dist">{{ pendingDeliveries[0].distanceInKm | number:'1.1-1' }} km away</div>
+              </div>
+              <div class="fc-cost">{{ pendingDeliveries[0].deliveryCost | number:'1.0-0' }} DH</div>
             </div>
-            <div class="fc-cost">{{ pendingDeliveries[0].deliveryCost | number:'1.0-0' }} DH</div>
+            <div class="fc-route">
+              <span class="fc-city">{{ pendingDeliveries[0].pickupAddress.city }}</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              <span class="fc-city">{{ pendingDeliveries[0].dropoffAddress.city }}</span>
+            </div>
+            <div class="fc-actions">
+              <button class="btn-fc-preview" (click)="previewDelivery(pendingDeliveries[0])">
+                Preview
+              </button>
+              <button class="btn-fc-action" (click)="quickAccept(pendingDeliveries[0])">
+                Accept Now
+              </button>
+            </div>
           </div>
-          <div class="fc-route">
-            <span class="fc-city">{{ pendingDeliveries[0].pickupAddress.city }}</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-            <span class="fc-city">{{ pendingDeliveries[0].dropoffAddress.city }}</span>
-          </div>
-          <div class="fc-actions">
-            <button class="btn-fc-preview" (click)="previewDelivery(pendingDeliveries[0])">
-              Preview
-            </button>
-            <button class="btn-fc-action" (click)="quickAccept(pendingDeliveries[0])">
-              Accept Now
-            </button>
-          </div>
-        </div>
 
-        <!-- Top courier badge -->
-        <div class="float-card courier-badge-card" *ngIf="completionRate >= 90">
-          <div class="fc-top">
-            <div class="cb-avatar">{{ initials }}</div>
-            <div>
-              <div class="cb-name">{{ auth.fullName }}</div>
-              <div class="cb-sub">Active Today</div>
+          <!-- Top courier badge -->
+          <div class="float-card courier-badge-card" *ngIf="completionRate >= 90">
+            <div class="courier-badge-content">
+              <div class="cb-left">
+                <div class="cb-avatar">{{ initials }}</div>
+                <div class="cb-info">
+                  <div class="cb-name">{{ auth.fullName }}</div>
+                  <div class="cb-sub">Active Today · {{ completionRate }}% completion</div>
+                </div>
+              </div>
+              <div class="cb-badge">
+                <span class="cb-badge-icon">★</span>
+                <span>TOP COURIER</span>
+              </div>
             </div>
           </div>
-          <div class="top-badge">★ TOP COURIER</div>
         </div>
 
       </div>

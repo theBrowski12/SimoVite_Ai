@@ -27,11 +27,15 @@ const routes: Routes = [
   },
 
   // 2️⃣ LA ROUTE D'ACCUEIL EXACTE
-  { 
-    path: '', 
+  {
+    path: 'home',
     component: Home,
-    canActivate: [GuestGuard],
-    pathMatch: 'full' // 🌟 Très important : indique que l'URL doit être EXACTEMENT vide
+    // Accessible to everyone (guests and logged-in users)
+  },
+  {
+    path: '',
+    redirectTo: 'home',
+    pathMatch: 'full'
   },
   
   // 3️⃣ LE MODULE CLIENT (qui gère le reste des routes publiques)

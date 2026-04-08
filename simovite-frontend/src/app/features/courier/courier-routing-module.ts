@@ -8,6 +8,7 @@ import { DeliveryPreview } from './delivery-preview/delivery-preview';
 import { ActiveDelivery } from './active-delivery/active-delivery';
 import { History } from './history/history';
 import { Earnings } from './earnings/earnings';
+import { CourierAccount } from './courier-account/courier-account';
 
 const routes: Routes = [
   { 
@@ -25,8 +26,7 @@ const routes: Routes = [
       { path: 'active/:id', component: ActiveDelivery }, 
       { path: 'history', component: History },
       { path: 'earnings', component: Earnings },
-      
-      { path: '**', redirectTo: 'dashboard' }
+      { path: 'account', component: CourierAccount },
     ]
   }
 ];

@@ -202,8 +202,13 @@
           <div class="store-rating">
             <span class="store-stars">
               {{ '★'.repeat(Math.round(store.rating || 0)) }}{{ '☆'.repeat(5 - Math.round(store.rating || 0)) }}
-            </span> 
-            {{ store.rating || 'N/A' }} ({{ store.reviewCount || 0 }})
+            </span>
+            <span *ngIf="store.rating && store.rating > 0; else noRating">
+              {{ store.rating }} ({{ store.reviewCount || 0 }})
+            </span>
+            <ng-template #noRating>
+              No ratings yet
+            </ng-template>
           </div>
           
           <div class="store-delivery">⏱ 20–30 min</div>
@@ -254,63 +259,62 @@
       <h2 class="section-title" style="margin-bottom:0">What Our Customers Say</h2>
     </div>
     <div class="rating-summary">
-      <div class="big-rating">4.8</div>
+      <div class="big-rating">
+        {{ reviews.length > 0 ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1) : 'N/A' }}
+      </div>
       <div class="rating-details">
         <div class="rating-stars-big">★★★★★</div>
-        <div class="rating-count">Based on 1,284 reviews</div>
+        <div class="rating-count">Based on {{ reviews.length }} reviews</div>
       </div>
     </div>
   </div>
-  <div class="reviews-grid">
-    <div class="review-card">
+  
+  <div class="reviews-grid" *ngIf="!loadingReviews && reviews.length > 0">
+    <div class="review-card" *ngFor="let review of reviews">
       <div class="review-top">
-        <div class="review-avatar" style="background:#FF6B35">MB</div>
+        <div class="review-avatar" [style.background]="getAvatarColor(review.clientName)">
+          {{ getReviewInitials(review.clientName) }}
+        </div>
         <div>
-          <div class="review-name">Mohamed B.</div>
-          <div class="review-date">20 March 2026</div>
+          <div class="review-name">{{ review.clientName }}</div>
+          <div class="review-date">{{ formatDate(review.createdAt) }}</div>
         </div>
       </div>
-      <div class="review-stars">★★★★★ <span>5.0</span></div>
-      <p class="review-text">"Livraison ultra rapide, pizza encore chaude à la livraison ! Je recommande fortement Pizza Palace."</p>
+      <div class="review-stars">
+        <span>{{ '★'.repeat(review.rating) }}{{ '☆'.repeat(5 - review.rating) }}</span>
+        <span>{{ review.rating.toFixed(1) }}</span>
+      </div>
+      <p class="review-text">"{{ review.comment }}"</p>
       <div class="review-tag-row">
-        <span class="review-target store">📍 STORE</span>
-        <span class="review-helpful">👍 18 helpful</span>
-      </div>
-    </div>
-    <div class="review-card">
-      <div class="review-top">
-        <div class="review-avatar" style="background:#3B82F6">SK</div>
-        <div>
-          <div class="review-name">Sara K.</div>
-          <div class="review-date">19 March 2026</div>
-        </div>
-      </div>
-      <div class="review-stars">★★★★<span style="color:#d1d5db">★</span> <span>4.0</span></div>
-      <p class="review-text">"Bon produit, emballage légèrement abîmé mais le contenu était parfait. Le livreur très sympa !"</p>
-      <div class="review-tag-row">
-        <span class="review-target product">📦 PRODUCT</span>
-        <span class="review-helpful">👍 7 helpful</span>
-      </div>
-    </div>
-    <div class="review-card">
-      <div class="review-top">
-        <div class="review-avatar" style="background:#8B5CF6">FZ</div>
-        <div>
-          <div class="review-name">Fatima Z.</div>
-          <div class="review-date">18 March 2026</div>
-        </div>
-      </div>
-      <div class="review-stars">★★★★★ <span>4.5</span></div>
-      <p class="review-text">"Délicieux burger livré en exactement 18 minutes ! L'application est super intuitive, je commande tous les jours."</p>
-      <div class="review-tag-row">
-        <span class="review-target product">📦 PRODUCT</span>
-        <span class="review-helpful">👍 24 helpful</span>
+        <span class="review-target store">📍 {{ review.targetType }}</span>
+        <span *ngIf="review.sentiment" class="review-sentiment"
+              [ngClass]="{
+                'sentiment-positive': review.sentiment === 'POSITIVE',
+                'sentiment-negative': review.sentiment === 'NEGATIVE',
+                'sentiment-mixed': review.sentiment === 'MIXED'
+              }">
+          <ng-container [ngSwitch]="review.sentiment">
+            <span *ngSwitchCase="'POSITIVE'">✓</span>
+            <span *ngSwitchCase="'NEGATIVE'">✗</span>
+            <span *ngSwitchCase="'MIXED'">~</span>
+          </ng-container>
+          {{ review.sentiment }}
+        </span>
       </div>
     </div>
   </div>
+
+  <div *ngIf="loadingReviews" style="text-align: center; padding: 3rem; color: #64748b;">
+    <p>Loading reviews...</p>
+  </div>
+
+  <div *ngIf="!loadingReviews && reviews.length === 0" style="text-align: center; padding: 3rem; color: #64748b;">
+    <p>No reviews available yet.</p>
+  </div>
+
   <div class="reviews-cta">
-    <button class="btn-primary" 
-            style="margin: 0 auto; display: block;" 
+    <button class="btn-primary"
+            style="margin: 0 auto; display: block;"
             routerLink="/my-reviews">
       Manage My Reviews ✍️
     </button>

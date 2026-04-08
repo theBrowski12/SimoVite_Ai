@@ -5,10 +5,13 @@ import { KeycloakService } from '../auth/keycloak.service'; // 👈 UTILISE TON 
 
 @Injectable({ providedIn: 'root' })
 export class AuthGuard implements CanActivate {
+  private publicRoutes = ['/home', '/login', '/register', '/forgot-password'];
+
   constructor(
     private keycloak: KeycloakService, 
     private router: Router
   ) {}
+
 
   async canActivate(): Promise<boolean> {
     // Ton service utilise une méthode simple, pas besoin de await ici 

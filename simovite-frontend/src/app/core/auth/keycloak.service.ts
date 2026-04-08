@@ -60,16 +60,17 @@ export class KeycloakService {
   }
 
   async refreshToken(): Promise<string> {
-    // ✅ NOUVEAU : On entoure avec try/catch pour éviter que l'intercepteur HTTP ne crash
+    // Si l'utilisateur n'est pas connecté, on retourne une chaîne vide sans rediriger
+    if (!this.isLoggedIn()) return '';
+
     try {
       // Si le token expire dans moins de 30s, on le rafraîchit
       await this.keycloak.updateToken(30);
       return this.keycloak.token ?? '';
     } catch (error) {
-      console.error('La session a expiré, impossible de rafraîchir le token.', error);
-      // Redirige proprement au lieu de casser l'application
-      this.login(); 
+      console.error('Token refresh failed.', error);
+      // On ne redirige PAS vers login automatiquement, on laisse l'intercepteur gérer
       return '';
     }
-  }
+  }
 }
