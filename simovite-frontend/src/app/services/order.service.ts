@@ -59,6 +59,10 @@ export class OrderService {
     return this.http.post<Order>(`${this.base}/${id}/pay`, null);
   }
 
+  cancelOrder(id: number): Observable<Order> {
+    return this.updateStatus(id, 'CANCELLED');
+  }
+
   applyPromotion(id: number, percentage: number): Observable<Order> {
     return this.http.patch<Order>(
       `${this.base}/${id}/apply-promotion`,

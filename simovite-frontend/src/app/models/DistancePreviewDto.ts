@@ -1,15 +1,21 @@
 import { Address } from "./address.model";
 
-// delivery.model.ts
 export interface CourierLocationRequest {
   latitude: number;
   longitude: number;
 }
 
+export interface OrderItemPreview {
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  subTotal: number;
+}
+
 export interface DistancePreviewDto {
   deliveryId: number;
   orderRef: string;
-  pickupAddress: Address; // Utilise ton interface Address si tu en as une
+  pickupAddress: Address;
   dropoffAddress: Address;
   distanceToPickupKm: number;
   distancePickupToDropoffKm: number;
@@ -21,4 +27,8 @@ export interface DistancePreviewDto {
   etaPercentage: number;
   vehicleType: string;
   status: string;
+
+  // Order items
+  orderItems?: OrderItemPreview[];
+  orderTotal?: number;
 }

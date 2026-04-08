@@ -15,6 +15,42 @@
           </span>
         </div>
 
+        <!-- Order Items Card -->
+        <div class="order-items-card card" *ngIf="orderItems.length > 0; else noItems">
+          <div class="oi-header">
+            <h3>🛍️ Articles de la commande</h3>
+            <span class="oi-count">{{ orderItems.length }} article{{ orderItems.length > 1 ? 's' : '' }}</span>
+          </div>
+
+          <div class="oi-list">
+            <div class="oi-item" *ngFor="let item of orderItems">
+              <div class="oi-qty-badge">×{{ item.quantity }}</div>
+              <div class="oi-details">
+                <div class="oi-name">{{ item.productName }}</div>
+                <div class="oi-meta">
+                  <span class="oi-unit">{{ item.unitPrice | number:'1.2-2' }} DH /unité</span>
+                </div>
+              </div>
+              <div class="oi-subtotal">{{ item.subTotal | number:'1.2-2' }} DH</div>
+            </div>
+          </div>
+
+          <div class="oi-footer" *ngIf="orderTotal">
+            <span>Total commande</span>
+            <strong>{{ orderTotal | number:'1.2-2' }} DH</strong>
+          </div>
+        </div>
+
+        <ng-template #noItems>
+          <div class="order-items-card card no-items-hint">
+            <div class="no-items-icon">📦</div>
+            <div class="no-items-text">
+              <strong>Order items will appear here</strong>
+              <span>Items are loaded from the order details</span>
+            </div>
+          </div>
+        </ng-template>
+
         <app-route-map #myMap
           [courierPosition]="currentLocation"
           [pickupAddress]="previewData.pickupAddress"

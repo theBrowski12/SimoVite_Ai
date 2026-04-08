@@ -183,6 +183,12 @@
                   title="Pay now">
             💳 Pay
           </button>
+          <button class="action-btn cancel-btn"
+                  *ngIf="canCancel(o)"
+                  (click)="cancelOrder(o)"
+                  title="Cancel order">
+            ✕ Cancel
+          </button>
           <button class="action-btn"
                   (click)="downloadPdf(o)"
                   title="Download invoice">
@@ -322,6 +328,11 @@
                 *ngIf="canPay(o)"
                 (click)="confirmPayment(o)">
           💳 Pay Now
+        </button>
+        <button class="pf-btn pf-cancel"
+                *ngIf="canCancel(o)"
+                (click)="cancelOrder(o)">
+          ✕ Cancel Order
         </button>
         <button class="pf-btn pf-pdf" (click)="downloadPdf(o)">
           📄 Invoice

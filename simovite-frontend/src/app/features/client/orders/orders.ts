@@ -1,8 +1,10 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { OrderService }  from '../../../services/order.service';
+import { DeliveryService } from '../../../services/delivery.service';
 import { AuthService }   from '../../../core/auth/auth.service';
 import { Order, OrderStatus, PaymentMethod } from '../../../models/order.model';
+import { DeliveryStatus } from '../../../models/delivery.model';
 import { downloadOrderPdf } from '../../../helpers/downloadOrderPdf';
 
 @Component({
@@ -33,6 +35,7 @@ export class Orders implements OnInit {
 
   constructor(
     private orderSvc: OrderService,
+    private deliverySvc: DeliveryService,
     private auth:     AuthService,
     private router:   Router,
     private cdr:      ChangeDetectorRef
@@ -105,6 +108,63 @@ export class Orders implements OnInit {
 
   reorder(order: Order): void {
     this.router.navigate(['/client/store', order.storeId]);
+  }
+
+  canCancel(order: Order): boolean {
+    return order.status === 'PENDING';
+  }
+
+  cancelOrder(order: Order): void {
+    if (!confirm(`Are you sure you want to cancel order ${order.orderRef}?`)) {
+      return;
+    }
+
+    // First, cancel the order
+    this.orderSvc.updateStatus(+order.id, 'CANCELLED').subscribe({
+      next: updatedOrder => {
+        // Update the order in our local array
+        const idx = this.orders.findIndex(o => o.id === order.id);
+        if (idx !== -1) {
+          this.orders[idx] = updatedOrder;
+        }
+        // Update filtered view
+        this.applyFilters();
+        // Update selected if open
+        if (this.selected?.id === order.id) {
+          this.selected = { ...updatedOrder };
+        }
+
+        // Then, cancel the associated delivery
+        this.cancelDeliveryForOrder(order.orderRef);
+
+        this.cdr.detectChanges();
+      },
+      error: err => {
+        console.error('Failed to cancel order:', err);
+        alert('Failed to cancel order. Please try again.');
+      }
+    });
+  }
+
+  private cancelDeliveryForOrder(orderRef: string): void {
+    this.deliverySvc.getByOrderRef(orderRef).subscribe({
+      next: delivery => {
+        if (delivery && delivery.status !== 'CANCELLED' && delivery.status !== 'DELIVERED') {
+          this.deliverySvc.updateStatus(delivery.id, 'CANCELLED').subscribe({
+            next: () => {
+              console.log(`✅ Delivery ${delivery.id} for order ${orderRef} cancelled`);
+            },
+            error: err => {
+              console.error('Failed to cancel delivery:', err);
+            }
+          });
+        }
+      },
+      error: err => {
+        // Delivery might not exist yet - non-critical error
+        console.log('No delivery found for order:', orderRef);
+      }
+    });
   }
 
   // ── Detail ────────────────────────────────────────────────

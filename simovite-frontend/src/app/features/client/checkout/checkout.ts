@@ -182,8 +182,14 @@ export class Checkout implements OnInit, AfterViewInit {
 
   // ── Place order ───────────────────────────────────────────
 
-  placeOrder(): void {
+  async placeOrder(): Promise<void> {
     if (!this.isFormValid || this.submitting) return;
+
+    // Check if user is logged in
+    if (!this.auth.isLoggedIn) {
+      this.router.navigate(['/login'], { queryParams: { returnUrl: '/checkout' } });
+      return;
+    }
 
     this.submitting = true;
     this.error      = '';

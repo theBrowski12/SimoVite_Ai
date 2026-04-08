@@ -1,8 +1,10 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DeliveryService } from '@services/delivery.service';
+import { OrderService } from '@services/order.service';
 import { DistancePreviewDto, CourierLocationRequest } from '@models/DistancePreviewDto';
-import { VehicleType } from '@models/delivery.model';
+import { VehicleType, OrderItemPreview } from '@models/delivery.model';
+import { OrderItem } from '@models/order.model';
 @Component({
   selector: 'app-delivery-preview',
   standalone: false,
@@ -13,6 +15,10 @@ export class DeliveryPreview implements OnInit {
   previewData: DistancePreviewDto | null = null;
   isLoading = true;
   errorMessage = '';
+
+  // Order items fetched separately
+  orderItems: OrderItem[] = [];
+  orderTotal = 0;
 
   // Options de véhicules
   vehicles: VehicleType[] = ['MOTORCYCLE', 'BICYCLE', 'CAR', 'TRUCK'];
@@ -26,6 +32,7 @@ export class DeliveryPreview implements OnInit {
 
   constructor(
     private deliveryService: DeliveryService,
+    private orderService: OrderService,
     private route: ActivatedRoute,
     private router: Router,
     private cdr: ChangeDetectorRef
@@ -69,9 +76,16 @@ export class DeliveryPreview implements OnInit {
     this.isLoading = true;
     this.deliveryService.previewDistance(this.deliveryId, this.selectedVehicle, this.currentLocation)
       .subscribe({
-        next: (data) => { 
+        next: (data) => {
           this.previewData = data;
           this.isLoading = false;
+          console.log('📦 Preview data received:', data);
+          
+          // Fetch order items using orderRef
+          if (data.orderRef) {
+            this.fetchOrderItems(data.orderRef);
+          }
+          
           this.cdr.detectChanges();
         },
         error: (err) => {
@@ -81,6 +95,21 @@ export class DeliveryPreview implements OnInit {
           this.cdr.detectChanges();
         }
       });
+  }
+
+  private fetchOrderItems(orderRef: string): void {
+    this.orderService.getByRef(orderRef).subscribe({
+      next: (order) => {
+        this.orderItems = order.items || [];
+        this.orderTotal = order.price || 0;
+        console.log('🛍️ Order items loaded:', this.orderItems);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Failed to load order items:', err);
+        // Non-blocking: preview still works without items
+      }
+    });
   }
 
   onVehicleChange(): void {
