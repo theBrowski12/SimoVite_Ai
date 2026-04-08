@@ -124,24 +124,28 @@ export class Account implements OnInit {
     this.cdr.detectChanges();
 
     try {
-      const kc = (this.keycloak as any).keycloak as Keycloak;
+          const kc = (this.keycloak as any).keycloak as Keycloak;
 
-      // Update profile via Keycloak REST API
-      const response = await fetch(
-        `${(kc as any).realmUrl}account`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${this.keycloak.getToken()}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            firstName: this.profileForm.get('firstName')?.value,
-            lastName: this.profileForm.get('lastName')?.value,
-            email: this.profileForm.get('email')?.value
-          })
-        }
-      );
+          // Get the base URL (handles different keycloak-js versions) and remove trailing slash
+          const baseUrl = (kc.authServerUrl || (kc as any).url)?.replace(/\/$/, '');
+          const accountUrl = `${baseUrl}/realms/${kc.realm}/account`;
+
+          // Update profile via Keycloak REST API
+          const response = await fetch(
+            accountUrl,
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${this.keycloak.getToken()}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                firstName: this.profileForm.get('firstName')?.value,
+                lastName: this.profileForm.get('lastName')?.value,
+                email: this.profileForm.get('email')?.value
+              })
+            }
+          );
 
       if (response.ok || response.status === 204) {
         this.successMessage = 'Profile updated successfully!';
@@ -187,9 +191,13 @@ export class Account implements OnInit {
     try {
       const kc = (this.keycloak as any).keycloak as Keycloak;
 
+      // Get the base URL and build the correct path
+      const baseUrl = (kc.authServerUrl || (kc as any).url)?.replace(/\/$/, '');
+      const passwordUrl = `${baseUrl}/realms/${kc.realm}/account/password`;
+
       // Update password via Keycloak REST API
       const response = await fetch(
-        `${(kc as any).realmUrl}account/password`,
+        passwordUrl,
         {
           method: 'PUT',
           headers: {
