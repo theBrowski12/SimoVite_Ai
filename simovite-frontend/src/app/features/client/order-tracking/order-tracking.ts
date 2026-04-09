@@ -220,12 +220,20 @@ export class OrderTracking implements OnInit, OnDestroy, AfterViewInit {
     this.pollingSubscription = interval(5000)
       .pipe(
         startWith(0),
-        switchMap(() => this.deliveryService.getCourierLocation(courierId).pipe(
-          catchError((err) => {
-            console.warn(`[OrderTracking] Courier location fetch failed:`, err?.message || err);
+        switchMap(() => {
+          // Stop polling if delivery is completed
+          if (this.delivery?.status === 'DELIVERED' || this.delivery?.status === 'CANCELLED') {
+            console.log(`[OrderTracking] Delivery ${this.delivery?.status} — stopping tracking`);
+            this.pollingSubscription?.unsubscribe();
             return of(null);
-          })
-        ))
+          }
+          return this.deliveryService.getCourierLocation(courierId).pipe(
+            catchError((err) => {
+              console.warn(`[OrderTracking] Courier location fetch failed:`, err?.message || err);
+              return of(null);
+            })
+          );
+        })
       )
       .subscribe({
         next: (loc) => {
