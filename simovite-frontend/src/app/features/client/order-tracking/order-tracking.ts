@@ -210,22 +210,10 @@ export class OrderTracking implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private startTracking(courierId: string): void {
-    // Try WebSocket first
-    try {
-      this.wsSubscription = this.websocketService.watchCourier(courierId).subscribe({
-        next: (position) => {
-          this.courierPosition = position;
-          this.updateMarkers();
-          this.cdr.detectChanges();
-        },
-        error: () => {
-          // Fallback to polling
-          this.startPolling(courierId);
-        }
-      });
-    } catch {
-      this.startPolling(courierId);
-    }
+    console.log(`[OrderTracking] Starting tracking for courier: ${courierId}`);
+
+    // Skip WebSocket for clients — go straight to polling
+    this.startPolling(courierId);
   }
 
   private startPolling(courierId: string): void {
@@ -233,12 +221,16 @@ export class OrderTracking implements OnInit, OnDestroy, AfterViewInit {
       .pipe(
         startWith(0),
         switchMap(() => this.deliveryService.getCourierLocation(courierId).pipe(
-          catchError(() => of(null))
+          catchError((err) => {
+            console.warn(`[OrderTracking] Courier location fetch failed:`, err?.message || err);
+            return of(null);
+          })
         ))
       )
       .subscribe({
         next: (loc) => {
           if (loc && loc.latitude != null && loc.longitude != null) {
+            console.log(`[OrderTracking] Courier position updated:`, loc);
             this.courierPosition = {
               courierId,
               latitude: loc.latitude,
@@ -247,6 +239,8 @@ export class OrderTracking implements OnInit, OnDestroy, AfterViewInit {
             };
             this.updateMarkers();
             this.cdr.detectChanges();
+          } else {
+            console.log(`[OrderTracking] No location available for courier ${courierId}`);
           }
         }
       });
