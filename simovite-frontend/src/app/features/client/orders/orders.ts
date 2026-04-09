@@ -90,7 +90,7 @@ export class Orders implements OnInit {
   // ── Actions ───────────────────────────────────────────────
 
   trackOrder(order: Order): void {
-    this.router.navigate(['/client/track', order.orderRef]);
+    this.router.navigate(['/track', order.orderRef]);
   }
 
   confirmPayment(order: Order): void {

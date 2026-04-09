@@ -317,7 +317,7 @@ public class DeliveryServiceImpl implements DeliveryService {
                 .courierId(courierId)
                 .latitude(req.getLatitude())
                 .longitude(req.getLongitude())
-                .updatedAt(LocalDateTime.now().toString())
+                .updatedAt(java.time.Instant.now().toString())
                 .build();
         courierLocationRepository.save(location);
     }
@@ -381,11 +381,19 @@ public class DeliveryServiceImpl implements DeliveryService {
                     .build();
 
             ETAResponse etaResponse = etaFeignClient.calculateETA(etaRequest);
-            etaWithML = etaResponse.getEstimatedMinutes();
-            etaPercentage = etaResponse.getEtaPercentage();
-
-            log.info("✅ ETA ML ({}) pour {}: {} min (change: {}%)",
-                    vehicleType, delivery.getOrderRef(), etaWithML, etaPercentage);
+            
+            // Check if response is valid (circuit breaker fallback returns 0 values)
+            if (etaResponse.getEstimatedMinutes() != null && etaResponse.getEstimatedMinutes() > 0) {
+                etaWithML = etaResponse.getEstimatedMinutes();
+                etaPercentage = etaResponse.getEtaPercentage();
+                log.info("✅ ETA ML ({}) pour {}: {} min (change: {}%)",
+                        vehicleType, delivery.getOrderRef(), etaWithML, etaPercentage);
+            } else {
+                log.warn("⚠️ ETA Service returned fallback (0 min) for {}, using local fallback: {} min", 
+                        vehicleType, fallbackEta);
+                etaWithML = fallbackEta;
+                etaPercentage = 0.0;
+            }
 
         } catch (Exception e) {
             log.warn("⚠️ ETA Service unavailable for {}, using fallback: {} min", vehicleType, fallbackEta);
@@ -452,7 +460,6 @@ public class DeliveryServiceImpl implements DeliveryService {
 
         delivery.setStatus(newStatus);
         Delivery savedDelivery = deliveryRepository.save(delivery);
-
         // Optionnel : Mettre à jour Order_Service si besoin selon le statut
 
         return deliveryMapper.toDto(savedDelivery);

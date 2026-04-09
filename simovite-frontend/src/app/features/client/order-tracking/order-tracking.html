@@ -1,1 +1,198 @@
-<p>order-tracking works!</p>
+<div class="tracking-container" *ngIf="!isLoading && !error">
+  <!-- Header -->
+  <header class="tracking-header">
+    <div class="header-content">
+      <div class="order-info">
+        <div class="icon-title">
+          <mat-icon class="header-icon">local_shipping</mat-icon>
+          <div>
+            <h1>Order Tracking</h1>
+            <p class="order-ref">Order #{{ delivery?.orderRef }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="eta-badge" *ngIf="etaDisplay && delivery?.status !== 'DELIVERED'">
+        <mat-icon class="eta-icon">schedule</mat-icon>
+        <div class="eta-text">
+          <span class="eta-label">Estimated Time</span>
+          <span class="eta-value">{{ etaDisplay }}</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Status Progress -->
+  <div class="status-section">
+    <div class="status-header">
+      <mat-icon class="status-icon">track_changes</mat-icon>
+      <h2>{{ statusLabel }}</h2>
+    </div>
+
+    <div class="progress-stepper">
+      <div class="stepper-step" *ngFor="let step of statusSteps; let i = index"
+           [class.completed]="step.completed"
+           [class.active]="step.active">
+        <div class="step-icon-wrapper">
+          <mat-icon>{{ step.icon }}</mat-icon>
+          <div class="step-pulse" *ngIf="step.active"></div>
+        </div>
+        <div class="step-content">
+          <span class="step-label">{{ step.label }}</span>
+          <div class="step-line" *ngIf="i < statusSteps.length - 1"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="content-grid">
+    <!-- Map Section -->
+    <div class="map-card">
+      <div class="card-header">
+        <h3>
+          <span class="icon-label">
+            <mat-icon>map</mat-icon>
+            Live Tracking
+          </span>
+        </h3>
+        <div class="map-controls">
+          <button mat-icon-button matTooltip="Center on courier" (click)="centerOnCourier()">
+            <mat-icon>my_location</mat-icon>
+          </button>
+          <button mat-icon-button matTooltip="Center on destination" (click)="centerOnDestination()">
+            <mat-icon>place</mat-icon>
+          </button>
+        </div>
+      </div>
+      <div class="map-container">
+        <div id="tracking-map"></div>
+      </div>
+    </div>
+
+    <!-- Details Section -->
+    <div class="details-card">
+      <!-- Courier Info -->
+      <div class="detail-section" *ngIf="delivery?.courierName">
+        <div class="detail-header">
+          <span class="header-icon-label">
+            <mat-icon>person</mat-icon>
+            Your Courier
+          </span>
+        </div>
+        <div class="courier-info">
+          <div class="courier-avatar">
+            <mat-icon>person_pin_circle</mat-icon>
+          </div>
+          <div class="courier-details">
+            <p class="courier-name">{{ delivery?.courierName }}</p>
+            <p class="courier-vehicle" *ngIf="delivery?.vehicleType">
+              <mat-icon class="vehicle-icon">directions_car</mat-icon>
+              {{ delivery?.vehicleType | titlecase }}
+            </p>
+          </div>
+          <div class="live-indicator" *ngIf="delivery?.status !== 'DELIVERED'">
+            <span class="pulse-dot"></span>
+            <span>Live</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pickup Location -->
+      <div class="detail-section">
+        <div class="detail-header">
+          <span class="header-icon-label">
+            <mat-icon>store</mat-icon>
+            Pickup Location
+          </span>
+        </div>
+        <div class="location-info">
+          <mat-icon class="location-icon">location_on</mat-icon>
+          <p class="location-address">{{ formatAddress(delivery?.pickupAddress) }}</p>
+        </div>
+      </div>
+
+      <!-- Delivery Location -->
+      <div class="detail-section">
+        <div class="detail-header">
+          <span class="header-icon-label">
+            <mat-icon>home</mat-icon>
+            Delivery Address
+          </span>
+        </div>
+        <div class="location-info">
+          <mat-icon class="location-icon">pin_drop</mat-icon>
+          <p class="location-address">{{ formatAddress(delivery?.dropoffAddress) }}</p>
+        </div>
+      </div>
+
+      <!-- Order Summary -->
+      <div class="detail-section">
+        <div class="detail-header">
+          <span class="header-icon-label">
+            <mat-icon>receipt_long</mat-icon>
+            Order Summary
+          </span>
+        </div>
+        <div class="summary-grid">
+          <div class="summary-item">
+            <div class="summary-icon-wrap">
+              <mat-icon>straighten</mat-icon>
+            </div>
+            <div class="summary-text">
+              <span class="summary-label">Distance</span>
+              <span class="summary-value">{{ delivery?.distanceInKm | number:'1.1-1' }} km</span>
+            </div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-icon-wrap">
+              <mat-icon>payments</mat-icon>
+            </div>
+            <div class="summary-text">
+              <span class="summary-label">Delivery Cost</span>
+              <span class="summary-value">{{ delivery?.deliveryCost | number:'1.2-2' }} MAD</span>
+            </div>
+          </div>
+          <div class="summary-item" *ngIf="delivery?.amountToCollect">
+            <div class="summary-icon-wrap highlight">
+              <mat-icon>money</mat-icon>
+            </div>
+            <div class="summary-text">
+              <span class="summary-label">Amount to Pay</span>
+              <span class="summary-value highlight">{{ delivery?.amountToCollect | number:'1.2-2' }} MAD</span>
+            </div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-icon-wrap">
+              <mat-icon>credit_card</mat-icon>
+            </div>
+            <div class="summary-text">
+              <span class="summary-label">Payment</span>
+              <span class="summary-value">{{ delivery?.cashOnDelivery ? 'Cash' : 'Online' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading State -->
+<div class="loading-container" *ngIf="isLoading">
+  <div class="loading-content">
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Loading your order details...</p>
+  </div>
+</div>
+
+<!-- Error State -->
+<div class="error-container" *ngIf="error">
+  <div class="error-content">
+    <mat-icon class="error-icon">error_outline</mat-icon>
+    <h2>Oops! Something went wrong</h2>
+    <p>{{ error }}</p>
+    <button mat-raised-button color="primary" routerLink="/">
+      <mat-icon>home</mat-icon>
+      Go Home
+    </button>
+  </div>
+</div>

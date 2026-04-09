@@ -15,7 +15,7 @@ public interface PriceFeignClient {
     @PostMapping("/v1/price/calculate")
     PriceResponse calculatePrice(@RequestBody PriceRequest request);
     default PriceResponse getDefault(PriceRequest request, Exception e) {
-        System.out.println("❌ eta-service indisponible — fallback pour eta-service : " + request + " | Erreur: " + e.getMessage());
+        System.out.println("❌ price-service indisponible — fallback pour eta-service : " + request + " | Erreur: " + e.getMessage());
         return PriceResponse.builder()
                 .category(request.getCategory())
                 .pricePercentage(0.0)

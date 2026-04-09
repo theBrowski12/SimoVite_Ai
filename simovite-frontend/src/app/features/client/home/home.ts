@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { StoreService } from '@services/store.service';
 import { StoreResponseDto, MainCategory } from '@models/store.model';
 import { ReviewService } from '@services/review.service';
@@ -33,11 +34,15 @@ export class Home implements OnInit {
     [MainCategory.PHARMACY]: 'Pharmacie',
     [MainCategory.SPECIAL_DELIVERY]: 'Coursier'
   };
+  // Tracking input
+  trackOrderRef = '';
+
 protected readonly Math = Math;
 constructor(
   private storeService: StoreService,
   private cdr: ChangeDetectorRef,
-  private reviewSvc: ReviewService
+  private reviewSvc: ReviewService,
+  private router: Router
 ) {}
 
   ngOnInit(): void {
@@ -130,5 +135,11 @@ constructor(
     const colors = ['#FF6B35', '#3B82F6', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444'];
     const index = clientName.length % colors.length;
     return colors[index];
+  }
+
+  trackOrder(): void {
+    if (this.trackOrderRef && this.trackOrderRef.trim()) {
+      this.router.navigate(['/track', this.trackOrderRef.trim()]);
+    }
   }
 }

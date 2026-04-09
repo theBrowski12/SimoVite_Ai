@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Delivery, VehicleType, DeliveryStatus, DistancePreviewDto } from '../models/delivery.model';
 import { CourierLocationRequest } from '@models/DistancePreviewDto';
+import { GpsPosition } from '@models/Gpsposition.model';
 
 @Injectable({ providedIn: 'root' })
 export class DeliveryService {
@@ -58,7 +59,7 @@ export class DeliveryService {
   accept(id: number, vehicleType: VehicleType, lat: number, lng: number): Observable<Delivery> {
     return this.http.put<Delivery>(
       `${this.base}/${id}/accept`,
-      { latitude: lat, longitude: lng }, 
+      { latitude: lat, longitude: lng },
       { params: new HttpParams().set('vehicleType', vehicleType) }
     );
   }
@@ -82,11 +83,15 @@ export class DeliveryService {
     );
   }
   // After trackByOrderRef
-  
+
 
   // ── CLIENT ────────────────────────────────────────────────
 
   trackByOrderRef(ref: string): Observable<Delivery> {
     return this.http.get<Delivery>(`${this.base}/track/${ref}`);
+  }
+
+  getCourierLocation(courierId: string): Observable<{ latitude: number; longitude: number }> {
+    return this.http.get<{ latitude: number; longitude: number }>(`${this.base}/courier/${courierId}/location`);
   }
 }

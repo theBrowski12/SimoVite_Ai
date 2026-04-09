@@ -22,7 +22,6 @@ public interface ETAFeignClient {
                 .distanceKm(0.0)
                 .estimatedMinutes(0)
                 .rushHourFactor(0.0)
-                .rushHourFactor(0.0)
                 .build();
     }
 }

@@ -329,8 +329,10 @@
       <h2>Where is my order?</h2>
       <p>Enter your order reference to get real-time updates on your delivery.</p>
       <div class="track-input-row">
-        <input class="track-input" type="text" placeholder="Enter order reference SV...">
-        <button class="track-btn">Track Now 🔍</button>
+        <input class="track-input" type="text" placeholder="Enter order reference SV..."
+               [(ngModel)]="trackOrderRef"
+               (keydown.enter)="trackOrder()">
+        <button class="track-btn" (click)="trackOrder()">Track Now 🔍</button>
       </div>
     </div>
     <div class="track-right">

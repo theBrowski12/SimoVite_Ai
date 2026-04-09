@@ -171,8 +171,14 @@
           {{ getPaymentLabel(o.paymentMethod) }}
         </div>
         <div class="card-actions" (click)="$event.stopPropagation()">
+          <button class="action-btn track-btn"
+                  *ngIf="o.status === 'ACCEPTED'"
+                  (click)="trackOrder(o)"
+                  title="Track your delivery">
+            📍 Track Live
+          </button>
           <button class="action-btn"
-                  *ngIf="o.status !== 'CANCELLED'"
+                  *ngIf="o.status !== 'CANCELLED' && o.status !== 'ACCEPTED'"
                   (click)="trackOrder(o)"
                   title="Track order">
             📍

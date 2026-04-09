@@ -3,8 +3,10 @@ package cf.delivery_service.api;
 import cf.delivery_service.dto.CourierLocationRequest;
 import cf.delivery_service.dto.DeliveryResponseDto;
 import cf.delivery_service.dto.DistancePreviewDto;
+import cf.delivery_service.entity.CourierLocation;
 import cf.delivery_service.enums.DeliveryStatus;
 import cf.delivery_service.enums.VehicleType;
+import cf.delivery_service.repository.CourierLocationRepository;
 import cf.delivery_service.service.DeliveryService;
 import cf.delivery_service.utils.JwtUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,6 +32,7 @@ import java.util.List;
 public class DeliveryController {
 
     private final DeliveryService deliveryService;
+    private final CourierLocationRepository courierLocationRepository;
 
     // ==========================================
     // 🏍️ ENDPOINTS POUR L'APPLICATION LIVREUR
@@ -104,6 +107,10 @@ public class DeliveryController {
     })
     public ResponseEntity<List<DeliveryResponseDto>> getMyDeliveries() {
         String courierId = JwtUtils.getUserId();
+        if (courierId == null) {
+            log.error("❌ Unable to retrieve courier ID from JWT token");
+            return ResponseEntity.internalServerError().build();
+        }
         log.info("📦 Récupération des livraisons pour le livreur {}", courierId);
         return ResponseEntity.ok(deliveryService.getMyDeliveries(courierId));
     }
@@ -134,6 +141,11 @@ public class DeliveryController {
 
         String courierId = JwtUtils.getUserId();
         String courierName = JwtUtils.getFullName();
+
+        if (courierId == null) {
+            log.error("❌ Unable to retrieve courier ID from JWT token");
+            return ResponseEntity.internalServerError().build();
+        }
 
         log.info("🚚 Courier {} accepting delivery {} with vehicle {}", courierName, id, vehicleType);
 
@@ -177,12 +189,42 @@ public class DeliveryController {
             @RequestBody CourierLocationRequest req) {
 
         String courierId = JwtUtils.getUserId();
+        if (courierId == null) {
+            log.error("❌ Unable to retrieve courier ID from JWT token");
+            return ResponseEntity.internalServerError().build();
+        }
 
         log.debug("📍 Updating location for courier {}: ({}, {})",
                 courierId, req.getLatitude(), req.getLongitude());
 
         deliveryService.updateCourierLocation(courierId, req);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/courier/{courierId}/location")
+    @Operation(
+            summary = "Get courier current location",
+            description = "Retrieves the current GPS position of a courier for live tracking."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Courier location retrieved"),
+            @ApiResponse(responseCode = "404", description = "Courier location not found")
+    })
+    public ResponseEntity<CourierLocationRequest> getCourierLocation(
+            @Parameter(description = "ID of the courier", required = true)
+            @PathVariable String courierId) {
+
+        CourierLocation location = courierLocationRepository.findById(courierId)
+                .orElse(null);
+
+        if (location == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        CourierLocationRequest response = new CourierLocationRequest();
+        response.setLatitude(location.getLatitude());
+        response.setLongitude(location.getLongitude());
+        return ResponseEntity.ok(response);
     }
 
     // ==========================================

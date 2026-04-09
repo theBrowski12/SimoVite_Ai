@@ -1,5 +1,9 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RouteMap } from './components/route-map/route-map';
 import { MapViewer } from './components/map-viewer/map-viewer';
 import { StarRating } from './components/star-rating/star-rating';
@@ -27,9 +31,15 @@ import { FormsModule } from '@angular/forms';
     HasRole,
     ChatbotComponent
   ],
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatIconModule,
+    MatTooltipModule,
+    MatButtonModule,
+    MatProgressSpinnerModule,
+  ],
   exports: [
-    // 🌟 TRÈS IMPORTANT : On les exporte pour qu'ils soient visibles ailleurs
     RouteMap,
     MapViewer,
     StarRating,
@@ -40,8 +50,12 @@ import { FormsModule } from '@angular/forms';
     FormatDatePipe,
     DhCurrencyPipe,
     HasRole,
-    CommonModule, 
-    ChatbotComponent// On ré-exporte CommonModule pour éviter de l'importer partout
+    CommonModule,
+    ChatbotComponent,
+    MatIconModule,
+    MatTooltipModule,
+    MatButtonModule,
+    MatProgressSpinnerModule,
   ],
 })
 export class SharedModule {}
