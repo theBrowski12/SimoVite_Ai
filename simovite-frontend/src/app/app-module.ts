@@ -14,11 +14,18 @@ import { App } from './app';
 import { Navbar } from './shared/components/navbar/navbar';
 import { Sidebar } from './shared/components/sidebar/sidebar';
 import { JwtInterceptor } from '@core/interceptors/jwt.interceptor';
+import { AuthService } from '@core/auth/auth.service';
 
 // Fonction pour initialiser Keycloak
-function initializeKeycloak(keycloak: KeycloakService) {
-  return () => keycloak.init(); // Utilise la méthode init() que tu as écrite dans ton service
-}
+function initializeKeycloak(
+  keycloak: KeycloakService,
+  auth: AuthService
+) : () => Promise<void> {
+  return async () => {
+    await keycloak.init();
+    // ✅ After init, check if role needs to be assigned
+    await auth.initRoleIfNeeded();
+  };}
 
 @NgModule({
   declarations: [ 
@@ -47,7 +54,7 @@ function initializeKeycloak(keycloak: KeycloakService) {
       provide: APP_INITIALIZER,
       useFactory: initializeKeycloak,
       multi: true,
-      deps: [KeycloakService]
+      deps: [KeycloakService, AuthService]
     },
     provideTranslateHttpLoader({
       prefix: './assets/i18n/',

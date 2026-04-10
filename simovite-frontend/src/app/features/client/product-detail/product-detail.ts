@@ -1,161 +1,226 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CatalogResponseDto } from '@models/catalog.model';
 import { CatalogService } from '@services/catalog.service';
 import { StoreService } from '@services/store.service';
+import { CartService } from '@services/cart.service';
+import { ReviewService } from '@services/review.service';
+import { ReviewResponseDto, ReviewTargetType } from '@models/review.model';
+import { StoreResponseDto } from '@models/store.model';
 
 @Component({
   selector: 'app-product-detail',
   standalone: false,
   templateUrl: './product-detail.html',
-  styleUrl: './product-detail.scss',
+  styleUrls: ['./product-detail.scss']
 })
-export class ProductDetail {
-    productId!: string;
+export class ProductDetail implements OnInit {
+  productId!: string;
   product: CatalogResponseDto | null = null;
-  loading: boolean = true;
-  storeName: string = 'Chargement de la boutique...';
+  store: StoreResponseDto | null = null;
+  reviews: ReviewResponseDto[] = [];
+  relatedProducts: CatalogResponseDto[] = [];
+  loading = true;
+  quantity = 1;
+  addedToCart = false;
 
-  isEditing: boolean = false;
-  storesList: any[] = [];
-  // Données factices pour la structure - À remplacer par tes appels API (OrderService, ReviewService)
-  statistics = {
-    totalSold: 145,
-    revenueGenerated: 2175.00,
-    averageRating: 4.5,
-    viewsThisWeek: 340
-  };
-
-  recentOrders = [
-    { id: 'ORD-001', date: '2026-03-28', customer: 'Jean Dupont', quantity: 2, status: 'DELIVERED' },
-    { id: 'ORD-002', date: '2026-03-29', customer: 'Alice Martin', quantity: 1, status: 'PENDING' }
-  ];
-
-  reviews = [
-    { user: 'Marc', rating: 5, comment: 'Excellent produit, très satisfait !', date: '2026-03-25' },
-    { user: 'Sophie', rating: 4, comment: 'Bonne qualité mais livraison un peu longue.', date: '2026-03-20' }
-  ];
+  // Review form
+  showReviewForm = false;
+  reviewRating = 0;
+  reviewHover = 0;
+  reviewComment = '';
+  submittingReview = false;
 
   constructor(
     private route: ActivatedRoute,
-    private catalogService: CatalogService,
-    private cdr: ChangeDetectorRef ,
-    private storeService: StoreService // ⚡️ 3. Injecte le StoreService ici
+    private router: Router,
+    private catalogSvc: CatalogService,
+    private storeSvc: StoreService,
+    private cartSvc: CartService,
+    private reviewSvc: ReviewService,
+    private cdr: ChangeDetectorRef
   ) {}
 
-ngOnInit(): void {
+  ngOnInit(): void {
     this.productId = this.route.snapshot.paramMap.get('id') || '';
     if (this.productId) {
-      this.loadProductDetails();
-      this.loadAllStores(); // ⚡️ Charger les magasins pour le formulaire
-    } else {
-      this.loading = false; 
+      this.loadProduct();
     }
   }
-loadProductDetails(): void {
-    this.loading = true;
-    this.catalogService.getOfferById(this.productId).subscribe({
-      next: (data) => {
-        this.product = data;
-        if (this.product.storeId) {
-          this.loadStoreName(this.product.storeId);
-        } else {
-          this.storeName = 'Boutique non assignée';
-        }
-        this.loading = false;
-        this.cdr.detectChanges(); 
-      },
-      error: (err) => {
-        console.error('Erreur de l\'API :', err);
-        this.loading = false;
-        this.cdr.detectChanges();
-      }
-    });
-  }
 
-  // ⚡️ 5. Nouvelle méthode pour récupérer la boutique
-loadStoreName(storeId: string): void {
-    this.storeService.getStoreById(storeId).subscribe({
-      next: (store) => {
-        this.storeName = store.name; 
+  loadProduct(): void {
+    this.loading = true;
+    this.catalogSvc.getOfferById(this.productId).subscribe({
+      next: (product) => {
+        this.product = product;
+        this.loadStore(product.storeId);
+        this.loadReviews(product.storeId);
         this.cdr.detectChanges();
       },
       error: () => {
-        this.storeName = 'Boutique inconnue';
+        this.loading = false;
         this.cdr.detectChanges();
       }
     });
   }
- loadAllStores(): void {
-    // Vérifie le nom exact de ta méthode dans StoreService (ex: getAllStores() ou getStores())
-    this.storeService.getAllStores().subscribe({
-      next: (stores) => {
-        this.storesList = stores;
+
+  loadStore(storeId: string): void {
+    this.storeSvc.getStoreById(storeId).subscribe({
+      next: (store) => {
+        this.store = store;
+        this.loadRelatedProducts(storeId);
+        this.loading = false;
+        this.cdr.detectChanges();
       },
-      error: (err) => console.error('Erreur lors du chargement des magasins', err)
+      error: () => {
+        this.loading = false;
+        this.cdr.detectChanges();
+      }
     });
   }
 
-  onUpdate(): void {
+  loadReviews(storeId: string): void {
+    this.reviewSvc.getReviews().subscribe({
+      next: (allReviews) => {
+        this.reviews = allReviews
+          .filter(r => r.targetId === storeId)
+          .slice(0, 10);
+        this.cdr.detectChanges();
+      },
+      error: () => {}
+    });
+  }
+
+  loadRelatedProducts(storeId: string): void {
+    this.catalogSvc.getOffersByProviderId(storeId).subscribe({
+      next: (products) => {
+        this.relatedProducts = products
+          .filter(p => p.id !== this.productId && p.available)
+          .slice(0, 4);
+        this.cdr.detectChanges();
+      },
+      error: () => {}
+    });
+  }
+
+  // ── Cart ─────────────────────────────────────────────────
+  addToCart(): void {
     if (!this.product) return;
-    this.isEditing = true; // ⚡️ Bascule en mode édition
-  }
-
-  // ⚡️ NOUVEAU : Annuler la modification
-  onEditCancel(): void {
-    this.isEditing = false;
-  }
-
-  // ⚡️ NOUVEAU : Sauvegarde réussie depuis le formulaire
-// ⚡️ NOUVEAU : Sauvegarde réussie depuis le formulaire
-  onEditSaved(updatedProduct: any): void {
-    // 1. On quitte immédiatement le mode édition pour réafficher la page de détails
-    this.isEditing = false; 
-
-    // 2. Si le backend nous a renvoyé le produit mis à jour directement, on l'utilise !
-    if (updatedProduct && updatedProduct.id) {
-      this.product = updatedProduct;
-      if (this.product?.storeId) {
-        this.loadStoreName(this.product.storeId);
-      }
-    } 
-    // 3. Sinon, on recharge les données en arrière-plan (SANS remettre loading à true)
-    else {
-      this.refreshProductDetails(); 
+    for (let i = 0; i < this.quantity; i++) {
+      this.cartSvc.add(this.product);
     }
-    
-    // On force la mise à jour de l'affichage
-    this.cdr.detectChanges();
+    this.addedToCart = true;
+    setTimeout(() => this.addedToCart = false, 2000);
   }
 
-  // ⚡️ NOUVEAU : Rechargement en arrière-plan sans faire clignoter l'écran complet
-  refreshProductDetails(): void {
-    this.catalogService.getOfferById(this.productId).subscribe({
-      next: (data) => {
-        this.product = data;
-        if (this.product.storeId) {
-          this.loadStoreName(this.product.storeId);
-        } else {
-          this.storeName = 'Boutique non assignée';
+  // ── Review Form ──────────────────────────────────────────
+  submitReview(): void {
+    if (this.reviewRating === 0 || !this.reviewComment.trim() || !this.store) return;
+
+    if (this.isGibberish(this.reviewComment)) {
+      const proceed = confirm("This comment looks unusual. Are you sure you want to submit it?");
+      if (!proceed) return;
+    }
+
+    this.submittingReview = true;
+
+    this.reviewSvc.addReview({
+      targetId: this.store.id,
+      targetType: ReviewTargetType.STORE,
+      rating: this.reviewRating,
+      comment: this.reviewComment.trim()
+    }).subscribe({
+      next: (review) => {
+        if (review.incoherent) {
+          const isSure = confirm("Our system flagged this as potentially incoherent. Submit anyway?");
+          if (!isSure) {
+            this.reviewSvc.deleteReview(review.id).subscribe();
+            this.submittingReview = false;
+            this.cdr.detectChanges();
+            return;
+          }
         }
-        this.cdr.detectChanges(); 
+
+        this.reviews = [review, ...this.reviews];
+        this.cancelReview();
+        this.submittingReview = false;
+        this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Erreur lors du rafraîchissement des données :', err);
+        console.error('Failed to submit review:', err);
+        alert('Failed to submit your review. Please try again.');
+        this.submittingReview = false;
+        this.cdr.detectChanges();
       }
     });
   }
 
-  onDelete(): void {
-    if (!this.product) return;
-    const confirmDelete = confirm(`Êtes-vous sûr de vouloir supprimer le produit "${this.product.name}" ?`);
-    if (confirmDelete) {
-      console.log('Suppression confirmée pour le produit :', this.product.id);
-      // this.catalogService.deleteProduct(this.product.id).subscribe(...)
+  cancelReview(): void {
+    this.showReviewForm = false;
+    this.reviewRating = 0;
+    this.reviewComment = '';
+  }
+
+  private isGibberish(text: string): boolean {
+    const noSpaces = text.replace(/\s/g, '');
+    const entirelyConsonants = /^[bcdfghjklmnpqrstvwxyz]+$/i.test(noSpaces);
+    const repeatedChars = /(.)\1{4,}/.test(noSpaces);
+    return entirelyConsonants || repeatedChars;
+  }
+
+  // ── Helpers ──────────────────────────────────────────────
+  getStars(rating: number): string {
+    const full = Math.round(rating);
+    return '★'.repeat(full) + '☆'.repeat(5 - full);
+  }
+
+  getCategoryTag(): string {
+    const p = this.product as any;
+    return p.foodCategories?.[0]
+      ?? p.pharmacyCategories?.[0]
+      ?? p.supermarketCategories?.[0]
+      ?? '';
+  }
+
+  getOriginalPrice(): number | null {
+    if (this.product?.isPromotion && this.product.originalPrice) {
+      return this.product.originalPrice;
     }
+    return null;
+  }
+
+  getInitials(name: string): string {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  }
+
+  getSentimentClass(sentiment: string): string {
+    const m: Record<string, string> = {
+      POSITIVE: 'sentiment-positive',
+      NEGATIVE: 'sentiment-negative',
+      MIXED: 'sentiment-mixed'
+    };
+    return m[sentiment] || '';
+  }
+
+  getSentimentIcon(sentiment: string): string {
+    const m: Record<string, string> = {
+      POSITIVE: '😊', NEGATIVE: '😞', MIXED: '😐'
+    };
+    return m[sentiment] || '';
   }
 
   goBack(): void {
     window.history.back();
+  }
+
+  viewProduct(id: string): void {
+    this.router.navigate(['/product', id]);
+    window.scrollTo(0, 0);
+  }
+
+  viewStore(): void {
+    if (this.store) {
+      this.router.navigate(['/stores', this.store.id]);
+    }
   }
 }

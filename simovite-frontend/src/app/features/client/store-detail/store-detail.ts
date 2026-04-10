@@ -340,5 +340,9 @@ get cartTotal() { return this.cartSvc.total; }
       ?? '';
   }
 
+  viewProduct(id: string): void {
+    this.router.navigate(['/product', id]);
+  }
+
   goBack(): void { this.router.navigate(['/client/categories']); }
 }

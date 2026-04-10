@@ -210,9 +210,13 @@ export class OrderTracking implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private startTracking(courierId: string): void {
-    console.log(`[OrderTracking] Starting tracking for courier: ${courierId}`);
+    // Don't track if delivery is already completed or cancelled
+    if (this.delivery?.status === 'DELIVERED' || this.delivery?.status === 'CANCELLED') {
+      console.log(`[OrderTracking] Delivery ${this.delivery.status} — skipping tracking`);
+      return;
+    }
 
-    // Skip WebSocket for clients — go straight to polling
+    console.log(`[OrderTracking] Starting tracking for courier: ${courierId}`);
     this.startPolling(courierId);
   }
 

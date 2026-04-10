@@ -58,6 +58,14 @@ export class KeycloakService {
     const p = this.keycloak.tokenParsed;
     return `${p?.['given_name'] ?? ''} ${p?.['family_name'] ?? ''}`.trim();
   }
+  getRequestedRole(): string {
+    return this.keycloak.tokenParsed?.['requested_role'] ?? '';
+  }
+
+  // ✅ Force-expires current token so next call gets a fresh one with new roles
+  async forceTokenRefresh(): Promise<void> {
+    await this.keycloak.updateToken(-1);
+  }
 
   async refreshToken(): Promise<string> {
     // Si l'utilisateur n'est pas connecté, on retourne une chaîne vide sans rediriger

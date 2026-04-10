@@ -267,6 +267,24 @@
 }
 .unavail-text { font-size: 12px; color: var(--muted); font-style: italic; }
 
+.btn-view-details {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+
+  &:hover {
+    background: var(--bg);
+    border-color: var(--orange);
+    color: var(--orange);
+  }
+}
+
 .qty-ctrl { display: flex; align-items: center; gap: 2px; background: var(--bg); border-radius: 9px; padding: 3px; }
 .qty-btn {
   width: 28px; height: 28px; border-radius: 7px; border: none; background: #fff;

@@ -15,6 +15,7 @@ import { SharedModule } from '../../shared/shared.module'; // 🌟 On importe le
 import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ClientAccount } from './client-account/client-account';
+import { ClientStores } from './client-stores/client-stores';
 @NgModule({
   declarations: [
     Home,
@@ -27,6 +28,7 @@ import { ClientAccount } from './client-account/client-account';
     OrderTracking,
     Reviews,
     ClientAccount,
+    ClientStores,
   ],
   imports: [
     CommonModule,

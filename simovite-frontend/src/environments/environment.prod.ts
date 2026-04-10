@@ -2,6 +2,8 @@
 export const environment = {
   production: true,
   apiGateway: 'http://localhost:8888',
+  //apiGateway: 'http://gateway-service:8888',
+
   keycloak: {
     url:    'http://localhost:8080',
     realm:  'Simovite',
