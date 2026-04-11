@@ -23,9 +23,10 @@ export interface OrderRequestDto {
 export interface Order {
   id: string;
   orderRef: string;
-  userId: string;        
-  fullName: string;      
+  userId: string;
+  fullName: string;
   email: string;
+  customerPhone?: string;
   storeId: string;
   storeName: string;
   storeCategory: string;

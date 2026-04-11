@@ -59,6 +59,8 @@ public class Order {
     private double percentage;
     private String storeCategory;
     private String storeName;
+    //private String customerPhoneNumber; ne need ,grabbed from front
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     @PrePersist

@@ -56,9 +56,11 @@ public class OrderServiceImpl implements OrderService {
         String nameFromJwt  = JwtUtils.getFullName();
         String emailFromJwt = JwtUtils.getEmail();
         String userIdFromJwt = JwtUtils.getUserId();
+        //String phone= JwtUtils.getPhone();
         order.setUserId(userIdFromJwt);      // ✅ depuis JWT, pas depuis dto
         order.setFullName(nameFromJwt);      // ✅ depuis JWT, pas depuis dto
         order.setEmail(emailFromJwt);
+        //order.setPhone(phone);
         order.setPaymentMethod(dto.getPaymentMethod());
         if (dto.getDeliveryAddress() != null) {
             Address address = Address.builder()

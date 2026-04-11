@@ -13,6 +13,7 @@ export interface Delivery {
   courierId?: string;
   courierName?: string;
   customerEmail?: string;
+  customerPhone?: string;
   pickupAddress: Address;
   dropoffAddress: Address;
   distanceInKm: number;

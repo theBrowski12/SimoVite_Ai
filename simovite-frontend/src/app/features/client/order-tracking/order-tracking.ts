@@ -1,6 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { DeliveryService } from '../../../services/delivery.service';
+import { NotificationService } from '@services/notification.service';
 import { WebsocketService } from '../../../services/websocket.service';
 import { Delivery, DeliveryStatus } from '../../../models/delivery.model';
 import { GpsPosition } from '../../../models/Gpsposition.model';
@@ -62,6 +63,7 @@ export class OrderTracking implements OnInit, OnDestroy, AfterViewInit {
   private pollingSubscription: Subscription | null = null;
   private wsSubscription: Subscription | null = null;
   private isMapInitialized = false;
+  private previousStatus: DeliveryStatus | null = null;
 
   statusSteps = [
     { key: 'PENDING', label: 'Order Confirmed', icon: 'check_circle', completed: false, active: false },
@@ -74,6 +76,7 @@ export class OrderTracking implements OnInit, OnDestroy, AfterViewInit {
     private route: ActivatedRoute,
     private deliveryService: DeliveryService,
     private websocketService: WebsocketService,
+    private notifService: NotificationService,
     private keycloakService: KeycloakService,
     private cdr: ChangeDetectorRef
   ) {}
@@ -104,6 +107,7 @@ export class OrderTracking implements OnInit, OnDestroy, AfterViewInit {
     this.deliveryService.trackByOrderRef(this.orderRef!).subscribe({
       next: (delivery) => {
         this.delivery = delivery;
+        this.previousStatus = delivery.status; // Capture initial status
         this.updateStatusSteps();
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -241,6 +245,12 @@ export class OrderTracking implements OnInit, OnDestroy, AfterViewInit {
       )
       .subscribe({
         next: (loc) => {
+          // Check for status change and trigger notification
+          if (this.delivery && this.previousStatus && this.delivery.status !== this.previousStatus) {
+            this.notifyStatusChange(this.previousStatus, this.delivery.status);
+          }
+          this.previousStatus = this.delivery?.status || null;
+
           if (loc && loc.latitude != null && loc.longitude != null) {
             console.log(`[OrderTracking] Courier position updated:`, loc);
             this.courierPosition = {
@@ -269,6 +279,20 @@ export class OrderTracking implements OnInit, OnDestroy, AfterViewInit {
       completed: index <= currentIndex,
       active: index === currentIndex,
     }));
+  }
+
+  private notifyStatusChange(oldStatus: DeliveryStatus, newStatus: DeliveryStatus): void {
+    const orderRef = this.delivery?.orderRef || 'your order';
+
+    if (newStatus === 'ASSIGNED' && oldStatus !== 'ASSIGNED') {
+      this.notifService.notifyDeliveryAssigned(orderRef);
+      this.notifService.info(`Courier is on the way! 🚚`);
+    } else if (newStatus === 'PICKED_UP' && oldStatus !== 'PICKED_UP') {
+      this.notifService.success(`Order picked up! Heading to you 📦`);
+    } else if (newStatus === 'DELIVERED' && oldStatus !== 'DELIVERED') {
+      this.notifService.notifyDeliveryCompleted(orderRef);
+      this.notifService.success(`Order delivered successfully! 🎉`);
+    }
   }
 
   get statusLabel(): string {

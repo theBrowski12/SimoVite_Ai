@@ -9,6 +9,7 @@ export interface Client {
   id:           string;
   name:         string;
   email:        string;
+  phoneNumber:  string;
   emailVerified: boolean;
   enabled:      boolean;
   joinedAt:     string;

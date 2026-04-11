@@ -59,7 +59,7 @@ export class Categories implements OnInit, OnDestroy {
       key:        MainCategory.RESTAURANT,
       label:      'Restaurant',
       icon:       '🍔',
-      sub:        '500+ restaurants',
+      sub:        'Food and nutrition',
       colorClass: 'food',
       subCats:    Object.values(FoodCategory)
     },

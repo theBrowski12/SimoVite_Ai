@@ -49,7 +49,8 @@ export class ClientAccount implements OnInit {
       firstName: ['', Validators.required],
       lastName: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
-      username: [{ value: '', disabled: true }]
+      username: [{ value: '', disabled: true }],
+      phoneNumber: ['']
     });
 
     this.passwordForm = this.fb.group({
@@ -73,7 +74,8 @@ export class ClientAccount implements OnInit {
         firstName: profile.firstName || '',
         lastName: profile.lastName || '',
         email: profile.email || '',
-        username: profile.username || ''
+        username: profile.username || '',
+        phoneNumber: (profile as any).attributes?.phoneNumber?.[0] || (profile as any).phoneNumber || ''
       });
 
       // Load client orders stats
@@ -113,7 +115,8 @@ export class ClientAccount implements OnInit {
       firstName: this.profile.firstName || '',
       lastName: this.profile.lastName || '',
       email: this.profile.email || '',
-      username: this.profile.username || ''
+      username: this.profile.username || '',
+      phoneNumber: (this.profile as any).attributes?.phoneNumber?.[0] || (this.profile as any).phoneNumber || ''
     });
     this.profileForm.get('username')?.disable();
   }
@@ -140,7 +143,10 @@ export class ClientAccount implements OnInit {
         body: JSON.stringify({
           firstName: this.profileForm.get('firstName')?.value,
           lastName: this.profileForm.get('lastName')?.value,
-          email: this.profileForm.get('email')?.value
+          email: this.profileForm.get('email')?.value,
+          attributes: {
+            phoneNumber: [this.profileForm.get('phoneNumber')?.value || '']
+          }
         })
       });
 
@@ -232,6 +238,12 @@ export class ClientAccount implements OnInit {
       COURIER: 'badge-blue'
     };
     return m[role] || 'badge-gray';
+  }
+
+  getPhoneNumber(): string {
+    return (this.profile as any).attributes?.phoneNumber?.[0]
+      || (this.profile as any).phoneNumber
+      || 'Not set';
   }
 
   logout(): void {

@@ -1,7 +1,11 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { DeliveryService } from '@services/delivery.service';
+import { OrderService } from '@services/order.service';
+import { NotificationService } from '@services/notification.service';
+import { KeycloakService } from '@core/auth/keycloak.service';
 import { Delivery } from '@models/delivery.model';
+import { Order } from '@models/order.model';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -28,6 +32,9 @@ export class ActiveDelivery implements OnInit, OnDestroy {
 
   constructor(
     private deliveryService: DeliveryService,
+    private orderService: OrderService,
+    private keycloakService: KeycloakService,
+    private notifService: NotificationService,
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
@@ -57,6 +64,9 @@ export class ActiveDelivery implements OnInit, OnDestroy {
           this.etaMinutes = active.estimatedTimeInMinutes || null;
           this.startLocationTracking(); // On commence à tracker la position
           this.startTimer(); // Start the elapsed timer
+
+          // Fetch customer phone from Keycloak
+          this.loadCustomerPhone(active.orderRef);
         } else {
           // Si aucune livraison active, on le renvoie à l'accueil
           this.router.navigate(['/courier/dashboard']);
@@ -72,6 +82,30 @@ export class ActiveDelivery implements OnInit, OnDestroy {
     });
   }
 
+  // Fetch customer phone number from Keycloak
+  private async loadCustomerPhone(orderRef: string): Promise<void> {
+    if (!this.delivery) return;
+
+    try {
+      // First fetch the order to get the customer's userId
+      const order = await this.orderService.getByRef(orderRef).toPromise();
+      const userId = (order as any)?.userId || '';
+      
+      if (userId) {
+        // Fetch phone from Keycloak using the customer's userId
+        const keycloakPhone = await this.keycloakService.getUserPhone(userId);
+        (this.delivery as any).customerPhone = keycloakPhone;
+        console.log('[ActiveDelivery] Customer userId:', userId, 'Phone:', keycloakPhone);
+      } else {
+        console.warn('[ActiveDelivery] No userId found in order');
+      }
+      
+      this.cdr.detectChanges();
+    } catch (error) {
+      console.warn('[ActiveDelivery] Could not fetch customer phone:', error);
+    }
+  }
+
   // 2. Action : Le livreur a récupéré le colis
   markAsPickedUp(): void {
     if (!this.delivery) return;
@@ -79,10 +113,12 @@ export class ActiveDelivery implements OnInit, OnDestroy {
 
     this.deliveryService.updateStatus(this.delivery.id, 'PICKED_UP').subscribe({
       next: (updatedDelivery) => {
-        this.delivery = updatedDelivery; // Met à jour l'UI vers l'étape suivante
+        // Preserve the customerPhone before replacing the delivery object
+        const savedPhone = (this.delivery as any).customerPhone;
+        this.delivery = updatedDelivery;
+        (this.delivery as any).customerPhone = savedPhone;
         this.isActionLoading = false;
         this.cdr.detectChanges();
-
       },
       error: (err) => {
         console.error('Erreur lors du pickup', err);
@@ -104,7 +140,6 @@ export class ActiveDelivery implements OnInit, OnDestroy {
         this.stopTimer();
         localStorage.removeItem(this.TIMER_STORAGE_KEY);
         this.cdr.detectChanges();
-        // Optionnel : Rediriger vers une page "Succès" ou les revenus
         this.router.navigate(['/courier/history']);
       },
       error: (err) => {

@@ -332,6 +332,76 @@
   border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
+// Customer Contact Card
+.customer-card {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-color: rgba(59, 130, 246, 0.15);
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+
+    .card-icon {
+      color: #2563eb;
+      width: 18px;
+      height: 18px;
+    }
+
+    .card-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #1e40af;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+  }
+
+  .customer-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .customer-email {
+    font-size: 12px;
+    color: #64748b;
+    word-break: break-all;
+  }
+
+  .customer-phone {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: #ffffff;
+    border-radius: 10px;
+    color: #2563eb;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+
+    svg {
+      flex-shrink: 0;
+    }
+
+    &:hover {
+      background: #2563eb;
+      color: #ffffff;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    }
+  }
+
+  .no-phone {
+    font-size: 12px;
+    color: #94a3b8;
+    font-style: italic;
+  }
+}
+
 // Earnings Card - Compact
 .earnings-card {
   display: flex;

@@ -93,6 +93,7 @@
   &.pending   { color: #d97706; }
   &.accepted  { color: #2563eb; }
   &.delivered { color: #16a34a; }
+  &.cancelled { color: #dc2626; }
   &.orange    { color: var(--orange, #FF6B35); }
 }
 

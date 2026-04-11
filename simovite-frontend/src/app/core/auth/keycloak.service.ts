@@ -61,6 +61,7 @@ export class KeycloakService {
   getRequestedRole(): string {
     return this.keycloak.tokenParsed?.['requested_role'] ?? '';
   }
+  
 
   // ✅ Force-expires current token so next call gets a fresh one with new roles
   async forceTokenRefresh(): Promise<void> {
@@ -78,6 +79,31 @@ export class KeycloakService {
     } catch (error) {
       console.error('Token refresh failed.', error);
       // On ne redirige PAS vers login automatiquement, on laisse l'intercepteur gérer
+      return '';
+    }
+  }
+
+  // Fetch a specific user's phone number from Keycloak admin API
+  async getUserPhone(userId: string): Promise<string> {
+    try {
+      const url = `${this.keycloak.authServerUrl}/admin/realms/${this.keycloak.realm}/users/${userId}`;
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${this.keycloak.token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const user = await response.json();
+        return user?.attributes?.phoneNumber?.[0] 
+          || user?.attributes?.phone_number?.[0] 
+          || user?.attributes?.mobile 
+          || '';
+      }
+      return '';
+    } catch (error) {
+      console.warn('[KeycloakService] Failed to fetch user phone:', error);
       return '';
     }
   }

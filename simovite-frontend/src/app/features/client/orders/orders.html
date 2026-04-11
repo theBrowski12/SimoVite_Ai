@@ -36,6 +36,11 @@
       <div class="kpi-lbl">Completed</div>
     </div>
     <div class="kpi-divider"></div>
+    <div class="kpi-tile" [class.active]="filterStatus === 'CANCELLED'" (click)="filterStatus = 'CANCELLED'; applyFilters()">
+      <div class="kpi-num cancelled">{{ kpiCount('CANCELLED') }}</div>
+      <div class="kpi-lbl">Cancelled</div>
+    </div>
+    <div class="kpi-divider"></div>
     <div class="kpi-tile revenue">
       <div class="kpi-num orange">{{ totalSpent | number:'1.0-0' }} DH</div>
       <div class="kpi-lbl">Total Spent</div>

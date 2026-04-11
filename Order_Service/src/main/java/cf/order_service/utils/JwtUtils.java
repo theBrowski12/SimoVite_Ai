@@ -12,6 +12,10 @@ public class JwtUtils {
     public static String getEmail() {
         return getJwt().getClaimAsString("email");
     }
+    public static String getPhone() {
+        return getJwt().getClaimAsString("phoneNumber");
+    }
+
 
     public static String getFullName() {
         String first = getJwt().getClaimAsString("given_name");

@@ -24,6 +24,7 @@ public class OrderResponseDto {
     private String fullName;
     private Address deliveryAddress;
     private String email;
+    //private String customerPhoneNumber;
     private String storeName;
     private String storeCategory; // Angular attend ça (ex: 'RESTAURANT', 'PHARMACY')
     private BigDecimal deliveryCost; // VITAL : Angular l'utilise pour calculer le Subtotal !
