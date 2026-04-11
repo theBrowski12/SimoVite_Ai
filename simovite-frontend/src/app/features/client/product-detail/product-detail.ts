@@ -5,6 +5,7 @@ import { CatalogService } from '@services/catalog.service';
 import { StoreService } from '@services/store.service';
 import { CartService } from '@services/cart.service';
 import { ReviewService } from '@services/review.service';
+import { NotificationService } from '@services/notification.service';
 import { ReviewResponseDto, ReviewTargetType } from '@models/review.model';
 import { StoreResponseDto } from '@models/store.model';
 
@@ -38,6 +39,7 @@ export class ProductDetail implements OnInit {
     private storeSvc: StoreService,
     private cartSvc: CartService,
     private reviewSvc: ReviewService,
+    private notifSvc: NotificationService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -110,6 +112,7 @@ export class ProductDetail implements OnInit {
       this.cartSvc.add(this.product);
     }
     this.addedToCart = true;
+    this.notifSvc.success(`${this.product.name} added to cart!`);
     setTimeout(() => this.addedToCart = false, 2000);
   }
 
@@ -131,6 +134,10 @@ export class ProductDetail implements OnInit {
       comment: this.reviewComment.trim()
     }).subscribe({
       next: (review) => {
+        // Trigger notification
+        this.notifSvc.notifyNewReview(review.rating);
+        this.notifSvc.success('Review submitted successfully! ⭐');
+
         if (review.incoherent) {
           const isSure = confirm("Our system flagged this as potentially incoherent. Submit anyway?");
           if (!isSure) {

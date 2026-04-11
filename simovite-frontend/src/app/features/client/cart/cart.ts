@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CartService, CartItem } from '@services/cart.service';
+import { NotificationService } from '@services/notification.service';
 import { StoreResponseDto } from '@models/store.model';
 
 @Component({
@@ -16,6 +17,7 @@ export class Cart implements OnInit {
 
   constructor(
     private cartSvc: CartService,
+    private notifSvc: NotificationService,
     private router: Router
   ) {}
 
@@ -35,12 +37,17 @@ export class Cart implements OnInit {
   }
 
   removeItem(productId: string): void {
+    const item = this.items.find(i => i.product.id === productId);
     this.cartSvc.remove(productId);
+    if (item) {
+      this.notifSvc.info(`${item.product.name} removed from cart.`);
+    }
   }
 
   clearCart(): void {
     if (confirm('Are you sure you want to clear the cart?')) {
       this.cartSvc.clear();
+      this.notifSvc.warning('Cart cleared.');
     }
   }
 

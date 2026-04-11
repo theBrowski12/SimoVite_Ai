@@ -10,10 +10,13 @@ import { StarRating } from './components/star-rating/star-rating';
 import { Badge } from './components/badge/badge';
 import { Spinner } from './components/spinner/spinner';
 import { ToastComponent } from './components/toast/toast';
+import { NotificationBell } from './components/notification-bell/notification-bell';
+import { ToastContainer } from './components/toast-container/toast-container';
 import { SentimentColorPipe } from './pipes/sentiment-color-pipe';
 import { FormatDatePipe } from './pipes/format-date-pipe';
 import { DhCurrencyPipe } from './pipes/dh-currency-pipe';
 import { HasRole } from './directives/has-role';
+import { ClickOutsideDirective } from './directives/click-outside';
 import { ChatbotComponent } from './components/chatbot/chatbot';
 import { FormsModule } from '@angular/forms';
 
@@ -25,10 +28,13 @@ import { FormsModule } from '@angular/forms';
     Badge,
     Spinner,
     ToastComponent,
+    NotificationBell,
+    ToastContainer,
     SentimentColorPipe,
     FormatDatePipe,
     DhCurrencyPipe,
     HasRole,
+    ClickOutsideDirective,
     ChatbotComponent
   ],
   imports: [
@@ -46,10 +52,13 @@ import { FormsModule } from '@angular/forms';
     Badge,
     Spinner,
     ToastComponent,
+    NotificationBell,
+    ToastContainer,
     SentimentColorPipe,
     FormatDatePipe,
     DhCurrencyPipe,
     HasRole,
+    ClickOutsideDirective,
     CommonModule,
     ChatbotComponent,
     MatIconModule,

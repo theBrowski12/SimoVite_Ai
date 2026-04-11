@@ -2,6 +2,7 @@ import { AfterViewInit, ChangeDetectorRef, Component, OnInit } from '@angular/co
 import { Router } from '@angular/router';
 import { OrderService } from '../../../services/order.service';
 import { CartService } from '../../../services/cart.service';
+import { NotificationService } from '@services/notification.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { Address } from '../../../models/address.model';
 import { PaymentMethod, OrderRequestDto } from '../../../models/order.model';
@@ -53,9 +54,10 @@ export class Checkout implements OnInit, AfterViewInit {
   constructor(
     public  cartSvc:  CartService,
     private orderSvc: OrderService,
+    private notifSvc: NotificationService,
     private auth:     AuthService,
     private router:   Router,
-    private cdr:      ChangeDetectorRef // 👈 Import crucial pour forcer la maj UI
+    private cdr:      ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -207,18 +209,24 @@ export class Checkout implements OnInit, AfterViewInit {
 
     this.orderSvc.create(dto).subscribe({
       next: order => {
+        // Trigger notifications
+        this.notifSvc.notifyOrderCreated(order.orderRef);
+        this.notifSvc.success('Order placed successfully! 🎉');
+
         if (this.paymentMethod === 'ONLINE_PAYMENT') {
           this.orderSvc.confirmPayment(+order.id).subscribe({
             next: (paidOrder) => {
               this.cartSvc.clear();
               this.submitting = false;
+              this.notifSvc.success('Payment confirmed! ✅');
               this.router.navigate(['/orders', paidOrder.orderRef || order.orderRef]);
             },
             error: payErr => {
               console.error('Payment failed', payErr);
               this.error = 'Order created, but payment failed. Please contact support.';
               this.submitting = false;
-              this.cdr.detectChanges(); // 👈 Maj de l'erreur UI
+              this.notifSvc.error('Payment failed. Please contact support.');
+              this.cdr.detectChanges();
             }
           });
         } else {
@@ -231,7 +239,8 @@ export class Checkout implements OnInit, AfterViewInit {
         console.error(err);
         this.error      = 'Order creation failed. Please try again.';
         this.submitting = false;
-        this.cdr.detectChanges(); // 👈 Maj de l'erreur UI
+        this.notifSvc.error('Failed to place order. Please try again.');
+        this.cdr.detectChanges();
       }
     });
   }
