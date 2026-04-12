@@ -30,14 +30,21 @@
        KPI ROW
        ════════════════════════════════════════ -->
   <div class="kpi-row">
-    <div class="kpi-card">
+    <div class="kpi-card" [class.active]="!filterStatus" (click)="filterByStatus('')">
+      <div class="kpi-icon gray">📊</div>
+      <div>
+        <div class="kpi-val">{{ deliveries.length }}</div>
+        <div class="kpi-lbl">All</div>
+      </div>
+    </div>
+    <div class="kpi-card" [class.active]="filterStatus === 'PENDING'" (click)="filterByStatus('PENDING')">
       <div class="kpi-icon gray">⏳</div>
       <div>
         <div class="kpi-val">{{ kpiCount('PENDING') }}</div>
         <div class="kpi-lbl">Pending</div>
       </div>
     </div>
-    <div class="kpi-card">
+    <div class="kpi-card" [class.active]="filterStatus === 'ASSIGNED'" (click)="filterByStatus('ASSIGNED')">
       <div class="kpi-icon orange">🛵</div>
       <div>
         <div class="kpi-val live-wrap">
@@ -47,7 +54,7 @@
         <div class="kpi-lbl">Assigned</div>
       </div>
     </div>
-    <div class="kpi-card">
+    <div class="kpi-card" [class.active]="filterStatus === 'PICKED_UP'" (click)="filterByStatus('PICKED_UP')">
       <div class="kpi-icon blue">📦</div>
       <div>
         <div class="kpi-val live-wrap">
@@ -57,14 +64,21 @@
         <div class="kpi-lbl">In Transit</div>
       </div>
     </div>
-    <div class="kpi-card">
+    <div class="kpi-card" [class.active]="filterStatus === 'DELIVERED'" (click)="filterByStatus('DELIVERED')">
       <div class="kpi-icon green">✅</div>
       <div>
         <div class="kpi-val">{{ kpiCount('DELIVERED') }}</div>
         <div class="kpi-lbl">Delivered</div>
       </div>
     </div>
-    <div class="kpi-card">
+    <div class="kpi-card" [class.active]="filterStatus === 'CANCELLED'" (click)="filterByStatus('CANCELLED')">
+      <div class="kpi-icon red">🚫</div>
+      <div>
+        <div class="kpi-val">{{ kpiCount('CANCELLED') }}</div>
+        <div class="kpi-lbl">Canceled</div>
+      </div>
+    </div>
+    <div class="kpi-card revenue">
       <div class="kpi-icon purple">💰</div>
       <div>
         <div class="kpi-val">
@@ -107,6 +121,7 @@
         <option value="ASSIGNED">🛵 Assigned</option>
         <option value="PICKED_UP">📦 In Transit</option>
         <option value="DELIVERED">✅ Delivered</option>
+        <option value="CANCELLED">❌ Cancelled</option>
       </select>
 
       <!-- Vehicle -->

@@ -201,6 +201,13 @@ export class AdminOrders implements OnInit {
     return this.orders.filter(o => o.status === status).length;
   }
 
+  // ── Filter by status (KPI click) ─────────────────────────
+
+  filterByStatus(status: string): void {
+    this.filterStatus = status;
+    this.applyFilters();
+  }
+
   // ── Style helpers ─────────────────────────────────────────
 
   getStatusClass(s: string): string {

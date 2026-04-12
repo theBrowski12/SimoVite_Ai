@@ -32,7 +32,7 @@ export class AdminDeliveries implements OnInit {
 
   // ── Inline status edit ────────────────────────────────────
   editingStatusId: number | null = null;
-  statusOptions: DeliveryStatus[] = ['PENDING', 'ASSIGNED', 'PICKED_UP', 'DELIVERED'];
+  statusOptions: DeliveryStatus[] = ['PENDING', 'ASSIGNED', 'PICKED_UP', 'DELIVERED', 'CANCELLED'];
 
   constructor(
     private deliverySvc: DeliveryService,
@@ -159,6 +159,13 @@ export class AdminDeliveries implements OnInit {
       .reduce((s, d) => s + (d.deliveryCost ?? 0), 0);
   }
 
+  // ── Filter by status (KPI click) ─────────────────────────
+
+  filterByStatus(status: string): void {
+    this.filterStatus = status;
+    this.applyFilters();
+  }
+
   // ── Pagination ────────────────────────────────────────────
 
   get paginated(): Delivery[] {
@@ -177,13 +184,14 @@ export class AdminDeliveries implements OnInit {
       ASSIGNED:  'badge-orange',
       PICKED_UP: 'badge-blue',
       DELIVERED: 'badge-green',
+      CANCELLED: 'badge-red',
     };
     return m[s] ?? 'badge-gray';
   }
 
   getStatusIcon(s: string): string {
     const m: Record<string, string> = {
-      PENDING: '⏳', ASSIGNED: '🛵', PICKED_UP: '📦', DELIVERED: '✅'
+      PENDING: '⏳', ASSIGNED: '🛵', PICKED_UP: '📦', DELIVERED: '✅', CANCELLED: '❌'
     };
     return m[s] ?? '';
   }

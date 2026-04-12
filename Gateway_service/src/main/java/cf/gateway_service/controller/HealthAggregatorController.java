@@ -20,8 +20,9 @@ import java.util.Map;
 @PreAuthorize("hasRole('ADMIN')")
 public class HealthAggregatorController {
 
-    // Appelle chaque service via WebClient
     private final WebClient webClient;
+
+    // Spring will automatically inject the @LoadBalanced builder you just created
     public HealthAggregatorController(WebClient.Builder webClientBuilder) {
         this.webClient = webClientBuilder.build();
     }
@@ -30,18 +31,21 @@ public class HealthAggregatorController {
 
     @GetMapping
     public Mono<List<ServiceHealth>> getAllHealth() {
+        // ALL URLs (except Gateway) now use Eureka routing!
         List<Map<String, String>> services = List.of(
-                Map.of("name","Catalog_Service",   "port","8081","url","http://localhost:8081/actuator/health"),
-                Map.of("name","ORDER-SERVICE",     "port","8082","url","http://localhost:8082/actuator/health"),
-                Map.of("name","Delivery_Service",  "port","8083","url","http://localhost:8083/actuator/health"),
-                Map.of("name","ML_Service",       "port","8085","url","http://localhost:8085/health"),
-                Map.of("name","Notification_Service","port","8089","url","http://localhost:8089/actuator/health"),
-                Map.of("name","SimoViteAI_ChatBot","port","8089","url","http://localhost:8084/actuator/health")
-                );
+                Map.of("name", "Catalog_Service",      "port", "8081", "url", "http://CATALOG-SERVICE/actuator/health"),
+                Map.of("name", "ORDER-SERVICE",        "port", "8082", "url", "http://ORDER-SERVICE/actuator/health"),
+                Map.of("name", "Delivery_Service",     "port", "8083", "url", "http://DELIVERY-SERVICE/actuator/health"),
+                Map.of("name", "ML_Service",           "port", "8085", "url", "http://ETA-SERVICE/health"),
+                Map.of("name", "Notification_Service", "port", "8089", "url", "http://NOTIFICATION-SERVICE/actuator/health"),
+                Map.of("name", "SimoViteAI_ChatBot",   "port", "8084", "url", "http://SIMOVITEAI-CHATBOT/actuator/health"),
+                Map.of("name", "Config_Service",       "port", "9999", "url", "http://CONFIG-SERVICE/actuator/health")
+        );
 
         return Flux.fromIterable(services).flatMap(svc ->
                 webClient.get().uri(svc.get("url"))
-                        .retrieve().bodyToMono(JsonNode.class)
+                        .retrieve()
+                        .bodyToMono(JsonNode.class)
                         .map(json -> new ServiceHealth(
                                 svc.get("name"),
                                 svc.get("port"),

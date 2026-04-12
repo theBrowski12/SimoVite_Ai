@@ -30,35 +30,42 @@
        KPI ROW
        ════════════════════════════════════════ -->
   <div class="kpi-row">
-    <div class="kpi-card">
-      <div class="kpi-icon orange">📦</div>
+    <div class="kpi-card" [class.active]="!filterStatus" (click)="filterByStatus('')">
+      <div class="kpi-icon orange">📊</div>
       <div>
         <div class="kpi-val">{{ orders.length }}</div>
-        <div class="kpi-lbl">Total Orders</div>
+        <div class="kpi-lbl">All Orders</div>
       </div>
     </div>
-    <div class="kpi-card">
+    <div class="kpi-card" [class.active]="filterStatus === 'PENDING'" (click)="filterByStatus('PENDING')">
       <div class="kpi-icon amber">⏳</div>
       <div>
         <div class="kpi-val">{{ kpiCount('PENDING') }}</div>
         <div class="kpi-lbl">Pending</div>
       </div>
     </div>
-    <div class="kpi-card">
+    <div class="kpi-card" [class.active]="filterStatus === 'ACCEPTED'" (click)="filterByStatus('ACCEPTED')">
       <div class="kpi-icon blue">🔄</div>
       <div>
         <div class="kpi-val">{{ kpiCount('ACCEPTED') }}</div>
         <div class="kpi-lbl">Accepted</div>
       </div>
     </div>
-    <div class="kpi-card">
+    <div class="kpi-card" [class.active]="filterStatus === 'COMPLETED'" (click)="filterByStatus('COMPLETED')">
       <div class="kpi-icon green">✅</div>
       <div>
         <div class="kpi-val">{{ kpiCount('COMPLETED') }}</div>
         <div class="kpi-lbl">Delivered</div>
       </div>
     </div>
-    <div class="kpi-card">
+    <div class="kpi-card" [class.active]="filterStatus === 'CANCELLED'" (click)="filterByStatus('CANCELLED')">
+      <div class="kpi-icon red">❌</div>
+      <div>
+        <div class="kpi-val">{{ kpiCount('CANCELLED') }}</div>
+        <div class="kpi-lbl">Canceled</div>
+      </div>
+    </div>
+    <div class="kpi-card revenue">
       <div class="kpi-icon purple">💰</div>
       <div>
         <div class="kpi-val">{{ totalRevenue | number:'1.0-0' }} DH</div>
