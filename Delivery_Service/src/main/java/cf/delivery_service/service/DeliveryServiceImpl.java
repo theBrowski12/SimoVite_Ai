@@ -25,6 +25,7 @@ import cf.delivery_service.utils.DistanceCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +49,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final StoreClient storeClient;
     private final ETAFeignClient etaFeignClient;
     private final CourierLocationRepository courierLocationRepository;
+    private final SimpMessagingTemplate messagingTemplate;
     @Override
     public List<DeliveryResponseDto> getPendingDeliveries() {
         log.info("Récupération des livraisons en attente...");
@@ -157,6 +159,10 @@ public class DeliveryServiceImpl implements DeliveryService {
                 .build();
 
         deliveryRepository.save(delivery);
+        messagingTemplate.convertAndSend(
+                "/topic/delivery/" + delivery.getOrderRef(),
+                deliveryMapper.toDto(delivery)
+        );
 
         // Log final summary
         log.info("📊 Delivery created - Order: {} | ETA: {} min ({}% change) | Cost: {} DH ({}% change) | Distance: {} km",
@@ -233,6 +239,10 @@ public class DeliveryServiceImpl implements DeliveryService {
         delivery.setAcceptedAt(LocalDateTime.now());
 
         Delivery savedDelivery = deliveryRepository.save(delivery);
+        messagingTemplate.convertAndSend(
+                "/topic/delivery/" + savedDelivery.getOrderRef(),
+                deliveryMapper.toDto(savedDelivery)
+        );
         log.info("💾 ETA final sauvegardé en DB : {} min", savedDelivery.getEstimatedTimeInMinutes());
 
         orderClient.updateOrderStatus(savedDelivery.getOrderRef(), ACCEPTED);
@@ -279,6 +289,10 @@ public class DeliveryServiceImpl implements DeliveryService {
             delivery.setActualDeliveryTimeInMinutes(actualMinutes);
         }
         Delivery savedDelivery = deliveryRepository.save(delivery);
+        messagingTemplate.convertAndSend(
+                "/topic/delivery/" + savedDelivery.getOrderRef(),
+                deliveryMapper.toDto(savedDelivery)
+        );
 
         orderClient.updateOrderStatus(savedDelivery.getOrderRef(), COMPLETED);
 
@@ -460,6 +474,10 @@ public class DeliveryServiceImpl implements DeliveryService {
 
         delivery.setStatus(newStatus);
         Delivery savedDelivery = deliveryRepository.save(delivery);
+        messagingTemplate.convertAndSend(
+                "/topic/delivery/" + savedDelivery.getOrderRef(),
+                deliveryMapper.toDto(savedDelivery)
+        );
         // Optionnel : Mettre à jour Order_Service si besoin selon le statut
 
         return deliveryMapper.toDto(savedDelivery);

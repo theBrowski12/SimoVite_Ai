@@ -7,6 +7,6 @@ export const environment = {
     realm:    'Simovite',
     clientId: 'simovite-app'
   },
-  wsUrl:       'ws://localhost:8888/ws',
+  wsUrl:       'http://localhost:8083/ws',
   mapTileUrl:  'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
 };
