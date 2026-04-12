@@ -53,3 +53,4 @@ venv/
 Thumbs.db
 node_modules
 simovite-frontend/.qwen/
+simovite-config/
