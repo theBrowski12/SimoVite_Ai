@@ -239,4 +239,17 @@ export class ActiveDelivery implements OnInit, OnDestroy {
     }
   });
 }
+
+  // Generate WhatsApp URL for messaging the customer
+  getWhatsAppUrl(phone: string): string {
+    // Remove any non-numeric characters from phone
+    const cleanPhone = phone.replace(/\D/g, '');
+    
+    // If phone doesn't start with country code, assume Morocco (+212)
+    const formattedPhone = cleanPhone.startsWith('212') ? cleanPhone : 
+                           cleanPhone.startsWith('0') ? '212' + cleanPhone.substring(1) : 
+                           cleanPhone;
+    
+    return `https://wa.me/${formattedPhone}`;
+  }
 }
