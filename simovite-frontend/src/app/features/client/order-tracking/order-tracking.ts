@@ -3,12 +3,14 @@ import { ActivatedRoute } from '@angular/router';
 import { DeliveryService } from '../../../services/delivery.service';
 import { NotificationService } from '@services/notification.service';
 import { WebsocketService } from '../../../services/websocket.service';
+import { ReviewService } from '../../../services/review.service';
 import { Delivery, DeliveryStatus } from '../../../models/delivery.model';
 import { GpsPosition } from '../../../models/Gpsposition.model';
 import { Subscription, interval, of } from 'rxjs';
 import { switchMap, startWith, catchError } from 'rxjs/operators';
 import * as L from 'leaflet';
 import { KeycloakService } from '../../../core/auth/keycloak.service';
+import { ReviewTargetType } from '@models/review.model';
 
 const iconCourier = L.icon({
   iconRetinaUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
@@ -60,6 +62,13 @@ export class OrderTracking implements OnInit, OnDestroy, AfterViewInit {
   private previousStatus: DeliveryStatus | null = null;
   private wsConnected = false;
 
+  // Review banner
+  showReviewBanner = false;
+  isSubmittingReview = false;
+  reviewRating = 0;
+  reviewComment = '';
+  reviewHoverStar = 0;
+
   statusSteps = [
     { key: 'PENDING',   label: 'Order Confirmed',  icon: 'check_circle', completed: false, active: false },
     { key: 'ASSIGNED',  label: 'Courier Assigned',  icon: 'person_pin',  completed: false, active: false },
@@ -72,6 +81,7 @@ export class OrderTracking implements OnInit, OnDestroy, AfterViewInit {
     private deliveryService: DeliveryService,
     private websocketService: WebsocketService,
     private notifService: NotificationService,
+    private reviewService: ReviewService,
     private keycloakService: KeycloakService,
     private cdr: ChangeDetectorRef
   ) {}
@@ -121,6 +131,12 @@ export class OrderTracking implements OnInit, OnDestroy, AfterViewInit {
           if (delivery.courierId) {
             this.startGpsPolling(delivery.courierId);
           }
+        } else if (delivery.status === 'DELIVERED') {
+          // Show review banner after a short delay
+          setTimeout(() => {
+            this.showReviewBanner = true;
+            this.cdr.detectChanges();
+          }, 1500);
         }
       },
       error: () => {
@@ -262,6 +278,14 @@ export class OrderTracking implements OnInit, OnDestroy, AfterViewInit {
         if (this.wsConnected) {
           this.websocketService.disconnect();
           this.wsConnected = false;
+        }
+
+        // Show review banner when delivery is completed
+        if (newStatus === 'DELIVERED') {
+          setTimeout(() => {
+            this.showReviewBanner = true;
+            this.cdr.detectChanges();
+          }, 1500);
         }
       }
     }
@@ -411,5 +435,65 @@ export class OrderTracking implements OnInit, OnDestroy, AfterViewInit {
   formatAddress(address: any): string {
     if (!address) return '';
     return [address.street, address.buildingNumber, address.city].filter(Boolean).join(', ');
+  }
+
+  // ── Review banner ─────────────────────────────────────────
+
+  setReviewRating(rating: number): void {
+    this.reviewRating = rating;
+  }
+
+  onStarHover(rating: number): void {
+    this.reviewHoverStar = rating;
+  }
+
+  onStarLeave(): void {
+    this.reviewHoverStar = 0;
+  }
+
+  submitReview(): void {
+    if (this.reviewRating === 0) {
+      this.notifService.warning('Please select a rating');
+      return;
+    }
+
+    if (!this.delivery?.courierId) {
+      this.notifService.error('Unable to submit review: missing delivery information');
+      return;
+    }
+
+    this.isSubmittingReview = true;
+
+    const reviewDto = {
+      targetId: this.delivery.courierId,
+      targetType: ReviewTargetType.DELIVERY as const,
+      comment: this.reviewComment,
+      rating: this.reviewRating
+    };
+    
+
+    this.reviewService.addReview(reviewDto).subscribe({
+      next: () => {
+        this.notifService.success('Thank you! Your review has been submitted.');
+        this.showReviewBanner = false;
+        this.reviewRating = 0;
+        this.reviewComment = '';
+        this.isSubmittingReview = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Failed to submit review:', err);
+        this.notifService.error('Failed to submit review. Please try again.');
+        this.isSubmittingReview = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  closeReviewBanner(): void {
+    this.showReviewBanner = false;
+    this.reviewRating = 0;
+    this.reviewComment = '';
+    this.cdr.detectChanges();
   }
 }

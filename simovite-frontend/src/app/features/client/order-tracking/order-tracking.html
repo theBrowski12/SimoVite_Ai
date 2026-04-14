@@ -174,6 +174,74 @@
       </div>
     </div>
   </div>
+
+  <!-- Review Banner (shown after delivery completion) -->
+  <div class="review-banner" *ngIf="showReviewBanner">
+    <div class="banner-backdrop"></div>
+    <div class="banner-content">
+      <button class="banner-close" (click)="closeReviewBanner()" title="Close">
+        <mat-icon>close</mat-icon>
+      </button>
+      
+      <div class="banner-header">
+        <div class="banner-icon">
+          <mat-icon>rate_review</mat-icon>
+        </div>
+        <h2>How was your delivery?</h2>
+        <p class="banner-subtitle">Rate your experience with {{ delivery?.courierName || 'your courier' }}</p>
+      </div>
+
+      <div class="rating-section">
+        <!-- Star Rating -->
+        <div class="star-rating">
+          <ng-container *ngFor="let star of [1, 2, 3, 4, 5]; let i = index">
+            <mat-icon
+              class="star"
+              [class.filled]="(reviewHoverStar || reviewRating) > i"
+              [class.hovered]="reviewHoverStar > i"
+              (click)="setReviewRating(i + 1)"
+              (mouseenter)="onStarHover(i + 1)"
+              (mouseleave)="onStarLeave()">
+              {{ (reviewHoverStar || reviewRating) > i ? 'star' : 'star_border' }}
+            </mat-icon>
+          </ng-container>
+        </div>
+        <div class="rating-label" *ngIf="reviewRating > 0">
+          <span *ngIf="reviewRating === 5" class="excellent">Excellent! 🎉</span>
+          <span *ngIf="reviewRating === 4" class="great">Great! 👍</span>
+          <span *ngIf="reviewRating === 3" class="good">Good 😊</span>
+          <span *ngIf="reviewRating === 2" class="fair">Fair 😐</span>
+          <span *ngIf="reviewRating === 1" class="poor">Poor 😞</span>
+        </div>
+
+        <!-- Comment textarea -->
+        <div class="comment-section">
+          <label for="review-comment">
+            <mat-icon>mode_comment</mat-icon>
+            Add a comment (optional)
+          </label>
+          <textarea
+            id="review-comment"
+            [(ngModel)]="reviewComment"
+            placeholder="Tell us about your delivery experience..."
+            rows="3"
+            maxlength="500">
+          </textarea>
+          <div class="char-count">{{ reviewComment.length }}/500</div>
+        </div>
+
+        <!-- Submit button -->
+        <button
+          class="submit-review-btn"
+          [disabled]="isSubmittingReview || reviewRating === 0"
+          (click)="submitReview()">
+          <mat-icon *ngIf="!isSubmittingReview">send</mat-icon>
+          <mat-spinner diameter="20" *ngIf="isSubmittingReview"></mat-spinner>
+          <span>{{ isSubmittingReview ? 'Submitting...' : 'Submit Review' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Loading State -->
