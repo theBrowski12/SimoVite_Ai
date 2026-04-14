@@ -182,8 +182,14 @@
                   title="Track your delivery">
             📍 Track Live
           </button>
+          <button class="action-btn review-btn"
+                  *ngIf="canReview(o)"
+                  (click)="openReviewModal(o)"
+                  title="Leave a review">
+            ⭐ Review
+          </button>
           <button class="action-btn"
-                  *ngIf="o.status !== 'CANCELLED' && o.status !== 'ACCEPTED'"
+                  *ngIf="o.status !== 'CANCELLED' && o.status !== 'ACCEPTED' && o.status !== 'COMPLETED'"
                   (click)="trackOrder(o)"
                   title="Track order">
             📍
@@ -330,8 +336,13 @@
 
       <!-- Panel footer actions -->
       <div class="panel-footer">
+        <button class="pf-btn pf-review"
+                *ngIf="canReview(o)"
+                (click)="openReviewModal(o)">
+          ⭐ Leave a Review
+        </button>
         <button class="pf-btn pf-track"
-                *ngIf="o.status !== 'CANCELLED' && o.status !== 'COMPLETED'"
+                *ngIf="o.status !== 'CANCELLED' && o.status !== 'COMPLETED' && o.status !== 'PENDING'"
                 (click)="trackOrder(o)">
           📍 Track Order
         </button>
@@ -354,6 +365,70 @@
       </div>
 
     </ng-container>
+  </div>
+
+
+  <!-- ════════════════════════════════════════
+       REVIEW MODAL
+       ════════════════════════════════════════ -->
+  <div class="review-overlay" *ngIf="showReviewModal" (click)="closeReviewModal()">
+    <div class="review-modal" (click)="$event.stopPropagation()">
+      <button class="review-close" (click)="closeReviewModal()">✕</button>
+      
+      <div class="review-header">
+        <div class="review-icon-wrap">
+          <span class="review-icon">⭐</span>
+        </div>
+        <h2>Rate Your Experience</h2>
+        <p class="review-subtitle">How was your order with {{ getReviewingOrder()?.storeName || 'this store' }}?</p>
+      </div>
+
+      <div class="review-stars">
+        <ng-container *ngFor="let star of [1, 2, 3, 4, 5]; let i = index">
+          <span
+            class="r-star"
+            [class.filled]="(reviewHoverStar || reviewRating) > i"
+            (click)="setReviewRating(i + 1)"
+            (mouseenter)="onStarHover(i + 1)"
+            (mouseleave)="onStarLeave()">
+            {{ (reviewHoverStar || reviewRating) > i ? '★' : '☆' }}
+          </span>
+        </ng-container>
+      </div>
+
+      <div class="review-rating-text" *ngIf="reviewRating > 0">
+        <span *ngIf="reviewRating === 5" class="excellent">Excellent! 🎉</span>
+        <span *ngIf="reviewRating === 4" class="great">Great! 👍</span>
+        <span *ngIf="reviewRating === 3" class="good">Good 😊</span>
+        <span *ngIf="reviewRating === 2" class="fair">Fair 😐</span>
+        <span *ngIf="reviewRating === 1" class="poor">Poor 😞</span>
+      </div>
+
+      <div class="review-comment">
+        <label for="order-review-comment">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          Add a comment (optional)
+        </label>
+        <textarea
+          id="order-review-comment"
+          [(ngModel)]="reviewComment"
+          placeholder="Tell us about your experience..."
+          rows="3"
+          maxlength="500">
+        </textarea>
+        <div class="char-count">{{ reviewComment.length }}/500</div>
+      </div>
+
+      <button
+        class="review-submit"
+        [disabled]="isSubmittingReview || reviewRating === 0"
+        (click)="submitReview()">
+        <span *ngIf="!isSubmittingReview">Submit Review</span>
+        <span *ngIf="isSubmittingReview">Submitting...</span>
+      </button>
+    </div>
   </div>
 
 </div>

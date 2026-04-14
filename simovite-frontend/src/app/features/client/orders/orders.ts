@@ -2,10 +2,12 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { OrderService }  from '../../../services/order.service';
 import { DeliveryService } from '../../../services/delivery.service';
+import { ReviewService } from '../../../services/review.service';
 import { AuthService }   from '../../../core/auth/auth.service';
 import { Order, OrderStatus, PaymentMethod } from '../../../models/order.model';
 import { DeliveryStatus } from '../../../models/delivery.model';
 import { downloadOrderPdf } from '../../../helpers/downloadOrderPdf';
+import { ReviewTargetType } from '@models/review.model';
 
 @Component({
   selector:    'app-orders',
@@ -27,6 +29,15 @@ export class Orders implements OnInit {
   // ── Detail panel ─────────────────────────────────────────
   selected: Order | null = null;
 
+  // ── Review modal ─────────────────────────────────────────
+  showReviewModal = false;
+  reviewOrderId: string | null = null;
+  reviewRating = 0;
+  reviewComment = '';
+  reviewHoverStar = 0;
+  isSubmittingReview = false;
+  hasReviewed: Record<string, boolean> = {};
+
   // ── Pagination ────────────────────────────────────────────
   currentPage = 1;
   pageSize    = 8;
@@ -36,6 +47,7 @@ export class Orders implements OnInit {
   constructor(
     private orderSvc: OrderService,
     private deliverySvc: DeliveryService,
+    private reviewSvc: ReviewService,
     private auth:     AuthService,
     private router:   Router,
     private cdr:      ChangeDetectorRef
@@ -55,6 +67,7 @@ export class Orders implements OnInit {
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
         this.applyFilters();
+        this.checkReviewedOrders();
         this.loading = false;
         this.cdr.detectChanges();
       },
@@ -62,6 +75,28 @@ export class Orders implements OnInit {
         this.error   = 'Unable to load your orders. Please try again.';
         this.loading = false;
         this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // Check which completed orders already have reviews
+  private checkReviewedOrders(): void {
+    const completedOrders = this.orders.filter(o => o.status === 'COMPLETED');
+    if (completedOrders.length === 0) return;
+
+    this.reviewSvc.getMyReviews().subscribe({
+      next: reviews => {
+        // Mark orders that already have reviews
+        reviews.forEach(review => {
+          if (review.targetId) {
+            this.hasReviewed[review.targetId] = true;
+          }
+        });
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        // Non-critical, just log
+        console.warn('Could not fetch reviews');
       }
     });
   }
@@ -238,5 +273,82 @@ export class Orders implements OnInit {
 
   canPay(order: Order): boolean {
     return order.paymentMethod === 'ONLINE_PAYMENT' && order.status === 'PENDING';
+  }
+
+  // ── Review methods ────────────────────────────────────────
+
+  canReview(order: Order): boolean {
+    return order.status === 'COMPLETED' && !this.hasReviewed[order.id || ''];
+  }
+
+  openReviewModal(order: Order): void {
+    this.reviewOrderId = order.id || null;
+    this.showReviewModal = true;
+    this.reviewRating = 0;
+    this.reviewComment = '';
+    this.reviewHoverStar = 0;
+    this.cdr.detectChanges();
+  }
+
+  closeReviewModal(): void {
+    this.showReviewModal = false;
+    this.reviewOrderId = null;
+    this.reviewRating = 0;
+    this.reviewComment = '';
+    this.reviewHoverStar = 0;
+    this.cdr.detectChanges();
+  }
+
+  setReviewRating(rating: number): void {
+    this.reviewRating = rating;
+  }
+
+  onStarHover(rating: number): void {
+    this.reviewHoverStar = rating;
+  }
+
+  onStarLeave(): void {
+    this.reviewHoverStar = 0;
+  }
+
+  submitReview(): void {
+    if (this.reviewRating === 0) {
+      alert('Please select a rating');
+      return;
+    }
+
+    if (!this.reviewOrderId) {
+      alert('Unable to submit review: missing order information');
+      return;
+    }
+
+    this.isSubmittingReview = true;
+
+    const reviewDto = {
+      targetId: this.reviewOrderId,
+      targetType: ReviewTargetType.DELIVERY as const,
+      comment: this.reviewComment,
+      rating: this.reviewRating
+    };
+
+    this.reviewSvc.addReview(reviewDto).subscribe({
+      next: () => {
+        this.hasReviewed[this.reviewOrderId!] = true;
+        this.closeReviewModal();
+        this.cdr.detectChanges();
+        alert('Thank you! Your review has been submitted.');
+      },
+      error: (err) => {
+        console.error('Failed to submit review:', err);
+        this.isSubmittingReview = false;
+        this.cdr.detectChanges();
+        alert('Failed to submit review. Please try again.');
+      }
+    });
+  }
+
+  getReviewingOrder(): Order | null {
+    if (!this.reviewOrderId) return null;
+    return this.orders.find(o => o.id === this.reviewOrderId) || null;
   }
 }
