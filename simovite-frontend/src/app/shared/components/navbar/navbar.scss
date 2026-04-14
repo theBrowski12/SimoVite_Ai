@@ -1,62 +1,153 @@
-.auth-buttons {
+// =====================================================
+// MAIN NAVBAR
+// =====================================================
+.main-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
   display: flex;
-  gap: 1rem;
-
-  .btn-login {
-    background: transparent;
-    color: white;
-    border: 1px solid rgba(255,255,255,0.3);
-    padding: 0.5rem 1.2rem;
-    border-radius: 8px;
-    cursor: pointer;
-    &:hover { background: rgba(255,255,255,0.1); }
-  }
-  
-  .btn-register {
-    background: #FF6B35; // Orange SimoVite
-    color: white;
-    border: none;
-    padding: 0.5rem 1.2rem;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(255,107,53,0.3);
-    &:hover { background: #e85a2a; }
-  }
-}
-.btn-primary {
-  background: var(--orange);
-  color: #fff;
-  border: none;
-  padding: 10px 20px; /* Ajusté pour la navbar */
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  height: 72px;
+  background: rgba(13, 27, 42, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
 }
 
-.btn-secondary {
-  background: rgba(255, 255, 255, 0.07);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 10px 20px;
-  border-radius: 12px;
-  font-weight: 500;
-  cursor: pointer;
+// =====================================================
+// LOGO
+// =====================================================
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: scale(1.02);
+  }
 }
-/* Doit être dans styles.scss pour être prioritaire */
-body {
-  background-color: #0D1B2A ; /* Ton bleu marine */
-  color: white;
-  margin: 0;
-  padding: 0;
+
+.nav-logo-icon {
+  font-size: 28px;
+  filter: drop-shadow(0 2px 8px rgba(255, 107, 53, 0.4));
+  animation: logoPulse 3s infinite;
 }
-  .btn-admin-pill {
+
+.nav-logo-text {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+
+  span {
+    color: var(--orange, #FF6B35);
+  }
+}
+
+@keyframes logoPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+// =====================================================
+// NAV LINKS
+// =====================================================
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  margin-left: 40px;
+
+  a {
+    position: relative;
+    padding: 8px 16px;
+    color: rgba(255, 255, 255, 0.75);
+    text-decoration: none;
+    font-size: 14.5px;
+    font-weight: 500;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    &.active {
+      color: #ffffff;
+      background: rgba(255, 107, 53, 0.15);
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 20px;
+        height: 2px;
+        background: var(--orange, #FF6B35);
+        border-radius: 2px;
+      }
+    }
+  }
+}
+
+// My Reviews nav link
+.nav-reviews {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+
+  svg {
+    color: #fbbf24;
+    transition: all 0.2s;
+    filter: drop-shadow(0 1px 2px rgba(251, 191, 36, 0.3));
+  }
+
+  &:hover {
+    svg {
+      color: #f59e0b;
+      transform: scale(1.1) rotate(-5deg);
+      filter: drop-shadow(0 2px 4px rgba(251, 191, 36, 0.4));
+    }
+  }
+
+  &.active {
+    svg {
+      color: #fbbf24;
+      animation: starPulse 2s infinite;
+    }
+  }
+}
+
+@keyframes starPulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 1px 2px rgba(251, 191, 36, 0.3));
+  }
+  50% {
+    transform: scale(1.1);
+    filter: drop-shadow(0 2px 6px rgba(251, 191, 36, 0.5));
+  }
+}
+
+// Admin pill button
+.btn-admin-pill {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(255, 107, 53, 0.1); // Orange très léger
-  border: 1px solid var(--orange);
-  color: var(--orange);
+  background: rgba(255, 107, 53, 0.1);
+  border: 1px solid var(--orange, #FF6B35);
+  color: var(--orange, #FF6B35);
   padding: 6px 12px;
   border-radius: 20px;
   font-weight: 600;
@@ -65,9 +156,319 @@ body {
   transition: all 0.2s;
   margin-left: 10px;
 
+  .icon {
+    font-size: 14px;
+  }
+
   &:hover {
-    background: var(--orange);
+    background: var(--orange, #FF6B35);
     color: white;
     box-shadow: 0 4px 10px rgba(255, 107, 53, 0.2);
+    transform: translateY(-1px);
+  }
+}
+
+// =====================================================
+// SEARCH BOX
+// =====================================================
+.nav-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin: 0 20px;
+
+  svg {
+    position: absolute;
+    left: 12px;
+    width: 16px;
+    height: 16px;
+    color: rgba(255, 255, 255, 0.4);
+    pointer-events: none;
+    transition: color 0.2s;
+  }
+
+  input {
+    width: 260px;
+    padding: 10px 14px 10px 38px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: #ffffff;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.2s;
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    &:focus {
+      width: 300px;
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 107, 53, 0.4);
+      box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+
+      + svg,
+      ~ svg {
+        color: var(--orange, #FF6B35);
+      }
+    }
+  }
+}
+
+// =====================================================
+// NAV ACTIONS (Cart, Avatar, Notifications)
+// =====================================================
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+// Notification Bell (assuming component exists)
+app-notification-bell {
+  display: flex;
+  align-items: center;
+}
+
+// Cart Icon
+.nav-cart {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    color: rgba(255, 255, 255, 0.8);
+    transition: color 0.2s;
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+
+    svg {
+      color: var(--orange, #FF6B35);
+    }
+  }
+}
+
+.cart-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background: var(--orange, #FF6B35);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.4);
+  animation: badgeBounce 0.3s ease-out;
+}
+
+@keyframes badgeBounce {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+// User Avatar
+.nav-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--orange, #FF6B35) 0%, #ea580c 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+}
+
+// =====================================================
+// AUTH BUTTONS (Login / Register)
+// =====================================================
+.btn-primary {
+  background: linear-gradient(135deg, var(--orange, #FF6B35) 0%, #ea580c 100%);
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+  font-family: inherit;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// Logout button styling
+.nav-actions button {
+  &.btn-secondary {
+    border-color: rgba(255, 107, 53, 0.3);
+    color: rgba(255, 255, 255, 0.8);
+
+    &:hover {
+      border-color: rgba(255, 107, 53, 0.5);
+      color: #ffffff;
+      background: rgba(255, 107, 53, 0.1);
+    }
+  }
+}
+
+// =====================================================
+// RESPONSIVE DESIGN
+// =====================================================
+@media (max-width: 1200px) {
+  .nav-search {
+    display: none;
+  }
+}
+
+@media (max-width: 1024px) {
+  .main-nav {
+    padding: 0 20px;
+  }
+
+  .nav-links {
+    gap: 4px;
+    margin-left: 24px;
+
+    a {
+      padding: 6px 12px;
+      font-size: 13.5px;
+    }
+  }
+
+  .nav-logo-text {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-nav {
+    padding: 0 16px;
+    height: 64px;
+  }
+
+  .nav-links {
+    display: none; // Could be replaced with hamburger menu
+  }
+
+  .nav-search {
+    display: none;
+  }
+
+  .nav-logo-icon {
+    font-size: 24px;
+  }
+
+  .nav-logo-text {
+    font-size: 18px;
+  }
+
+  .nav-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+
+  .nav-cart {
+    width: 36px;
+    height: 36px;
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-nav {
+    padding: 0 12px;
+    height: 60px;
+  }
+
+  .nav-logo {
+    gap: 6px;
+  }
+
+  .nav-logo-icon {
+    font-size: 20px;
+  }
+
+  .nav-logo-text {
+    font-size: 16px;
+  }
+
+  .nav-actions {
+    gap: 8px;
   }
 }
