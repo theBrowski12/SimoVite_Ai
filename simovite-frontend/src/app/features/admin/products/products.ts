@@ -4,6 +4,8 @@ import { CatalogResponseDto, FoodCategory, PharmacyCategory, SupermarketCategory
 import { StoreResponseDto } from '@models/store.model';
 import { StoreService } from '@services/store.service';
 import { Router } from '@angular/router';
+import { ReviewService } from '@services/review.service';
+import { ReviewTargetType } from '@models/review.model';
 
 @Component({
   selector: 'app-admin-products',
@@ -48,7 +50,8 @@ export class AdminProducts implements OnInit {
     private catalogService: CatalogService,
     private storeService:   StoreService,
     private cdr:            ChangeDetectorRef,
-    private router:         Router
+    private router:         Router,
+    private reviewService:  ReviewService
   ) {}
 
   // ── Lifecycle ─────────────────────────────────────────────
@@ -102,9 +105,7 @@ export class AdminProducts implements OnInit {
     return {
       next: (data: CatalogResponseDto[]) => {
         this.products = data ?? [];
-        this.applyLocalFilters();
-        this.loading = false;
-        this.cdr.detectChanges();
+        this.fetchProductReviews();
       },
       error: (err: any) => {
         console.error('Error loading products', err);
@@ -112,6 +113,48 @@ export class AdminProducts implements OnInit {
         this.cdr.detectChanges();
       }
     };
+  }
+
+  fetchProductReviews(): void {
+    if (this.products.length === 0) {
+      this.applyLocalFilters();
+      this.loading = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    let completedRequests = 0;
+    const totalRequests = this.products.length;
+
+    this.products.forEach(product => {
+      this.reviewService.getReviews(product.id, ReviewTargetType.PRODUCT).subscribe({
+        next: (reviews) => {
+          product.reviewCount = reviews.length;
+          product.rating = reviews.length > 0
+            ? Math.round((reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length) * 10) / 10
+            : 0;
+          completedRequests++;
+          
+          if (completedRequests === totalRequests) {
+            this.applyLocalFilters();
+            this.loading = false;
+            this.cdr.detectChanges();
+          }
+        },
+        error: (err) => {
+          console.error(`Failed to fetch reviews for product ${product.name}:`, err);
+          product.reviewCount = 0;
+          product.rating = 0;
+          completedRequests++;
+          
+          if (completedRequests === totalRequests) {
+            this.applyLocalFilters();
+            this.loading = false;
+            this.cdr.detectChanges();
+          }
+        }
+      });
+    });
   }
 
   /**

@@ -43,6 +43,7 @@ export class Checkout implements OnInit, AfterViewInit {
   ccName   = '';
   ccExpiry = '';
   ccCvv    = '';
+  cvvFocused = false;
 
   submitting = false;
   error      = '';
@@ -247,5 +248,55 @@ export class Checkout implements OnInit, AfterViewInit {
 
   cancelCheckout(): void {
     this.router.navigate(['/store', this.store?.id]);
+  }
+
+  // ── Credit Card Visual Helpers ────────────────────────────
+
+  get displayCardNumber(): string {
+    if (!this.ccNumber) return '•••• •••• •••• ••••';
+    const cleaned = this.ccNumber.replace(/\s/g, '');
+    const groups = cleaned.match(/.{1,4}/g);
+    return groups ? groups.join(' ') : cleaned;
+  }
+
+  getCardBrand(): string {
+    const cleaned = this.ccNumber.replace(/\s/g, '');
+    if (cleaned.startsWith('4')) return 'visa';
+    if (/^5[1-5]/.test(cleaned) || /^2[2-7]/.test(cleaned)) return 'mastercard';
+    return '';
+  }
+
+  formatCardNumber(event: any): void {
+    let value = event.target.value.replace(/\s/g, '').replace(/\D/g, '');
+    if (value.length > 16) value = value.substring(0, 16);
+    
+    const groups = value.match(/.{1,4}/g);
+    this.ccNumber = groups ? groups.join(' ') : value;
+  }
+
+  formatExpiryDate(event: any): void {
+    let value = event.target.value.replace(/\D/g, '');
+    if (value.length > 4) value = value.substring(0, 4);
+    
+    if (value.length >= 2) {
+      value = value.substring(0, 2) + '/' + value.substring(2);
+    }
+    this.ccExpiry = value;
+  }
+
+  onCvvFocus(): void {
+    this.cvvFocused = true;
+  }
+
+  onCvvBlur(): void {
+    this.cvvFocused = false;
+  }
+
+  onCardInputFocus(): void {
+    this.cvvFocused = false;
+  }
+
+  onCardInputBlur(): void {
+    // No-op
   }
 }

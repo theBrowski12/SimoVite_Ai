@@ -33,11 +33,10 @@
   border-radius: var(--radius);
   border: 1px solid var(--border);
   overflow: hidden;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
   }
 }
 
@@ -420,67 +419,81 @@
 }
 
 
-/* ── BOUTONS PRINCIPAUX ET MODAL ── */
-.btn-details {
-  width: 100%;
-  padding: 12px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+/* ── STORE BODY WITH HOVER OVERLAY ── */
+.store-body {
+  padding: 18px;
   position: relative;
-  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-  &::before {
-    content: '';
+  .store-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--navy);
+  }
+
+  // Hover overlay with eye icon
+  .view-details-overlay {
     position: absolute;
     top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-    transition: left 0.3s ease;
-  }
-
-  &:hover::before {
     left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(102, 126, 234, 0.95);
+    backdrop-filter: blur(4px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 0 0 var(--radius) var(--radius);
+
+    .eye-icon {
+      width: 32px;
+      height: 32px;
+      color: white;
+      transform: scale(0.8);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .view-details-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: white;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      letter-spacing: 0.5px;
+      transform: translateY(10px);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    &:hover {
+      background: rgba(118, 75, 162, 0.98);
+
+      .eye-icon {
+        transform: scale(1.1);
+      }
+
+      .view-details-text {
+        transform: translateY(0);
+      }
+    }
   }
 
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-  }
+  // Show overlay on card hover
+  &:hover .view-details-overlay {
+    opacity: 1;
 
-  &:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-  }
+    .eye-icon {
+      transform: scale(1);
+    }
 
-  svg {
-    width: 18px;
-    height: 18px;
-    position: relative;
-    z-index: 1;
-    transition: transform 0.2s ease;
-  }
-
-  &:hover svg {
-    transform: scale(1.1);
-  }
-
-  span {
-    position: relative;
-    z-index: 1;
+    .view-details-text {
+      transform: translateY(0);
+    }
   }
 }
 

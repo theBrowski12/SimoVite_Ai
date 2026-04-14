@@ -134,28 +134,101 @@
           </label>
         </div>
 
-        <div class="credit-card-form" *ngIf="paymentMethod === 'ONLINE_PAYMENT'" 
-             style="margin-top: 20px; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background: #fff;">
-          <h4 style="margin-top: 0; margin-bottom: 15px; color: #333;">Enter Card Details</h4>
-          
-          <div class="form-group" style="margin-bottom: 15px;">
-            <label>Cardholder Name <span class="req">*</span></label>
-            <input class="form-input" [(ngModel)]="ccName" placeholder="John Doe">
-          </div>
+        <div class="credit-card-wrapper" *ngIf="paymentMethod === 'ONLINE_PAYMENT'">
+          <div class="credit-card-container">
+            <div class="credit-card" [class.flipped]="cvvFocused">
+              <!-- Front of Card -->
+              <div class="card-front">
+                <div class="card-gradient">
+                  <div class="card-chip">
+                    <div class="chip-inner"></div>
+                  </div>
+                  <div class="card-contactless">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M8.5 16.5a5 5 0 0 1 7 0"></path>
+                      <path d="M5 13a9 9 0 0 1 14 0"></path>
+                      <path d="M1.5 9.5a13 13 0 0 1 21 0"></path>
+                    </svg>
+                  </div>
+                  <div class="card-number-display">{{ displayCardNumber }}</div>
+                  <div class="card-details-row">
+                    <div class="card-holder-display">
+                      <div class="card-label">Card Holder</div>
+                      <div class="card-value">{{ ccName || 'YOUR NAME' }}</div>
+                    </div>
+                    <div class="card-expiry-display">
+                      <div class="card-label">Expires</div>
+                      <div class="card-value">{{ ccExpiry || 'MM/YY' }}</div>
+                    </div>
+                  </div>
+                  <div class="card-brand">
+                    <svg *ngIf="getCardBrand() === 'visa'" viewBox="0 0 48 48" width="60" height="60">
+                      <circle cx="24" cy="24" r="24" fill="#1A1F71"/>
+                      <text x="24" y="30" text-anchor="middle" fill="#FFFFFF" font-size="16" font-weight="bold" font-family="Arial">VISA</text>
+                    </svg>
+                    <svg *ngIf="getCardBrand() === 'mastercard'" viewBox="0 0 48 48" width="60" height="60">
+                      <circle cx="18" cy="24" r="14" fill="#EB001B" opacity="0.9"/>
+                      <circle cx="30" cy="24" r="14" fill="#F79E1B" opacity="0.9"/>
+                    </svg>
+                    <svg *ngIf="!getCardBrand()" viewBox="0 0 48 48" width="60" height="60">
+                      <rect x="4" y="8" width="40" height="32" rx="4" fill="#1A1F71"/>
+                      <text x="24" y="28" text-anchor="middle" fill="#FFFFFF" font-size="10" font-weight="bold" font-family="Arial">CARD</text>
+                    </svg>
+                  </div>
+                </div>
+              </div>
 
-          <div class="form-group" style="margin-bottom: 15px;">
-            <label>Card Number <span class="req">*</span></label>
-            <input class="form-input" [(ngModel)]="ccNumber" placeholder="0000 0000 0000 0000" maxlength="16">
-          </div>
-
-          <div class="form-row">
-            <div class="form-group flex-1">
-              <label>Expiry Date <span class="req">*</span></label>
-              <input class="form-input" [(ngModel)]="ccExpiry" placeholder="MM/YY" maxlength="5">
+              <!-- Back of Card -->
+              <div class="card-back">
+                <div class="magnetic-strip"></div>
+                <div class="card-back-gradient">
+                  <div class="cvv-strip">
+                    <div class="cvv-value">{{ ccCvv || '•••' }}</div>
+                  </div>
+                  <div class="card-back-brand">
+                    <svg *ngIf="getCardBrand() === 'visa'" viewBox="0 0 48 48" width="50" height="50">
+                      <circle cx="24" cy="24" r="24" fill="#1A1F71"/>
+                      <text x="24" y="30" text-anchor="middle" fill="#FFFFFF" font-size="16" font-weight="bold" font-family="Arial">VISA</text>
+                    </svg>
+                    <svg *ngIf="getCardBrand() === 'mastercard'" viewBox="0 0 48 48" width="50" height="50">
+                      <circle cx="18" cy="24" r="14" fill="#EB001B" opacity="0.9"/>
+                      <circle cx="30" cy="24" r="14" fill="#F79E1B" opacity="0.9"/>
+                    </svg>
+                    <svg *ngIf="!getCardBrand()" viewBox="0 0 48 48" width="50" height="50">
+                      <rect x="4" y="8" width="40" height="32" rx="4" fill="#1A1F71"/>
+                      <text x="24" y="28" text-anchor="middle" fill="#FFFFFF" font-size="10" font-weight="bold" font-family="Arial">CARD</text>
+                    </svg>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="form-group flex-1">
-              <label>CVV <span class="req">*</span></label>
-              <input type="password" class="form-input" [(ngModel)]="ccCvv" placeholder="123" maxlength="3">
+          </div>
+
+          <!-- Card Input Form -->
+          <div class="card-form">
+            <div class="form-group">
+              <label>Cardholder Name <span class="req">*</span></label>
+              <input class="form-input" [(ngModel)]="ccName" placeholder="John Doe"
+                     (focus)="onCardInputFocus()" (blur)="onCardInputBlur()">
+            </div>
+
+            <div class="form-group">
+              <label>Card Number <span class="req">*</span></label>
+              <input class="form-input" [(ngModel)]="ccNumber" placeholder="0000 0000 0000 0000"
+                     maxlength="19" (input)="formatCardNumber($event)" (focus)="onCardInputFocus()" (blur)="onCardInputBlur()">
+            </div>
+
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label>Expiry Date <span class="req">*</span></label>
+                <input class="form-input" [(ngModel)]="ccExpiry" placeholder="MM/YY"
+                       maxlength="5" (input)="formatExpiryDate($event)" (focus)="onCardInputFocus()" (blur)="onCardInputBlur()">
+              </div>
+              <div class="form-group flex-1">
+                <label>CVV <span class="req">*</span></label>
+                <input type="password" class="form-input" [(ngModel)]="ccCvv" placeholder="•••"
+                       maxlength="3" (focus)="onCvvFocus()" (blur)="onCvvBlur()">
+              </div>
             </div>
           </div>
         </div>

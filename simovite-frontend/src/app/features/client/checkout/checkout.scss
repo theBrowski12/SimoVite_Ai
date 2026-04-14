@@ -213,3 +213,236 @@ label { font-size: 12.5px; font-weight: 600; color: var(--muted); }
   &:active:not(:disabled) { transform: scale(.98); }
   &:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
 }
+
+// ── Professional 3D Credit Card ──
+.credit-card-wrapper {
+  margin-top: 20px;
+}
+
+.credit-card-container {
+  perspective: 1000px;
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto 24px;
+  height: 240px;
+}
+
+.credit-card {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+
+  &.flipped {
+    transform: rotateY(180deg);
+  }
+}
+
+.card-front,
+.card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.card-front {
+  .card-gradient {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+  }
+
+  .card-chip {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+
+    .chip-inner {
+      width: 45px;
+      height: 35px;
+      background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      position: relative;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 30px;
+        height: 20px;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        border-radius: 3px;
+      }
+    }
+  }
+
+  .card-contactless {
+    position: absolute;
+    top: 28px;
+    left: 80px;
+    width: 30px;
+    height: 30px;
+    color: rgba(255, 255, 255, 0.8);
+    transform: rotate(90deg);
+  }
+
+  .card-number-display {
+    font-size: 22px;
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+    color: #fff;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    margin-top: 60px;
+    text-align: center;
+  }
+
+  .card-details-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .card-holder-display,
+  .card-expiry-display {
+    flex: 1;
+  }
+
+  .card-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.7);
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+
+  .card-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .card-brand {
+    position: absolute;
+    bottom: 24px;
+    right: 24px;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+  }
+}
+
+.card-back {
+  transform: rotateY(180deg);
+
+  .magnetic-strip {
+    position: absolute;
+    top: 30px;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(to bottom, #1a1a1a 0%, #333 50%, #1a1a1a 100%);
+  }
+
+  .card-back-gradient {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 24px;
+    padding-top: 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+  }
+
+  .cvv-strip {
+    background: #fff;
+    padding: 12px 16px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+    .cvv-value {
+      font-size: 18px;
+      font-weight: 700;
+      font-family: 'Courier New', monospace;
+      color: #1a1a1a;
+      letter-spacing: 2px;
+      text-align: right;
+    }
+  }
+
+  .card-back-brand {
+    align-self: flex-end;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+  }
+}
+
+// ── Card Form ──
+.card-form {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .credit-card-container {
+    max-width: 320px;
+    height: 200px;
+  }
+
+  .card-front .card-gradient,
+  .card-back .card-back-gradient {
+    padding: 20px;
+  }
+
+  .card-front .card-number-display {
+    font-size: 18px;
+  }
+
+  .card-front .card-value,
+  .card-back .cvv-value {
+    font-size: 12px;
+  }
+}

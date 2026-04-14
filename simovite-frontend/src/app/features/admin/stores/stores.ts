@@ -3,6 +3,8 @@ import { StoreService } from '@services/store.service';
 import { StoreRequestDto, StoreResponseDto } from '@models/store.model';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { KeycloakAdminService } from '@services/keycloak-admin.service';
+import { ReviewService } from '@services/review.service';
+import { ReviewTargetType } from '@models/review.model';
 import * as L from 'leaflet';
 
 @Component({ 
@@ -67,7 +69,8 @@ export class AdminStores implements OnInit {
     private storeService: StoreService,
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef,
-    private keycloakAdmin: KeycloakAdminService
+    private keycloakAdmin: KeycloakAdminService,
+    private reviewService: ReviewService
   ) {this.initForm();}
 
   ngOnInit(): void {this.loadStores();}
@@ -118,18 +121,38 @@ initForm(): void {
     this.storeService.getAllStores().subscribe({
       next: (data) => {
         this.stores = data && data.length > 0 ? data : this.mock;
-        this.applyFilters();
+        this.fetchStoreReviews();
         this.loading = false;
         this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Erreur API', err);
         this.stores = this.mock;
-        this.applyFilters();
+        this.fetchStoreReviews();
         this.loading = false;
         this.cdr.detectChanges();
       }
     });
+  }
+
+  fetchStoreReviews(): void {
+    this.stores.forEach(store => {
+      this.reviewService.getReviews(store.id, ReviewTargetType.STORE).subscribe({
+        next: (reviews) => {
+          store.reviewCount = reviews.length;
+          store.rating = reviews.length > 0
+            ? Math.round((reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length) * 10) / 10
+            : 0;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error(`Failed to fetch reviews for store ${store.name}:`, err);
+          store.reviewCount = 0;
+          store.rating = 0;
+        }
+      });
+    });
+    this.applyFilters();
   }
 
 applyFilters(): void {
