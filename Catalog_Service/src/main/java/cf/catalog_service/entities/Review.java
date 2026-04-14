@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 public class Review {
     @Id
     private String id;
-    private String targetId;      // productId ou storeId
+    private String targetId;      // productId ou storeId or courierId
     private ReviewTargetType targetType; // PRODUCT ou STORE
     private String clientId;      // JWT sub
     private String clientName;    // JWT given_name + family_name

@@ -2,7 +2,8 @@
 
 export enum ReviewTargetType {
   PRODUCT = 'PRODUCT',
-  STORE = 'STORE'
+  STORE = 'STORE',
+  DELIVERY = 'DELIVERY'
 }
 
 export interface ReviewRequestDto {

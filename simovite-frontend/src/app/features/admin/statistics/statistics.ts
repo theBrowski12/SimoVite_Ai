@@ -55,7 +55,7 @@ export class AdminStatistics implements OnInit {
       next: (res) => {
         // res.orders est maintenant du type Order[]
         // res.deliveries est du type Delivery[]
-        
+
         this.calculateKPIs(res.orders);
         // Calcul du temps moyen de livraison
         const deliveriesWithTime = res.deliveries.filter(d => d.estimatedTimeInMinutes);
@@ -66,6 +66,7 @@ export class AdminStatistics implements OnInit {
         this.buildPaymentChart(res.orders);
         this.buildStatusChart(res.deliveries);
         this.buildRevenueChart(res.orders);
+        this.buildClientsChart(res.orders);
 
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -141,7 +142,7 @@ export class AdminStatistics implements OnInit {
       // On utilise createdAt et price qui existent dans ton interface Order
       if (order.createdAt && order.price) {
         // Découpe la date pour garder "YYYY-MM"
-        const month = new Date(order.createdAt).toISOString().slice(0, 7); 
+        const month = new Date(order.createdAt).toISOString().slice(0, 7);
         acc[month] = (acc[month] || 0) + order.price;
       }
       return acc;
@@ -162,6 +163,82 @@ export class AdminStatistics implements OnInit {
         }]
       },
       options: { responsive: true, maintainAspectRatio: false }
+    });
+  }
+
+  private buildClientsChart(orders: Order[]) {
+    // Count unique clients (by userId) per month
+    const clientsByMonth = orders.reduce((acc, order) => {
+      if (order.createdAt && order.userId) {
+        const month = new Date(order.createdAt).toISOString().slice(0, 7);
+        if (!acc[month]) {
+          acc[month] = new Set<string>();
+        }
+        acc[month].add(order.userId);
+      }
+      return acc;
+    }, {} as { [key: string]: Set<string> });
+
+    // Get last 6 months
+    const sortedMonths = Object.keys(clientsByMonth).sort().slice(-6);
+    const data = sortedMonths.map(month => clientsByMonth[month].size);
+
+    // Calculate growth percentage
+    const growthPercentage = data.length > 1 
+      ? (((data[data.length - 1] - data[0]) / data[0]) * 100).toFixed(1)
+      : '0';
+
+    this.createOrUpdateChart('clientsChart', {
+      type: 'line',
+      data: {
+        labels: sortedMonths.map(month => {
+          const [year, monthNum] = month.split('-');
+          const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          return `${monthNames[parseInt(monthNum) - 1]} ${year}`;
+        }),
+        datasets: [{
+          label: 'New Clients',
+          data: data,
+          borderColor: '#8b5cf6',
+          backgroundColor: 'rgba(139, 92, 246, 0.1)',
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#8b5cf6',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointRadius: 5,
+          pointHoverRadius: 7
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              afterLabel: function(context: any) {
+                if (context.dataIndex > 0) {
+                  const prev = context.dataset.data[context.dataIndex - 1] as number;
+                  const current = context.raw as number;
+                  const growthValue = prev > 0 ? (((current - prev) / prev) * 100) : 0;
+                  const growth = growthValue.toFixed(1);
+                  return `Growth: ${growthValue > 0 ? '+' : ''}${growth}%`;
+                }
+                return '';
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1
+            }
+          }
+        }
+      }
     });
   }
 
