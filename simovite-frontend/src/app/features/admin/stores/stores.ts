@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { StoreService } from '@services/store.service';
 import { StoreRequestDto, StoreResponseDto } from '@models/store.model';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { KeycloakAdminService } from '@services/keycloak-admin.service';
 import * as L from 'leaflet';
 
 @Component({ 
@@ -20,9 +21,11 @@ export class AdminStores implements OnInit {
   editingStoreId: string | null = null;
   storeForm!: FormGroup;
   // Filtres
-  filterCategory = ''; 
-  filterStatus = ''; 
+  filterCategory = '';
+  filterStatus = '';
   searchTerm = '';
+  // Detail panel
+  selectedStore: StoreResponseDto | null = null;
   private map: L.Map | undefined;
   private marker: L.Marker | undefined;
 
@@ -63,7 +66,9 @@ export class AdminStores implements OnInit {
   constructor(
     private storeService: StoreService,
     private fb: FormBuilder,
-    private cdr: ChangeDetectorRef) {this.initForm();}
+    private cdr: ChangeDetectorRef,
+    private keycloakAdmin: KeycloakAdminService
+  ) {this.initForm();}
 
   ngOnInit(): void {this.loadStores();}
 
@@ -306,7 +311,6 @@ applyFilters(): void {
       });
     });
   }
-  // ... ton code existant (initMap, etc.)
 
   async searchAddress(query: string): Promise<void> {
     if (!query || query.trim() === '') return;
@@ -339,5 +343,32 @@ applyFilters(): void {
     } catch (error) {
       console.error("Erreur lors de la recherche d'adresse :", error);
     }
+  }
+
+  // ── Detail Panel Methods ──────────────────────────────────
+
+  openDetail(store: StoreResponseDto): void {
+    this.selectedStore = store;
+    
+    // If ownerName is not available, fetch it from Keycloak
+    if (!store.ownerName && store.ownerId) {
+      this.keycloakAdmin.getUsersByRole('STORE_OWNER').subscribe({
+        next: (owners) => {
+          const owner = owners.find(o => o.id === store.ownerId);
+          if (owner) {
+            store.ownerName = `${owner.firstName || ''} ${owner.lastName || ''}`.trim() || owner.username || 'Unknown';
+            this.cdr.detectChanges();
+          }
+        },
+        error: (err) => {
+          console.error('Failed to fetch owner name from Keycloak:', err);
+          store.ownerName = 'Unknown';
+        }
+      });
+    }
+  }
+
+  closeDetail(): void {
+    this.selectedStore = null;
   }
 }

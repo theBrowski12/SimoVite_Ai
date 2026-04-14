@@ -69,7 +69,7 @@
 
         <div class="store-body">
           <div class="store-name">{{ s.name }}</div>
-          
+
           <div class="badge" [ngClass]="'badge-' + getCategoryClass(s.category)">
             {{ s.category }}
           </div>
@@ -79,15 +79,23 @@
               <span style="color: #F59E0B;">{{ getStars(s['rating']) }}</span>
               <span style="color: gray; font-size: 12px; margin-left: 4px;">({{ s['reviewCount'] || 0 }})</span>
             </div>
-            
+
             <div style="display: flex; align-items: center; gap: 8px;">
               <span [style.color]="s.open ? '#10b981' : '#ef4444'" style="font-size: 13px; font-weight: 600;">
                 {{ s.open ? 'Open' : 'Closed' }}
               </span>
-              
+
               <div class="toggle" [class.on]="s.open" (click)="toggleStoreStatus(s.id)"></div>
             </div>
           </div>
+
+          <button class="btn-details" (click)="openDetail(s)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            View Details
+          </button>
         </div>
 
       </div>
@@ -95,6 +103,136 @@
 
     <div class="empty-state" *ngIf="filtered.length === 0">
       <p>Aucun magasin trouvé avec ces critères.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Panel -->
+<div class="detail-panel-overlay" *ngIf="selectedStore" (click)="closeDetail()">
+  <div class="detail-panel" (click)="$event.stopPropagation()">
+    <div class="detail-panel-header">
+      <h2>Store Details</h2>
+      <button class="close-btn" (click)="closeDetail()">✕</button>
+    </div>
+
+    <div class="detail-panel-content">
+      <div class="detail-image-section">
+        <img *ngIf="selectedStore.imageURL" [src]="selectedStore.imageURL" [alt]="selectedStore.name" class="detail-store-photo">
+        <div *ngIf="!selectedStore.imageURL" class="detail-store-photo-placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+          <span>No Image Available</span>
+        </div>
+      </div>
+
+      <div class="detail-info">
+        <div class="detail-name">{{ selectedStore.name }}</div>
+        
+        <div class="detail-badge">
+          <span class="badge" [ngClass]="'badge-' + getCategoryClass(selectedStore.category)">
+            {{ selectedStore.category }}
+          </span>
+        </div>
+
+        <div class="detail-status">
+          <span [style.color]="selectedStore.open ? '#10b981' : '#ef4444'" style="font-size: 14px; font-weight: 600;">
+            {{ selectedStore.open ? '🟢 Open' : '🔴 Closed' }}
+          </span>
+        </div>
+
+        <div class="detail-rating">
+          <span style="color: #F59E0B; font-size: 18px;">{{ getStars(selectedStore['rating']) }}</span>
+          <span style="color: #64748b; font-size: 14px; margin-left: 8px;">
+            {{ selectedStore['rating'] || 0 }} ({{ selectedStore['reviewCount'] || 0 }} reviews)
+          </span>
+        </div>
+
+        <div class="detail-section">
+          <h3>Contact Information</h3>
+          <div class="detail-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+            </svg>
+            <span>{{ selectedStore.phone || 'N/A' }}</span>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h3>Address</h3>
+          <div class="detail-row" *ngIf="selectedStore.address">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <div class="address-details">
+              <span *ngIf="selectedStore.address.street">{{ selectedStore.address.street }}</span>
+              <span *ngIf="selectedStore.address.buildingNumber">, Building {{ selectedStore.address.buildingNumber }}</span>
+              <span *ngIf="selectedStore.address.apartment">, Apt {{ selectedStore.address.apartment }}</span>
+              <br>
+              <span *ngIf="selectedStore.address.city">{{ selectedStore.address.city }}</span>
+              <span *ngIf="selectedStore.address.longitude"> {{ selectedStore.address.longitude }}</span>
+              <span *ngIf="selectedStore.address.latitude"> {{ selectedStore.address.latitude }}</span>
+            </div>
+          </div>
+          <div class="detail-row" *ngIf="!selectedStore.address">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <span>N/A</span>
+          </div>
+        </div>
+
+        <div class="detail-section" *ngIf="selectedStore.description">
+          <h3>Description</h3>
+          <p class="detail-description">{{ selectedStore.description }}</p>
+        </div>
+
+        <div class="detail-section">
+          <h3>Store Owner</h3>
+          <div class="detail-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <div class="owner-details">
+              <span class="owner-name">{{ selectedStore.ownerName || 'N/A' }}</span>
+              <span class="owner-id" *ngIf="selectedStore.ownerId">ID: {{ selectedStore.ownerId }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-section" *ngIf="selectedStore.address && selectedStore.address.latitude && selectedStore.address.longitude">
+          <h3>Location</h3>
+          <div class="detail-coords">
+            <span>Latitude: {{ selectedStore.address.latitude }}</span>
+            <span>Longitude: {{ selectedStore.address.longitude }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-panel-footer">
+        <button class="btn-secondary" (click)="closeDetail(); openEditModal(selectedStore)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+          Edit Store
+        </button>
+        <button class="btn-delete" (click)="deleteStore(selectedStore.id, selectedStore.name); closeDetail()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
+          </svg>
+          Delete Store
+        </button>
+        <button class="btn-close" (click)="closeDetail()">Close</button>
+      </div>
     </div>
   </div>
 </div>

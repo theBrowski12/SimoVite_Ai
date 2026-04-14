@@ -31,6 +31,7 @@ public class StoreServiceImpl implements StoreService {
             @McpToolParam(description = "Store details. Required: name, description, category, address, phone. ownerId is auto-set from JWT.") StoreRequestDto requestDto) {
         log.info("Création d'un nouveau magasin : {}", requestDto.getName());
         String ownerId = JwtUtils.getUserId();
+        //String ownerName = requestDto.getName();
         Store store = Store.builder()
                 .name(requestDto.getName())
                 .description(requestDto.getDescription())
