@@ -105,13 +105,21 @@ export class Orders implements OnInit {
 
   applyFilters(): void {
     const term = this.searchTerm.toLowerCase();
+    
     this.filtered = this.orders.filter(o => {
       const matchStatus = !this.filterStatus || o.status === this.filterStatus;
-      const matchSearch = !term ||
-        o.orderRef.toLowerCase().includes(term)  ||
-        o.storeName.toLowerCase().includes(term);
+      
+      // Safely check orderRef and storeName, falling back to empty strings if they are null
+      const safeOrderRef = o.orderRef ? o.orderRef.toLowerCase() : '';
+      const safeStoreName = o.storeName ? o.storeName.toLowerCase() : '';
+      
+      const matchSearch = !term || 
+        safeOrderRef.includes(term) || 
+        safeStoreName.includes(term);
+        
       return matchStatus && matchSearch;
     });
+    
     this.currentPage = 1;
     this.cdr.detectChanges();
   }

@@ -47,6 +47,8 @@ export class StoreProfile implements OnInit, AfterViewInit {
   // Display helpers
   ownerName = '';
   activeTab: 'stores' | 'create' = 'stores';
+  searchTerm = '';
+  filteredStores: StoreResponseDto[] = [];
 
   constructor(
     private storeService: StoreService,
@@ -110,14 +112,15 @@ export class StoreProfile implements OnInit, AfterViewInit {
     this.storeService.getStoresByOwner(userId).subscribe({
       next: (stores) => {
         this.stores = stores;
-        
+        this.filteredStores = stores;
+
         // Re-select the correct store if ID is provided
         if (selectStoreId) {
           this.selectedStore = stores.find(s => s.id === selectStoreId) || stores[0] || null;
         } else if (stores.length > 0 && !this.selectedStore) {
           this.selectedStore = stores[0];
         }
-        
+
         this.loading = false;
         this.cdr.detectChanges();
       },
@@ -128,6 +131,27 @@ export class StoreProfile implements OnInit, AfterViewInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  // ── Search Stores ──────────────────────────────────────────
+
+  onSearchChange(): void {
+    this.filterStores();
+  }
+
+  private filterStores(): void {
+    if (!this.searchTerm || this.searchTerm.trim() === '') {
+      this.filteredStores = this.stores;
+    } else {
+      const term = this.searchTerm.toLowerCase().trim();
+      this.filteredStores = this.stores.filter(store =>
+        store.name.toLowerCase().includes(term) ||
+        store.category.toLowerCase().includes(term) ||
+        store.description?.toLowerCase().includes(term) ||
+        store.address?.city?.toLowerCase().includes(term) ||
+        store.phone?.toLowerCase().includes(term)
+      );
+    }
   }
 
   // ── Select Store ─────────────────────────────────────────

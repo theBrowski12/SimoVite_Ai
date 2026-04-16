@@ -220,7 +220,8 @@ export class Checkout implements OnInit, AfterViewInit {
               this.cartSvc.clear();
               this.submitting = false;
               this.notifSvc.success('Payment confirmed! ✅');
-              this.router.navigate(['/orders', paidOrder.orderRef || order.orderRef]);
+              // Navigate to orders list page
+              this.router.navigate(['/orders']);
             },
             error: payErr => {
               console.error('Payment failed', payErr);
@@ -233,7 +234,8 @@ export class Checkout implements OnInit, AfterViewInit {
         } else {
           this.cartSvc.clear();
           this.submitting = false;
-          this.router.navigate(['/orders', order.orderRef]);
+          // Navigate to orders list page
+          this.router.navigate(['/orders']);
         }
       },
       error: err => {

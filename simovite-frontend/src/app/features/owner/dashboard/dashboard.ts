@@ -229,7 +229,7 @@ export class Dashboard implements OnInit, AfterViewInit {
     // Active products
     const productMap = new Map<string, number>();
     orders.forEach(order => {
-      order.items.forEach(item => {
+      (order.items || []).forEach(item => {
         productMap.set(item.productId, (productMap.get(item.productId) || 0) + item.quantity);
       });
     });
@@ -255,7 +255,7 @@ export class Dashboard implements OnInit, AfterViewInit {
     this.products = Array.from(productMap.entries())
       .map(([id, sold]) => {
         const orderItems = orders.flatMap(o => o.items);
-        const item = orderItems.find(i => i.productId === id);
+        const item = orderItems.find(i => i?.productId === id);
         return {
           name: item?.productName || 'Unknown',
           sold,
@@ -567,7 +567,7 @@ export class Dashboard implements OnInit, AfterViewInit {
   }
 
   getItemsCount(order: Order): number {
-    return order.items.reduce((sum, item) => sum + item.quantity, 0);
+    return order?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
   }
 
   getTrendIcon(current: number, previous: number): string {

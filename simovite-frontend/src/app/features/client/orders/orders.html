@@ -137,7 +137,7 @@
         </div>
         <div class="store-info">
           <div class="store-name">{{ o.storeName }}</div>
-          <div class="store-items">{{ o.items.length || 0 }} item{{ (o.items.length || 0) > 1 ? 's' : '' }}</div>
+          <div class="store-items">{{ o.items?.length || 0 }} item{{ (o.items?.length || 0) > 1 ? 's' : '' }}</div>
         </div>
       </div>
 
@@ -275,7 +275,7 @@
 
         <!-- Items -->
         <div class="panel-section">
-          <div class="ps-label">🛍️ Items ({{ o.items.length || 0 }})</div>
+          <div class="ps-label">🛍️ Items ({{ o.items?.length || 0 }})</div>
           <div class="items-list">
             <div class="item-row" *ngFor="let item of o.items">
               <span class="item-qty">×{{ item.quantity }}</span>

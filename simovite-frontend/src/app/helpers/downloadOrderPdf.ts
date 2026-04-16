@@ -104,7 +104,7 @@ export function downloadOrderPdf(order: Order): void {
     startY: y,
     margin: { left: 14, right: 14 },
     head: [['#', 'Product', 'Qty', 'Unit Price', 'Subtotal']],
-    body: order.items.map((i, idx) => [
+    body: (order.items || []).map((i, idx) => [
       idx + 1,
       i.productName,
       i.quantity,

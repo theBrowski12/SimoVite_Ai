@@ -36,7 +36,7 @@ export class Orders implements OnInit {
   showDetailModal = false;
 
   // Status update
-  updatingOrderId: string | null = null;
+  updatingOrderId: String | null = null;
 
   // Display
   ownerName = '';
@@ -224,8 +224,14 @@ export class Orders implements OnInit {
   }
 
   getItemsCount(order: Order): number {
-    return order.items.reduce((sum, item) => sum + item.quantity, 0);
+  // If it's a special delivery, count the package itself as 1 item
+  if (order.orderType === 'SPECIAL_DELIVERY') {
+    return 1; 
   }
+
+  // Otherwise, safely count the food/pharmacy items
+  return order.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0;
+}
 
   formatDateTime(dateString: string): string {
     const date = new Date(dateString);

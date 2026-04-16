@@ -16,6 +16,7 @@ import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ClientAccount } from './client-account/client-account';
 import { ClientStores } from './client-stores/client-stores';
+import { SpecialDelivery } from './special-delivery/special-delivery';
 @NgModule({
   declarations: [
     Home,
@@ -29,6 +30,7 @@ import { ClientStores } from './client-stores/client-stores';
     Reviews,
     ClientAccount,
     ClientStores,
+    SpecialDelivery,
   ],
   imports: [
     CommonModule,

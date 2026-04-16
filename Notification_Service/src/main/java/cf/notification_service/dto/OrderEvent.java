@@ -12,17 +12,36 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-
 public class OrderEvent {
     private String eventType;
     private String orderRef;
+
+    // 🚦 Indispensable pour savoir quel template d'email envoyer !
+    private String orderType; // "REGULAR" ou "SPECIAL_DELIVERY"
+
     private String userName;
     private String email;
     private String createdAt;
     private BigDecimal totalAmount;
+
+    // NOUVEAU : Frais et type de paiement pour la facture
+    private BigDecimal deliveryCost;
+    private boolean cashOnDelivery;
+
+    // 📦 NOUVEAU : Infos C2C (Colis)
+    // Si orderType == "SPECIAL_DELIVERY", tu utiliseras ça dans l'email au lieu de la liste 'items'
+    private String productName;
+    private Double totalWeightKg;
+    private String instructions;
+
+    private String senderName;
+    private String senderPhone;
+    private String receiverName;
+    private String receiverPhone;
+
+    // 👇 La liste des articles pour les commandes de nourriture/pharmacie (REGULAR)
     private List<OrderItemEvent> items;
 
-    // 👇 La sous-classe pour désérialiser les articles envoyés par l'Order_Service
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -32,4 +51,3 @@ public class OrderEvent {
         private BigDecimal unitPrice;
     }
 }
-

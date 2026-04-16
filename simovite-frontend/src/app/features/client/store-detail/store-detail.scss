@@ -65,6 +65,25 @@
   transition: background .15s;
   &:hover { background: rgba(255,255,255,.35); }
 }
+.btn-special-delivery {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background-color: #2563eb; // A nice blue to differentiate from food ordering
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  width: 100%;
+
+  &:hover {
+    background-color: #1d4ed8;
+  }
+}
 
 .info-card {
   background: var(--card);

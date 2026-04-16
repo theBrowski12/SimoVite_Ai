@@ -5,6 +5,8 @@ import cf.order_service.dto.OrderResponseDto;
 import cf.order_service.dto.catalogDto.CatalogResponseDto;
 import cf.order_service.dto.priceDto.PriceRequestDto;
 import cf.order_service.dto.priceDto.PriceResponseDto;
+import cf.order_service.dto.specialDelivery.SpecialDeliveryRequestDto;
+import cf.order_service.dto.specialDelivery.SpecialDeliveryResponseDto;
 import cf.order_service.dto.storeDto.StoreResponseDto;
 import cf.order_service.entity.Address;
 import cf.order_service.entity.Order;
@@ -143,6 +145,100 @@ public class OrderServiceImpl implements OrderService {
 
         return orderMapper.toResponseDto(savedOrder);
     }
+
+    @Override
+    @Transactional
+    public SpecialDeliveryResponseDto createSpecialDeliveryOrder(SpecialDeliveryRequestDto dto) {
+        // 1. Map the DTO to the Entity using your shiny new mapper method
+        Order order = orderMapper.specialDeliveryToEntity(dto);
+
+        // 2. Inject Context (Security JWT)
+        String nameFromJwt = JwtUtils.getFullName();
+        String emailFromJwt = JwtUtils.getEmail();
+        String userIdFromJwt = JwtUtils.getUserId();
+
+        order.setUserId(userIdFromJwt);
+        order.setFullName(nameFromJwt);
+        order.setEmail(emailFromJwt);
+        order.setPaid(false);
+
+        if (order.getPaymentMethod() == null) {
+            order.setPaymentMethod(PaymentMethod.CASH_ON_DELIVERY);
+        }
+
+        // 3. Fetch the Base Service Price from the Catalog
+        CatalogResponseDto serviceInfo = catalogRestClient.getProductById(dto.getCatalogSpecialDeliveryId());
+        if (serviceInfo == null) {
+            throw new RuntimeException("Service de livraison spécial introuvable : " + dto.getCatalogSpecialDeliveryId());
+        }
+
+        // ✅ FIX: No more OrderItems! The base price from the catalog is our starting total.
+        BigDecimal basePrice = serviceInfo.getBasePrice();
+        BigDecimal totalOrderPrice = basePrice;
+
+        // 4. Calculate Distance dynamically (Security: Don't trust the frontend's distance)
+        double distanceKm = 0.0;
+        if (dto.getPickupAddress() != null && dto.getDropoffAddress() != null) {
+            distanceKm = calculateDistance(
+                    dto.getPickupAddress().getLatitude(), dto.getPickupAddress().getLongitude(),
+                    dto.getDropoffAddress().getLatitude(), dto.getDropoffAddress().getLongitude()
+            );
+        }
+
+        // Ensure category is set for the ML Pricing engine
+        String categoryForPricing = order.getStoreCategory() != null ? order.getStoreCategory() : "SPECIAL_DELIVERY";
+        order.setStoreCategory(categoryForPricing);
+
+        // 5. Calculate Logistics Pricing via ML
+        PriceRequestDto priceReq = PriceRequestDto.builder()
+                .distance_km(distanceKm)
+                .vehicle_type("MOTORCYCLE") // Or fetch from catalog serviceInfo if available
+                .category(categoryForPricing)
+                .pickup_latitude(dto.getPickupAddress().getLatitude())
+                .pickup_longitude(dto.getPickupAddress().getLongitude())
+                .order_total(basePrice.doubleValue())
+                .build();
+
+        PriceResponseDto priceResp = priceClient.calculatePrice(priceReq);
+
+        if (priceResp != null) {
+            order.setPercentage(priceResp.getPrice_percentage());
+            BigDecimal deliveryCost = BigDecimal.valueOf(priceResp.getDelivery_cost());
+
+            // 💡 Weight Surcharge (Example)
+            if (order.getTotalWeightKg() != null && order.getTotalWeightKg() > 5.0) {
+                deliveryCost = deliveryCost.add(new BigDecimal("10.00")); // +10 MAD for heavy packages
+            }
+
+            order.setDeliveryCost(deliveryCost);
+            totalOrderPrice = totalOrderPrice.add(deliveryCost);
+        } else {
+            order.setDeliveryCost(BigDecimal.ZERO);
+        }
+
+        // ✅ Set the final calculated price directly on the order
+        order.setPrice(totalOrderPrice);
+
+        // 6. Save to Database
+        Order savedOrder = orderRepository.save(order);
+
+        // 7. Fire Events
+        if (savedOrder.getPaymentMethod() == PaymentMethod.CASH_ON_DELIVERY) {
+            log.info("📦 Paiement en espèce sélectionné pour Colis ({}). Confirmation immédiate.", savedOrder.getOrderRef());
+            sendOrderConfirmedEvent(savedOrder, emailFromJwt);
+        } else {
+            log.info("💳 Paiement en ligne sélectionné pour Colis ({}). En attente de paiement.", savedOrder.getOrderRef());
+        }
+
+        // 8. Map to Response DTO
+        SpecialDeliveryResponseDto responseDto = orderMapper.toSpecialDeliveryResponseDto(savedOrder);
+
+        // ✅ Add the dynamically calculated distance to the response so the frontend can display it
+        responseDto.setCalculatedDistanceKm(distanceKm);
+
+        return responseDto;
+    }
+
     @Override
     @Transactional(readOnly = true)
     public List<OrderResponseDto> getOrdersByStoreId(String storeId) {
@@ -181,41 +277,66 @@ public class OrderServiceImpl implements OrderService {
     private void sendOrderConfirmedEvent(Order order, String email) {
         try {
             OrderEvent event = new OrderEvent();
-            event.setEventType("ORDER_CONFIRMED"); // On change le nom de l'événement !
+            event.setEventType("ORDER_CONFIRMED");
             event.setOrderRef(order.getOrderRef());
+
+            // 1. Identify the type of order for the Delivery Service
+            event.setOrderType(order.getOrderType() != null ? order.getOrderType().name() : "REGULAR");
+
             event.setUserName(order.getFullName());
             event.setEmail(email != null ? email : "no-email@example.com");
             event.setCreatedAt(LocalDateTime.now().toString());
             event.setTotalAmount(order.getPrice());
-            event.setStoreId(order.getStoreId());
+
+            // 2. Map Addresses (Both Drop-off AND Pick-up)
             event.setDeliveryAddress(order.getDeliveryAddress());
+            event.setPickUpAddress(order.getPickUpAddress()); // Crucial for Special Deliveries
+
+            event.setStoreId(order.getStoreId());
             event.setDeliveryCost(order.getDeliveryCost());
-            String storeCategory = null;
-            try {
-                StoreResponseDto store = storeClient.getStoreById(order.getStoreId());
-                storeCategory = store.getCategory();
-                log.info("✅ Store info retrieved: {} - Category: {}", store.getName(), storeCategory);
-            } catch (Exception e) {
-                log.error("⚠️ Could not fetch store info for ID {}: {}", order.getStoreId(), e.getMessage());
-                storeCategory = "UNKNOWN"; // Fallback value
+            event.setCashOnDelivery(order.getPaymentMethod() == PaymentMethod.CASH_ON_DELIVERY);
+
+            // 3. Smart Category Fetching (Avoids unnecessary API calls!)
+            String storeCategory = order.getStoreCategory();
+            if (storeCategory == null && order.getStoreId() != null) {
+                try {
+                    StoreResponseDto store = storeClient.getStoreById(order.getStoreId());
+                    storeCategory = store.getCategory();
+                    log.info("✅ Store info retrieved: {} - Category: {}", store.getName(), storeCategory);
+                } catch (Exception e) {
+                    log.error("⚠️ Could not fetch store info for ID {}: {}", order.getStoreId(), e.getMessage());
+                    storeCategory = "UNKNOWN"; // Fallback value
+                }
             }
-            // 🚨 NOUVEAU POUR LE DELIVERY SERVICE :
-            event.setCashOnDelivery(order.getPaymentMethod() == CASH_ON_DELIVERY);
             event.setStoreCategory(storeCategory);
 
-            List<OrderEvent.OrderItemEvent> itemEvents = order.getItems().stream()
-                    .map(item -> new OrderEvent.OrderItemEvent(
-                            item.getProductName(),
-                            item.getQuantity(),
-                            item.getUnitPrice()
-                    ))
-                    .toList();
+            // 4. Map the new Special Delivery fields
+            event.setProductName(order.getProductName());
+            event.setTotalWeightKg(order.getTotalWeightKg());
+            event.setInstructions(order.getInstructions());
+            event.setSenderName(order.getSenderName());
+            event.setSenderPhone(order.getSenderPhone());
+            event.setReceiverName(order.getReceiverName());
+            event.setReceiverPhone(order.getReceiverPhone());
 
-            event.setItems(itemEvents);
+            // 5. Safely map items ONLY if they exist (Fixes the NullPointerException!)
+            if (order.getItems() != null && !order.getItems().isEmpty()) {
+                List<OrderEvent.OrderItemEvent> itemEvents = order.getItems().stream()
+                        .map(item -> new OrderEvent.OrderItemEvent(
+                                item.getProductName(),
+                                item.getQuantity(),
+                                item.getUnitPrice()
+                        ))
+                        .toList();
+                event.setItems(itemEvents);
+            }
+
             kafkaProducerService.sendOrderEvent(event);
-            log.info("📨 Événement de confirmation envoyé pour créer la livraison. Ref: {}", event.getOrderRef());
+            log.info("📨 Événement de confirmation envoyé pour créer la livraison. Ref: {}, Type: {}",
+                    event.getOrderRef(), event.getOrderType());
+
         } catch (Exception e) {
-            log.error("⚠️ Erreur Kafka : {}", e.getMessage());
+            log.error("⚠️ Erreur Kafka : {}", e.getMessage(), e);
         }
     }
 

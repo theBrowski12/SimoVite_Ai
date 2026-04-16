@@ -2,8 +2,11 @@ package cf.order_service.dto;
 
 import cf.order_service.entity.Address;
 import cf.order_service.enums.OrderStatus;
+import cf.order_service.enums.OrderType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -33,6 +36,7 @@ public class OrderResponseDto {
     private BigDecimal price;
     private String paymentMethod;
     private double percentage;
+    private OrderType orderType;
     private List<OrderItemResponseDto> items;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

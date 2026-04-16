@@ -343,6 +343,25 @@ get cartTotal() { return this.cartSvc.total; }
   viewProduct(id: string): void {
     this.router.navigate(['/product', id]);
   }
+  // ── Special Delivery Helpers ──────────────────────────────────────────────
+
+  // 1. Un getter pour savoir facilement si on est dans une agence de livraison
+  get isSpecialDeliveryStore(): boolean {
+    return this.store?.category === 'SPECIAL_DELIVERY'; // Ajuste si MainCategory.SPECIAL_DELIVERY existe dans ton enum
+  }
+
+  // 2. La méthode pour naviguer vers le nouveau composant en passant les infos
+  goToSpecialDelivery(product: CatalogResponseDto): void {
+    if (!this.store) return;
+
+    this.router.navigate(['/special-delivery'], {
+      state: {
+        storeId: this.store.id,
+        catalogSpecialDeliveryId: product.id,
+        productName: product.name
+      }
+    });
+  }
 
   goBack(): void { this.router.navigate(['/client/categories']); }
 }

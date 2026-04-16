@@ -2,6 +2,7 @@ package cf.order_service.entity;
 
 import cf.order_service.dto.storeDto.StoreResponseDto;
 import cf.order_service.enums.OrderStatus;
+import cf.order_service.enums.OrderType;
 import cf.order_service.enums.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.*;
@@ -60,6 +61,31 @@ public class Order {
     private String storeCategory;
     private String storeName;
     //private String customerPhoneNumber; ne need ,grabbed from front
+    @Enumerated(EnumType.STRING)
+    private OrderType orderType= OrderType.REGULAR;
+    private String productName;
+    private Double totalWeightKg;
+    private String instructions;
+
+    private String senderName;
+    private String senderPhone;
+    private String receiverName;
+    private String receiverPhone;
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "city", column = @Column(name = "pickup_city")),
+            @AttributeOverride(name = "street", column = @Column(name = "pickup_street")),
+            @AttributeOverride(name = "buildingNumber", column = @Column(name = "pickup_building_number")),
+            @AttributeOverride(name = "apartment", column = @Column(name = "pickup_apartment")),
+            @AttributeOverride(name = "latitude", column = @Column(name = "pickup_latitude")),
+            @AttributeOverride(name = "longitude", column = @Column(name = "pickup_longitude"))
+    })
+    private Address pickUpAddress;
+
+    @ElementCollection
+    @CollectionTable(name = "order_photos", joinColumns = @JoinColumn(name = "order_id"))
+    @Column(name = "photo_url")
+    private List<String> productPhotoUrls;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

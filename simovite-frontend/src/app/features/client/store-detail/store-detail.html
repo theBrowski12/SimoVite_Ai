@@ -173,25 +173,41 @@
                   </div>
                   <div class="prod-actions">
                     <ng-container *ngIf="p.available; else unavailMsg">
-                      <ng-container *ngIf="!isInCart(p.id); else qtyCtrl">
-                        <button class="btn-add-cart" (click)="addToCart(p)">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                      <ng-container *ngIf="!isSpecialDeliveryStore">
+                        <ng-container *ngIf="!isInCart(p.id); else qtyCtrl">
+                          <button class="btn-add-cart" (click)="addToCart(p)">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            Add to Order
+                          </button>
+                        </ng-container>
+                        <ng-template #qtyCtrl>
+                          <div class="qty-ctrl">
+                            <button class="qty-btn" (click)="updateQty(p.id, -1)">−</button>
+                            <span class="qty-num">{{ getCartQty(p.id) }}</span>
+                            <button class="qty-btn" (click)="updateQty(p.id, +1)">+</button>
+                          </div>
+                        </ng-template>
+                      </ng-container>
+
+                      <ng-container *ngIf="isSpecialDeliveryStore">
+                        <button class="btn-special-delivery" (click)="goToSpecialDelivery(p)">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right: 4px;">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
                           </svg>
-                          Add to Order
+                          Deliver a package
                         </button>
                       </ng-container>
-                      <ng-template #qtyCtrl>
-                        <div class="qty-ctrl">
-                          <button class="qty-btn" (click)="updateQty(p.id, -1)">−</button>
-                          <span class="qty-num">{{ getCartQty(p.id) }}</span>
-                          <button class="qty-btn" (click)="updateQty(p.id, +1)">+</button>
-                        </div>
-                      </ng-template>
+
                     </ng-container>
+
                     <ng-template #unavailMsg>
                       <span class="unavail-text">Currently unavailable</span>
                     </ng-template>
+
                     <button class="btn-view-details" (click)="viewProduct(p.id)" title="View Details">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>

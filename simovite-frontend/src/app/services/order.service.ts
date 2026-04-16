@@ -2,14 +2,14 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { Order, OrderRequestDto, OrderStatus } from '../models/order.model';
+import { Order, OrderRequestDto, OrderStatus, SpecialDeliveryRequestDto, SpecialDeliveryResponseDto } from '../models/order.model';
 
 @Injectable({ providedIn: 'root' })
 export class OrderService {
 
   private base = `${environment.apiGateway}/ORDER-SERVICE/v1/orders`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // ── READ ─────────────────────────────────────────────────
 
@@ -36,9 +36,13 @@ export class OrderService {
   // ── WRITE ────────────────────────────────────────────────
 
   create(dto: OrderRequestDto): Observable<Order> {
-  return this.http.post<Order>(this.base, dto);
-  
-}
+    return this.http.post<Order>(this.base, dto);
+
+  }
+
+  createSpecialDelivery(dto: SpecialDeliveryRequestDto): Observable<SpecialDeliveryResponseDto> {
+    return this.http.post<SpecialDeliveryResponseDto>(`${this.base}/special-delivery`, dto);
+  }
   updateStatus(id: number, status: OrderStatus): Observable<Order> {
     return this.http.put<Order>(
       `${this.base}/${id}/status`,

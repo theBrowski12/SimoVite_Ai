@@ -1,0 +1,146 @@
+<div class="delivery-page">
+  <div class="delivery-container">
+    
+    <header class="page-header">
+      <button class="btn-back" (click)="goBack()">← Back</button>
+      <h1>Book a Delivery</h1>
+    </header>
+
+    <div class="error-banner" *ngIf="errorMessage">
+      ⚠️ {{ errorMessage }}
+    </div>
+
+    <form [formGroup]="deliveryForm" (ngSubmit)="onSubmit()" class="delivery-form">
+      
+      <section class="form-section">
+        <div class="section-title">
+          <span class="icon">⬆️</span> Pickup Details
+        </div>
+        
+        <div class="input-grid">
+          <div class="input-group">
+            <label>Sender Name *</label>
+            <input formControlName="senderName" type="text" placeholder="John Doe">
+          </div>
+          <div class="input-group">
+            <label>Sender Phone *</label>
+            <input formControlName="senderPhone" type="tel" placeholder="+212 6... ">
+          </div>
+          <div class="input-group full-width">
+            <label>Pickup Street Address *</label>
+            <input formControlName="pickUpStreet" type="text" placeholder="123 Main St">
+          </div>
+          <div class="input-group">
+            <label>Pickup City *</label>
+            <input formControlName="pickUpCity" type="text" placeholder="Tangier">
+          </div>
+          <div class="input-group">
+            <label>Building Number</label>
+            <input formControlName="pickUpBuildingNumber" type="text" placeholder="Bldg 4">
+          </div>
+          <div class="input-group">
+            <label>Apartment</label>
+            <input formControlName="pickUpApartment" type="text" placeholder="Apt 12">
+          </div>
+          
+          <div class="input-group">
+            <label>Latitude</label>
+            <input formControlName="pickUpLatitude" type="number" step="any">
+          </div>
+          <div class="input-group">
+            <label>Longitude</label>
+            <input formControlName="pickUpLongitude" type="number" step="any">
+          </div>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <div class="section-title">
+          <span class="icon">⬇️</span> Drop-off Details
+        </div>
+        
+        <div class="input-grid">
+          <div class="input-group">
+            <label>Receiver Name *</label>
+            <input formControlName="receiverName" type="text" placeholder="Jane Smith">
+          </div>
+          <div class="input-group">
+            <label>Receiver Phone *</label>
+            <input formControlName="receiverPhone" type="tel" placeholder="+212 6...">
+          </div>
+          <div class="input-group full-width">
+            <label>Drop-off Street Address *</label>
+            <input formControlName="dropOffStreet" type="text" placeholder="456 Market St">
+          </div>
+          <div class="input-group">
+            <label>Drop-off City *</label>
+            <input formControlName="dropOffCity" type="text" placeholder="Tangier">
+          </div>
+          <div class="input-group">
+            <label>Building Number</label>
+            <input formControlName="dropOffBuildingNumber" type="text" placeholder="Bldg 9">
+          </div>
+          <div class="input-group">
+            <label>Apartment</label>
+            <input formControlName="dropOffApartment" type="text" placeholder="Apt 3">
+          </div>
+
+          <div class="input-group">
+            <label>Latitude</label>
+            <input formControlName="dropOffLatitude" type="number" step="any">
+          </div>
+          <div class="input-group">
+            <label>Longitude</label>
+            <input formControlName="dropOffLongitude" type="number" step="any">
+          </div>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <div class="section-title">
+          <span class="icon">📦</span> Package Information
+        </div>
+        
+        <div class="input-grid">
+          <div class="input-group full-width">
+            <label>What are you sending? (Item Name) *</label>
+            <input formControlName="productName" type="text" placeholder="e.g., Asus Laptop, Moto nht500">
+          </div>
+
+          <div class="input-group">
+            <label>Estimated Weight (Kg) *</label>
+            <input formControlName="totalWeightKg" type="number" step="0.1" min="0.1">
+          </div>
+          <div class="input-group">
+            <label>Payment Method *</label>
+            <select formControlName="paymentMethod">
+              <option value="CASH_ON_DELIVERY">Cash on Delivery</option>
+              <option value="ONLINE_PAYMENT">Pay Online Now</option>
+            </select>
+          </div>
+          
+          <div class="input-group full-width">
+            <label>Package Photos (URLs, comma-separated)</label>
+            <input formControlName="productPhotoUrls" type="text" placeholder="https://image1.jpg, https://image2.jpg">
+          </div>
+
+          <div class="input-group full-width">
+            <label>Driver Instructions (Optional)</label>
+            <textarea formControlName="instructions" rows="2" placeholder="e.g., Fragile items, ring the bell twice..."></textarea>
+          </div>
+        </div>
+      </section>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-submit" [disabled]="deliveryForm.invalid || isSubmitting">
+          <span *ngIf="!isSubmitting">Confirm & Book Delivery</span>
+          <span *ngIf="isSubmitting">Processing...</span>
+        </button>
+        <p class="helper-text" *ngIf="deliveryForm.invalid && deliveryForm.touched">
+          Please fill out all required fields correctly to continue.
+        </p>
+      </div>
+
+    </form>
+  </div>
+</div>

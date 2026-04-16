@@ -99,61 +99,39 @@
     </div>
     <a href="#" class="view-all">View All →</a>
   </div>
-  <div class="deals-scroll">
-    <div class="deal-card">
-      <div class="deal-img bg1"><span>🍕</span><div class="deal-discount">−25%</div></div>
+
+  <div *ngIf="loadingDeals" style="text-align: center; padding: 3rem; color: #64748b;">
+    <p>Loading hot deals...</p>
+  </div>
+
+  <div class="deals-scroll" *ngIf="!loadingDeals && hotDeals.length > 0">
+    <div class="deal-card" *ngFor="let deal of hotDeals" (click)="navigateToStore(deal.id)" style="cursor: pointer;">
+      <div class="deal-img" [style.backgroundImage]="deal.imageURL ? 'url(' + deal.imageURL + ')' : ''" [style.backgroundSize]="'cover'" [style.backgroundPosition]="'center'">
+        <span *ngIf="!deal.imageURL" style="font-size: 52px;">
+          <ng-container [ngSwitch]="deal.type">
+            <span *ngSwitchCase="'RESTAURANT'">🍔</span>
+            <span *ngSwitchCase="'SUPERMARKET'">🛒</span>
+            <span *ngSwitchDefault>📦</span>
+          </ng-container>
+        </span>
+        <div class="deal-discount">−{{ deal.percentage || 0 }}%</div>
+      </div>
       <div class="deal-body">
-        <div class="deal-store">Pizza Palace</div>
-        <div class="deal-name">Margherita Family</div>
-        <div class="deal-pricing"><span class="deal-old">80 DH</span><span class="deal-new">60 DH</span></div>
-        <button class="deal-btn">Add to Cart</button>
+        <div class="deal-store">{{ deal.store?.name || 'Unknown Store' }}</div>
+        <div class="deal-name">{{ deal.name }}</div>
+        <div class="deal-pricing" *ngIf="deal.originalPrice && deal.basePrice">
+          <span class="deal-old">{{ deal.originalPrice | number:'1.0-0' }} DH</span>
+          <span class="deal-new">{{ deal.basePrice | number:'1.0-0' }} DH</span>
+        </div>
+        <div class="deal-savings" *ngIf="deal.originalPrice && deal.basePrice">
+          Save {{ (deal.originalPrice - deal.basePrice) | number:'1.0-0' }} DH
+        </div>
       </div>
     </div>
-    <div class="deal-card">
-      <div class="deal-img bg2"><span>💊</span><div class="deal-discount">−30%</div></div>
-      <div class="deal-body">
-        <div class="deal-store">Pharmacie Centrale</div>
-        <div class="deal-name">Vitamin C 1000mg</div>
-        <div class="deal-pricing"><span class="deal-old">45 DH</span><span class="deal-new">31.50 DH</span></div>
-        <button class="deal-btn">Add to Cart</button>
-      </div>
-    </div>
-    <div class="deal-card">
-      <div class="deal-img bg3"><span>🥛</span><div class="deal-discount">−15%</div></div>
-      <div class="deal-body">
-        <div class="deal-store">Marjane Maarif</div>
-        <div class="deal-name">Pack Lait 6×1L</div>
-        <div class="deal-pricing"><span class="deal-old">52 DH</span><span class="deal-new">44 DH</span></div>
-        <button class="deal-btn">Add to Cart</button>
-      </div>
-    </div>
-    <div class="deal-card">
-      <div class="deal-img bg4"><span>🍔</span><div class="deal-discount">−20%</div></div>
-      <div class="deal-body">
-        <div class="deal-store">Burger House</div>
-        <div class="deal-name">Burger + Frites</div>
-        <div class="deal-pricing"><span class="deal-old">75 DH</span><span class="deal-new">60 DH</span></div>
-        <button class="deal-btn">Add to Cart</button>
-      </div>
-    </div>
-    <div class="deal-card">
-      <div class="deal-img bg1"><span>🍣</span><div class="deal-discount">−10%</div></div>
-      <div class="deal-body">
-        <div class="deal-store">Sushi King</div>
-        <div class="deal-name">Box 24 pièces</div>
-        <div class="deal-pricing"><span class="deal-old">130 DH</span><span class="deal-new">117 DH</span></div>
-        <button class="deal-btn">Add to Cart</button>
-      </div>
-    </div>
-    <div class="deal-card">
-      <div class="deal-img bg2"><span>🌿</span><div class="deal-discount">−40%</div></div>
-      <div class="deal-body">
-        <div class="deal-store">Herbal Plus</div>
-        <div class="deal-name">Huile d'argan Bio</div>
-        <div class="deal-pricing"><span class="deal-old">90 DH</span><span class="deal-new">54 DH</span></div>
-        <button class="deal-btn">Add to Cart</button>
-      </div>
-    </div>
+  </div>
+
+  <div *ngIf="!loadingDeals && hotDeals.length === 0" style="text-align: center; padding: 3rem; color: #64748b;">
+    <p>No hot deals available at the moment.</p>
   </div>
 </section>
 

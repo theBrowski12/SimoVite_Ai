@@ -63,22 +63,38 @@ public class DeliveryServiceImpl implements DeliveryService {
     @Transactional
     public void createDeliveryFromOrder(OrderPaidEvent event) {
 
-        // 1. Récupérer les infos du magasin (Point de retrait)
-        StoreResponseDto store = storeClient.getStoreById(event.getStoreId());
-        if (store == null || store.getAddress() == null) {
-            throw new RuntimeException("Impossible de trouver le magasin ou son adresse pour le storeId: " + event.getStoreId());
+        Address pickupAddress;
+        boolean isSpecialDelivery = "SPECIAL_DELIVERY".equals(event.getOrderType());
+
+        // 1 & 2. Préparer l'adresse de Pickup selon le type de commande
+        if (isSpecialDelivery) {
+            log.info("📦 Special Delivery détectée pour {}. Utilisation de l'adresse de l'expéditeur.", event.getOrderRef());
+
+            if (event.getPickUpAddress() == null) {
+                throw new RuntimeException("🚨 Adresse de pickup manquante pour la livraison spéciale: " + event.getOrderRef());
+            }
+
+            // C2C Delivery: The courier goes to the user's house
+            pickupAddress = event.getPickUpAddress();
+
+        } else {
+            log.info("🍔 Regular Order détectée pour {}. Récupération de l'adresse du magasin.", event.getOrderRef());
+
+            StoreResponseDto store = storeClient.getStoreById(event.getStoreId());
+            if (store == null || store.getAddress() == null) {
+                throw new RuntimeException("🚨 Impossible de trouver le magasin ou son adresse pour le storeId: " + event.getStoreId());
+            }
+
+            // B2C Delivery: The courier goes to the restaurant/pharmacy
+            pickupAddress = Address.builder()
+                    .city(store.getAddress().getCity())
+                    .street(store.getAddress().getStreet())
+                    .buildingNumber(store.getAddress().getBuildingNumber())
+                    .apartment(store.getAddress().getApartment())
+                    .latitude(store.getAddress().getLatitude())
+                    .longitude(store.getAddress().getLongitude())
+                    .build();
         }
-
-
-        // 2. Préparer l'adresse de Pickup
-        Address pickupAddress = Address.builder()
-                .city(store.getAddress().getCity())
-                .street(store.getAddress().getStreet())
-                .buildingNumber(store.getAddress().getBuildingNumber())
-                .apartment(store.getAddress().getApartment())
-                .latitude(store.getAddress().getLatitude())
-                .longitude(store.getAddress().getLongitude())
-                .build();
 
         // 3. Préparer l'adresse de Dropoff
         Address dropoffAddress = event.getDeliveryAddress();
@@ -93,21 +109,19 @@ public class DeliveryServiceImpl implements DeliveryService {
             distanceKm = 1.0;
         }
 
-        // 5. Calculate delivery cost with ML and get percentage
+        // 5. Calculate delivery cost
         BigDecimal deliveryCost;
         Double pricePercentage = null;
         if (event.getDeliveryCost() != null && event.getDeliveryCost().compareTo(BigDecimal.ZERO) > 0) {
-            // ✅ Prix déjà calculé par Order_Service, on le réutilise
             deliveryCost = event.getDeliveryCost();
             log.info("💰 Using delivery cost from Order_Service: {} DH", deliveryCost);
         } else {
-            // ⚠️ Fallback uniquement si l'event n'a pas le prix (legacy/compatibilité)
             deliveryCost = new BigDecimal("10.00")
                     .add(new BigDecimal(distanceKm).multiply(new BigDecimal("2.00")));
             log.warn("⚠️ No deliveryCost in event — fallback: {} DH", deliveryCost);
         }
 
-        // 6. Calculate ETA with ML and get percentage
+        // 6. Calculate ETA with ML
         Integer etaMinutes;
         Double etaPercentage = null;
         try {
@@ -120,21 +134,16 @@ public class DeliveryServiceImpl implements DeliveryService {
 
             ETAResponse etaResponse = etaFeignClient.calculateETA(etaRequest);
             etaMinutes = etaResponse.getEstimatedMinutes();
-            etaPercentage = etaResponse.getEtaPercentage();  // Get percentage from service
+            etaPercentage = etaResponse.getEtaPercentage();
 
-            // Calculate fallback for logging only
             Integer fallbackEta = 10 + (int) Math.round(distanceKm * 3);
-
             log.info("✅ ETA ML: {} min | change: {}% (fallback: {} min)",
-                    etaMinutes,
-                    etaPercentage != null ? etaPercentage : 0.0,
-                    fallbackEta);
+                    etaMinutes, etaPercentage != null ? etaPercentage : 0.0, fallbackEta);
 
         } catch (Exception e) {
             log.warn("⚠️ ETA Service unavailable — using fallback calculation: {}", e.getMessage());
             etaMinutes = 10 + (int) Math.round(distanceKm * 3);
             etaPercentage = 0.0;
-            log.info("⏱️ Using fallback ETA: {} min (0% change)", etaMinutes);
         }
 
         // 7. Calcul de l'argent à collecter
@@ -156,22 +165,25 @@ public class DeliveryServiceImpl implements DeliveryService {
                 .distanceInKm(distanceKm)
                 .estimatedTimeInMinutes(etaMinutes)
                 .status(DeliveryStatus.PENDING)
+                // 💡 NOTE: You can also map the sender/receiver phone numbers here
+                // if you add them to your Delivery entity!
                 .build();
 
         deliveryRepository.save(delivery);
+
         messagingTemplate.convertAndSend(
                 "/topic/delivery/" + delivery.getOrderRef(),
                 deliveryMapper.toDto(delivery)
         );
 
         // Log final summary
-        log.info("📊 Delivery created - Order: {} | ETA: {} min ({}% change) | Cost: {} DH ({}% change) | Distance: {} km",
+        log.info("📊 Delivery created - Order: {} | ETA: {} min ({}% change) | Cost: {} DH | Distance: {} km | Type: {}",
                 event.getOrderRef(),
                 etaMinutes,
                 etaPercentage != null ? etaPercentage : 0.0,
                 deliveryCost,
-                pricePercentage != null ? pricePercentage : 0.0,
-                distanceKm);
+                distanceKm,
+                isSpecialDelivery ? "SPECIAL_DELIVERY" : "REGULAR");
     }
 
     // ✅ acceptDelivery — customerEmail vient de la DB, courierName du JWT

@@ -12,21 +12,46 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder // Pratique pour créer l'objet rapidement
+@Builder
 public class OrderEvent {
-    private String eventType;    // Pour "ORDER_CREATED", "ORDER_UPDATED", etc.
+    private String eventType;    // "ORDER_CREATED", "ORDER_PAID", etc.
     private String orderRef;
-    private String userName;     // Correspond à customerName
-    private String email;        // Correspond à customerEmail
+    private String orderType;    // 👈 NEW: "REGULAR" or "SPECIAL_DELIVERY"
+
+    // Core Customer Info
+    private String userName;
+    private String email;
+
+    // Financials
     private BigDecimal totalAmount;
-    private List<OrderItemEvent> items;
-    private String createdAt;
-    private String message;      // Optionnel : pour un texte personnalisé
-    private boolean cashOnDelivery;
-    private Address deliveryAddress;
     private BigDecimal deliveryCost;
+    private boolean cashOnDelivery;
+
+    // Addresses
+    private Address deliveryAddress; // This is the Drop-off location
+    private Address pickUpAddress;   // 👈 NEW: Required for C2C Special Deliveries!
+
+    // Logistics & Store (For Regular Orders / Catalog categorization)
     private String storeId;
     private String storeCategory;
+
+    // 📦 Special Delivery Info (Nullable for food orders)
+    private String productName;      // 👈 NEW: What is the courier carrying?
+    private Double totalWeightKg;    // 👈 NEW: Is it heavy?
+    private String instructions;     // 👈 NEW: "Handle with care"
+
+    // 📞 Contacts for Courier
+    private String senderName;       // 👈 NEW
+    private String senderPhone;      // 👈 NEW
+    private String receiverName;     // 👈 NEW
+    private String receiverPhone;    // 👈 NEW
+
+    // Items (For food/pharmacy orders, will be null/empty for Special Delivery)
+    private List<OrderItemEvent> items;
+
+    private String createdAt;
+    private String message;
+
     @Data
     @AllArgsConstructor
     @NoArgsConstructor

@@ -235,7 +235,7 @@ export class Analytics implements OnInit, AfterViewInit {
     }
 
     // Product quality: based on non-cancelled orders with items
-    const ordersWithItems = this.orders.filter(o => o.items.length > 0).length;
+    const ordersWithItems = this.orders.filter(o => (o.items || []).length > 0).length;
     this.metrics.productQualityScore = ordersWithItems > 0
       ? Math.round((ordersWithItems / total) * 100)
       : 0;
@@ -331,7 +331,7 @@ export class Analytics implements OnInit, AfterViewInit {
     const productMap = new Map<string, { name: string; sold: number; revenue: number }>();
 
     this.orders.forEach(order => {
-      order.items.forEach(item => {
+      (order.items || []).forEach(item => {
         if (!productMap.has(item.productId)) {
           productMap.set(item.productId, { name: item.productName, sold: 0, revenue: 0 });
         }

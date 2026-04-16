@@ -16,57 +16,84 @@ public class OrderEventConsumer {
 
     @KafkaListener(
             topics = "order-topics",
-            groupId = "notification-order-group",        // ✅ unique group
-            containerFactory = "orderKafkaListenerContainerFactory"  // ✅
-
+            groupId = "notification-order-group",
+            containerFactory = "orderKafkaListenerContainerFactory"
     )
     public void consumeOrderEvent(OrderEvent event) {
-        log.info("📩 Message Kafka reçu pour la commande : {}", event.getOrderRef());
+        log.info("📩 Message Kafka reçu pour la commande : {}, Type: {}", event.getOrderRef(), event.getOrderType());
 
         try {
-            String subject = "SimoVite - Confirmation de votre commande " + event.getOrderRef();
+            boolean isSpecialDelivery = "SPECIAL_DELIVERY".equals(event.getOrderType());
 
-            // 1. Utilisation de StringBuilder pour construire le reçu dynamiquement
+            // Sujet dynamique selon le type de service
+            String subject = isSpecialDelivery
+                    ? "📦 SimoVite - Confirmation de votre expédition (Colis) " + event.getOrderRef()
+                    : "🍔 SimoVite - Confirmation de votre commande " + event.getOrderRef();
+
             StringBuilder body = new StringBuilder();
 
             body.append("Bonjour ").append(event.getUserName()).append(",\n\n");
             body.append("Merci de choisir SimoVite ! 🎉\n");
-            body.append("Votre commande a été enregistrée avec succès.\n\n");
+            body.append(isSpecialDelivery
+                    ? "Votre demande de livraison de colis a été enregistrée avec succès.\n\n"
+                    : "Votre commande a été enregistrée avec succès.\n\n");
 
-            body.append("🧾 DÉTAILS DE LA COMMANDE :\n");
+            body.append("🧾 DÉTAILS DE LA TRANSACTION :\n");
             body.append("--------------------------------------------------\n");
             body.append("Référence : ").append(event.getOrderRef()).append("\n");
-            body.append("Date      : ").append(event.getCreatedAt()).append("\n");
-            body.append("Statut    : ").append(event.getEventType()).append("\n");
+            body.append("Date      : ").append(event.getCreatedAt() != null ? event.getCreatedAt() : "N/A").append("\n");
+            body.append("Paiement  : ").append(event.isCashOnDelivery() ? "Paiement à la livraison" : "Payé en ligne").append("\n");
             body.append("--------------------------------------------------\n\n");
 
-            body.append("🛒 VOS ARTICLES :\n");
-
-            // 2. Boucle pour afficher chaque article reçu de Kafka
-            if (event.getItems() != null && !event.getItems().isEmpty()) {
-                for (OrderEvent.OrderItemEvent item : event.getItems()) {
-                    // String.format ici permet d'aligner le texte et d'afficher les prix avec 2 décimales
-                    body.append(String.format(" 🔸 %dx %s - %.2f DH/unité\n",
-                            item.getQuantity(),
-                            item.getProductName(),
-                            item.getUnitPrice()));
+            // 🔀 LE FAMEUX "FORK IN THE ROAD"
+            if (isSpecialDelivery) {
+                // Template Email pour l'envoi de colis (C2C)
+                body.append("📦 DÉTAILS DU COLIS :\n");
+                body.append(" Contenu      : ").append(event.getProductName() != null ? event.getProductName() : "Colis Spécial").append("\n");
+                if (event.getTotalWeightKg() != null) {
+                    body.append(String.format(" Poids estimé : %.2f kg\n", event.getTotalWeightKg()));
                 }
+                if (event.getInstructions() != null && !event.getInstructions().isEmpty()) {
+                    body.append(" Instructions : ").append(event.getInstructions()).append("\n");
+                }
+                body.append("\n");
+
+                body.append("📍 CONTACTS LOGISTIQUES :\n");
+                body.append(" Expéditeur   : ").append(event.getSenderName()).append(" (").append(event.getSenderPhone()).append(")\n");
+                body.append(" Destinataire : ").append(event.getReceiverName()).append(" (").append(event.getReceiverPhone()).append(")\n");
+
             } else {
-                body.append(" Aucun article détaillé.\n");
+                // Template Email classique pour Nourriture/Pharmacie (B2C)
+                body.append("🛒 VOS ARTICLES :\n");
+                if (event.getItems() != null && !event.getItems().isEmpty()) {
+                    for (OrderEvent.OrderItemEvent item : event.getItems()) {
+                        body.append(String.format(" 🔸 %dx %s - %.2f DH/unité\n",
+                                item.getQuantity(),
+                                item.getProductName(),
+                                item.getUnitPrice()));
+                    }
+                } else {
+                    body.append(" Aucun article détaillé.\n");
+                }
             }
 
             body.append("--------------------------------------------------\n");
 
-            // 3. Affichage du prix total (avec sécurité si null)
+            // Affichage des frais de livraison si disponibles
+            if (event.getDeliveryCost() != null) {
+                body.append(String.format("🛵 Frais de livraison : %.2f DH\n", event.getDeliveryCost().doubleValue()));
+            }
+
+            // Affichage du prix total
             double total = event.getTotalAmount() != null ? event.getTotalAmount().doubleValue() : 0.0;
-            body.append(String.format("💰 PRIX TOTAL : %.2f DH\n", total));
+            body.append(String.format("💰 TOTAL À PAYER    : %.2f DH\n", total));
             body.append("--------------------------------------------------\n\n");
 
             body.append("Vous pouvez suivre l'état de votre livraison directement sur notre application.\n\n");
             body.append("À très bientôt,\n");
             body.append("L'équipe SimoVite 🚀");
 
-            // 4. Envoi de l'email
+            // Envoi de l'email
             emailService.sendBookingEmail(event.getEmail(), subject, body.toString());
 
             log.info("✅ Email de confirmation envoyé avec succès à : {}", event.getEmail());

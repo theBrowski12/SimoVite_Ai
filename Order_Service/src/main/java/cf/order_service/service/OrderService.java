@@ -2,12 +2,15 @@ package cf.order_service.service;
 
 import cf.order_service.dto.OrderRequestDto;
 import cf.order_service.dto.OrderResponseDto;
+import cf.order_service.dto.specialDelivery.SpecialDeliveryRequestDto;
+import cf.order_service.dto.specialDelivery.SpecialDeliveryResponseDto;
 import cf.order_service.enums.OrderStatus;
 
 import java.util.List;
 
 public interface OrderService {
     OrderResponseDto createOrder(OrderRequestDto orderRequestDto);
+    SpecialDeliveryResponseDto createSpecialDeliveryOrder(SpecialDeliveryRequestDto dto);
     OrderResponseDto updateOrder(Long id, OrderRequestDto orderRequestDto);
     void deleteOrder(Long id);
     List<OrderResponseDto> getOrdersByStoreId(String storeId);

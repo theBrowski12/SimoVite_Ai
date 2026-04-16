@@ -191,7 +191,7 @@
 
             <!-- Items count -->
             <td>
-              <span class="items-count">{{ o.items.length || 0 }} items</span>
+              <span class="items-count">{{ o.items?.length || 0 }} items</span>
             </td>
 
             <!-- Total -->
@@ -349,7 +349,7 @@
 
         <!-- Items -->
         <div class="detail-section">
-          <div class="section-label">🛍️ Items ({{ o.items.length || 0 }})</div>
+          <div class="section-label">🛍️ Items ({{ o.items?.length || 0 }})</div>
           <div class="items-list">
             <div *ngFor="let item of o.items" class="item-row">
               <span class="item-qty">×{{ item.quantity }}</span>

@@ -18,25 +18,30 @@ $border: #e2e8f0;
 .stores-page {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 24px 20px 60px;
+  padding: 80px 20px 60px;
 }
 
 // HEADER
 .page-header {
-  margin-bottom: 24px;
+  margin-bottom: 32px;
+  padding: 24px;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.05) 0%, rgba(255, 107, 53, 0.02) 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 107, 53, 0.1);
 }
 
 .page-title {
   font-size: 1.75rem;
   font-weight: 800;
   color: $text-dark;
-  margin: 0 0 4px;
+  margin: 0 0 8px;
 }
 
 .page-subtitle {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: $text-muted;
   margin: 0;
+  line-height: 1.5;
 }
 
 // FILTERS SECTION

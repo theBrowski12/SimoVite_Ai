@@ -10,7 +10,7 @@
 .client-account-container {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 24px 20px 60px;
+  padding: 80px 20px 60px;
 }
 
 // Loading
@@ -29,12 +29,16 @@
 .account-header {
   display: flex; justify-content: space-between; align-items: center;
   flex-wrap: wrap; gap: 16px; margin-bottom: 24px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.03) 0%, rgba(30, 41, 59, 0.02) 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .account-title {
-  font-size: 1.75rem; font-weight: 800; color: #0f172a; margin: 0 0 4px;
+  font-size: 1.5rem; font-weight: 700; color: #0f172a; margin: 0 0 4px;
 }
-.account-subtitle { font-size: 0.9rem; color: #64748b; margin: 0; }
+.account-subtitle { font-size: 0.9rem; color: #64748b; margin: 0; line-height: 1.4; }
 
 // Alerts
 .alert {

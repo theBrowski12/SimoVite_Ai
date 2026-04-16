@@ -2,6 +2,8 @@ package cf.order_service.api;
 
 import cf.order_service.dto.OrderRequestDto;
 import cf.order_service.dto.OrderResponseDto;
+import cf.order_service.dto.specialDelivery.SpecialDeliveryRequestDto;
+import cf.order_service.dto.specialDelivery.SpecialDeliveryResponseDto;
 import cf.order_service.enums.OrderStatus;
 import cf.order_service.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/v1/orders")
 @RequiredArgsConstructor
@@ -38,6 +42,28 @@ public class OrderController {
     )
     public ResponseEntity<OrderResponseDto> createOrder(@RequestBody OrderRequestDto request) {
         return new ResponseEntity<>(orderService.createOrder(request), HttpStatus.CREATED);
+    }
+
+    @PostMapping("/special-delivery")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN')") // Added security
+    @Operation(
+            summary = "Créer une livraison spéciale (Colis)",
+            description = "Enregistre une expédition C2C en base, calcule les frais de livraison selon la distance/poids, et déclenche la logistique.",
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Livraison spéciale créée avec succès"),
+                    @ApiResponse(responseCode = "400", description = "Données invalides")
+            }
+    )
+    public ResponseEntity<SpecialDeliveryResponseDto> createSpecialDeliveryOrder(
+            @RequestBody SpecialDeliveryRequestDto dto) {
+
+        // Fixed the logging statement to use 'log.info' (assuming you have @Slf4j on your class)
+        // This makes the "{}" syntax work perfectly!
+        log.info("📦 Received new Special Delivery request from user/sender: {}", dto.getSenderName());
+
+        SpecialDeliveryResponseDto response = orderService.createSpecialDeliveryOrder(dto);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/{id}")
