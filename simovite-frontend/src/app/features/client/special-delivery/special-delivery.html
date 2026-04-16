@@ -24,7 +24,7 @@
           </div>
           <div class="input-group">
             <label>Sender Phone *</label>
-            <input formControlName="senderPhone" type="tel" placeholder="+212 6... ">
+            <input formControlName="senderPhone" type="tel" placeholder="+212 6...">
           </div>
           <div class="input-group full-width">
             <label>Pickup Street Address *</label>
@@ -42,14 +42,29 @@
             <label>Apartment</label>
             <input formControlName="pickUpApartment" type="text" placeholder="Apt 12">
           </div>
-          
-          <div class="input-group">
-            <label>Latitude</label>
-            <input formControlName="pickUpLatitude" type="number" step="any">
-          </div>
-          <div class="input-group">
-            <label>Longitude</label>
-            <input formControlName="pickUpLongitude" type="number" step="any">
+
+          <div class="input-group full-width map-group">
+            <label>Pinpoint Pickup Location *</label>
+            
+            <div class="map-toolbar">
+              <button type="button" class="btn-location" (click)="getCurrentLocation('pickup')">
+                📍 My Location
+              </button>
+              <div class="search-bar">
+                <input type="text" #pickupSearch placeholder="Search area or street..." 
+                       (keydown.enter)="$event.preventDefault(); searchAddress(pickupSearch.value, 'pickup')">
+                <button type="button" (click)="searchAddress(pickupSearch.value, 'pickup')">Search</button>
+              </div>
+            </div>
+
+            <div id="pickup-map" class="map-container"></div>
+            
+            <div class="coordinates-display" *ngIf="deliveryForm.value.pickUpLatitude !== 0">
+              <span class="coord"><strong>Lat:</strong> {{ deliveryForm.value.pickUpLatitude | number:'1.4-6' }}</span>
+              <span class="coord"><strong>Lng:</strong> {{ deliveryForm.value.pickUpLongitude | number:'1.4-6' }}</span>
+            </div>
+            
+            <p class="map-hint">Click on the map to set the exact pickup location.</p>
           </div>
         </div>
       </section>
@@ -85,13 +100,25 @@
             <input formControlName="dropOffApartment" type="text" placeholder="Apt 3">
           </div>
 
-          <div class="input-group">
-            <label>Latitude</label>
-            <input formControlName="dropOffLatitude" type="number" step="any">
-          </div>
-          <div class="input-group">
-            <label>Longitude</label>
-            <input formControlName="dropOffLongitude" type="number" step="any">
+          <div class="input-group full-width map-group">
+            <label>Pinpoint Drop-off Location *</label>
+            
+            <div class="map-toolbar">
+              <div class="search-bar">
+                <input type="text" #dropoffSearch placeholder="Search destination address..." 
+                       (keydown.enter)="$event.preventDefault(); searchAddress(dropoffSearch.value, 'dropoff')">
+                <button type="button" (click)="searchAddress(dropoffSearch.value, 'dropoff')">Search</button>
+              </div>
+            </div>
+
+            <div id="dropoff-map" class="map-container"></div>
+            
+            <div class="coordinates-display" *ngIf="deliveryForm.value.dropOffLatitude !== 0">
+              <span class="coord"><strong>Lat:</strong> {{ deliveryForm.value.dropOffLatitude | number:'1.4-6' }}</span>
+              <span class="coord"><strong>Lng:</strong> {{ deliveryForm.value.dropOffLongitude | number:'1.4-6' }}</span>
+            </div>
+
+            <p class="map-hint">Click on the map to set the exact delivery destination.</p>
           </div>
         </div>
       </section>

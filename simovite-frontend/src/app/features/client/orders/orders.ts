@@ -57,6 +57,10 @@ export class Orders implements OnInit {
 
   // ── Load ──────────────────────────────────────────────────
 
+  refresh(): void {
+    this.load();
+  }
+
   load(): void {
     this.loading = true;
     this.error   = '';
