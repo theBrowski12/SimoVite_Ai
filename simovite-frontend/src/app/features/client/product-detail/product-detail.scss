@@ -191,6 +191,26 @@ $border: #e2e8f0;
   .added-check { font-size: 1.2rem; }
 }
 
+.btn-special-delivery {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 14px 20px;
+  background: $primary; border: none; border-radius: 12px;
+  color: #fff; font-size: 0.95rem; font-weight: 700;
+  cursor: pointer; transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba($primary, 0.2);
+
+  &:hover:not(:disabled) { 
+    background: $primary-dark; 
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba($primary, 0.3);
+  }
+  &:active:not(:disabled) { transform: translateY(0); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  svg { transition: transform 0.2s; }
+  &:hover svg { transform: translateY(-2px); }
+}
+
 // DESCRIPTION
 .description-section { margin-bottom: 20px; }
 

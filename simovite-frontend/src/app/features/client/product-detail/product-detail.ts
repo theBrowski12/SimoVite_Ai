@@ -116,6 +116,10 @@ export class ProductDetail implements OnInit {
     setTimeout(() => this.addedToCart = false, 2000);
   }
 
+  makeSpecialDelivery(): void {
+    this.router.navigate(['/special-delivery']);
+  }
+
   // ── Review Form ──────────────────────────────────────────
   submitReview(): void {
     if (this.reviewRating === 0 || !this.reviewComment.trim() || !this.store) return;
