@@ -261,7 +261,6 @@ public class OrderServiceImpl implements OrderService {
         }
 
         order.setPaid(true);
-        order.setStatus(OrderStatus.ACCEPTED); // On passe de PENDING à ACCEPTED
         Order savedOrder = orderRepository.save(order);
 
         log.info("✅ Paiement en ligne validé pour la commande {}.", savedOrder.getOrderRef());

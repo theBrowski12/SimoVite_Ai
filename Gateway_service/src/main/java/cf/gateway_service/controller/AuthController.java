@@ -32,36 +32,40 @@ public class AuthController {
     @PostMapping("/assign-role")
     public ResponseEntity<Void> assignRole(@AuthenticationPrincipal Jwt jwt) {
 
-        if (jwt == null) return ResponseEntity.badRequest().build();
+        if (jwt == null) {
+            return ResponseEntity.status(401).build();
+        }
 
         String userId = jwt.getSubject();
-
-        // Keycloak exposes custom user attributes as claims
         String requestedRole = jwt.getClaimAsString("requested_role");
 
         if (requestedRole == null || requestedRole.isBlank()) {
             return ResponseEntity.ok().build();
         }
 
-        RealmResource realmResource = keycloakAdmin.realm(realm);
-        UserResource userResource = realmResource.users().get(userId);
+        try {
+            RealmResource realmResource = keycloakAdmin.realm(realm);
+            UserResource userResource = realmResource.users().get(userId);
 
-        // Check user doesn't already have an app role assigned
-        boolean alreadyHasRole = userResource.roles().realmLevel().listAll()
-                .stream()
-                .anyMatch(r -> List.of("CLIENT", "COURIER", "STORE_OWNER", "ADMIN")
-                        .contains(r.getName().toUpperCase()));
+            boolean alreadyHasRole = userResource.roles().realmLevel().listAll()
+                    .stream()
+                    .anyMatch(r -> List.of("CLIENT", "COURIER", "STORE_OWNER", "ADMIN")
+                            .contains(r.getName().toUpperCase()));
 
-        if (alreadyHasRole) {
+            if (alreadyHasRole) {
+                return ResponseEntity.ok().build();
+            }
+
+            RoleRepresentation role = realmResource.roles()
+                    .get(requestedRole.toUpperCase())
+                    .toRepresentation();
+
+            userResource.roles().realmLevel().add(List.of(role));
             return ResponseEntity.ok().build();
+
+        } catch (Exception e) {
+            // Log and return 500 so frontend knows it failed
+            return ResponseEntity.internalServerError().build();
         }
-
-        RoleRepresentation role = realmResource.roles()
-                .get(requestedRole.toUpperCase())
-                .toRepresentation();
-
-        userResource.roles().realmLevel().add(List.of(role));
-
-        return ResponseEntity.ok().build();
     }
 }

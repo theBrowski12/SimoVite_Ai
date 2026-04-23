@@ -3,7 +3,7 @@ export const environment = {
   apiGateway:  'http://localhost:8888',
   etaService:  'http://localhost:8085',     // direct if gateway not proxying Python
   keycloak: {
-    url:      'http://localhost:8080',
+    url:      'http://keycloak:8080',
     realm:    'Simovite',
     clientId: 'simovite-app'
   },
