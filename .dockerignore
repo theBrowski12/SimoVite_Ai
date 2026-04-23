@@ -1,0 +1,183 @@
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+*.dockerignore
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.idea/
+.classpath
+.project
+.settings/
+*.iml
+
+# Logs
+*.log
+logs/
+*.pid
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment files
+.env
+.env.*
+!.env.example
+*.env
+
+# Node / Frontend
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+dist/
+build/
+.sass-cache/
+*.css.map
+*.js.map
+
+# Java / Spring Boot
+**/target/
+**/build/
+*.class
+*.jar
+*.war
+*.ear
+*.jar.original
+**/.gradle/
+**/gradle/
+gradlew
+gradlew.bat
+**/out/
+**/bin/
+
+# Maven
+**/pom.xml.tag
+**/pom.xml.releaseBackup
+**/pom.xml.versionsBackup
+**/pom.xml.next
+**/release.properties
+**/dependency-reduced-pom.xml
+**/buildNumber.properties
+**/.mvn/
+**/mvnw
+**/mvnw.cmd
+
+# Logs from services
+**/logs/
+**/log/
+
+# Application specific
+**/application-local.properties
+**/application-dev.properties
+**/application-prod.properties
+**/bootstrap-local.yml
+**/bootstrap-dev.yml
+
+# Python (ETA Service)
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/venv/
+**/env/
+**/ENV/
+**/.venv
+**/.python-version
+**/pip-log.txt
+**/pip-delete-this-directory.txt
+**/.pytest_cache/
+**/.coverage
+**/htmlcov/
+**/.tox/
+**.pkl
+**/model/
+
+# Docker volumes (don't want these in image)
+mongo-data/
+mysql-data/
+*.dump
+*.sql
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+
+# Secrets and certificates
+*.pem
+*.crt
+*.key
+*.p12
+*.pfx
+*.jks
+*.cer
+keystore.jks
+truststore.jks
+
+# Testing
+**/test-output/
+**/tests/
+**/coverage/
+**/.jest/
+**/__tests__/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+tmp/
+temp/
+
+# React/Angular frontend
+**/node_modules/
+**/.angular/
+**/.ng/
+**/e2e/
+**/coverage/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# VS Code
+.vscode/
+.history/
+*.code-workspace
+
+# Eclipse
+.project
+.classpath
+.settings/
+bin/
+
+# MacOS
+.AppleDouble
+.LSOverride
+._*
+
+# Linux
+*~
+.directory
+
+# Windows
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump

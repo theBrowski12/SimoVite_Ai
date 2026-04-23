@@ -1,4 +1,7 @@
 services:
+
+  # ── Infrastructure ─────────────────────────────────────────
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: zookeeper
@@ -18,7 +21,7 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
   mongodb:
@@ -29,7 +32,7 @@ services:
     volumes:
       - mongo-data:/data/db
     environment:
-      MONGO_INITDB_DATABASE: simovite_db
+      MONGO_INITDB_DATABASE: simovite_catalog_db
 
   mysql:
     image: mysql:8.0
@@ -42,6 +45,11 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: order_db
     command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7.2-alpine
@@ -49,16 +57,259 @@ services:
     ports:
       - "6379:6379"
     restart: unless-stopped
-
-#  ollama:
-#    image: ollama/ollama:0.3.6
-#    container_name: ollama
+#
+#  keycloak:
+#    image: quay.io/keycloak/keycloak:26.4.7
+#    container_name: simovite-keycloak
 #    ports:
-#      - "11434:11434"
+#      - "8080:8080"
+#    depends_on:
+#      mysql:
+#        condition: service_healthy
+#    environment:
+#      KC_DB: mysql
+#      KC_DB_URL: jdbc:mysql://simovite-mysql:3306/keycloak_db
+#      KC_DB_USERNAME: root
+#      KC_DB_PASSWORD: root
+#      KEYCLOAK_ADMIN: simo
+#      KEYCLOAK_ADMIN_PASSWORD: ********
+#      KC_HOSTNAME_STRICT: false
+#      KC_HTTP_ENABLED: true
 #    volumes:
-#      - ollama_data:/root/.ollama
-#    restart: unless-stopped
+#      - ./realm-export.json:/opt/keycloak/data/import/realm.json
+#    command: start-dev --import-realm
+#    healthcheck:
+#      test: [ "CMD-SHELL", "timeout 1 bash -c 'cat < /dev/null > /dev/tcp/127.0.0.1/8080' 2>/dev/null && exit 0 || exit 1" ]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 15
+#      start_period: 30s
+#
+#  # ── Spring Cloud Infrastructure ────────────────────────────
+#
+  discovery-service:
+    build:
+      context: ./Discovery_Service
+      dockerfile: Dockerfile
+    container_name: simovite-discovery
+    ports:
+      - "8761:8761"
+    environment:
+      SERVER_PORT: 8761
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8761/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  config-service:
+    build:
+      context: ./Config_Service
+      dockerfile: Dockerfile
+    container_name: simovite-config
+    ports:
+      - "9999:9999"
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+    environment:
+      DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9999/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  gateway-service:
+    build:
+      context: ./Gateway_service
+      dockerfile: Dockerfile
+    container_name: simovite-gateway
+    ports:
+      - "8888:8888"
+    depends_on:
+      config-service:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+    environment:
+      DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka
+      KEYCLOACK_ISSUER: http://keycloak:8080/realms/Simovite
+      KEYCLOACK_CERTS: http://keycloak:8080/realms/Simovite/protocol/openid-connect/certs
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_REALM: Simovite
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "keycloak:host-gateway"
+
+  # ── Microservices ──────────────────────────────────────────
+
+  catalog-service:
+    build:
+      context: ./Catalog_Service
+      dockerfile: Dockerfile
+    container_name: simovite-catalog
+    ports:
+      - "8081:8081"
+    depends_on:
+      config-service:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+      discovery-service:
+        condition: service_healthy
+    environment:
+      DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka
+      CONFIG_SERVICE_URL: http://config-service:9999
+      MONGO_URI: mongodb://simovite-mongo:27017/simovite_catalog_db
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/Simovite
+      KEYCLOAK_CERTS: http://keycloak:8080/realms/Simovite/protocol/openid-connect/certs
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN}
+      ETA_SERVICE_URL: http://simovite-eta:8085
+    extra_hosts:
+      - "keycloak:host-gateway"
+
+  order-service:
+    build:
+      context: ./Order_Service
+      dockerfile: Dockerfile
+    container_name: simovite-order
+    ports:
+      - "8082:8082"
+    depends_on:
+      config-service:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      discovery-service:
+        condition: service_healthy
+    environment:
+      DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka
+      CONFIG_SERVICE_URL: http://config-service:9999
+      DB_URL: jdbc:mysql://simovite-mysql:3306/order_db?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/Simovite
+      KEYCLOAK_CERTS: http://keycloak:8080/realms/Simovite/protocol/openid-connect/certs
+    extra_hosts:
+      - "keycloak:host-gateway"
+
+  delivery-service:
+    build:
+      context: ./Delivery_Service
+      dockerfile: Dockerfile
+    container_name: simovite-delivery
+    ports:
+      - "8083:8083"
+    depends_on:
+      config-service:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      redis:
+        condition: service_started
+      discovery-service:
+        condition: service_healthy
+    environment:
+      DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka
+      CONFIG_SERVICE_URL: http://config-service:9999
+      DB_URL: jdbc:mysql://simovite-mysql:3306/delivery_db?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      REDIS_HOST: simovite-redis
+      REDIS_PORT: 6379
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/Simovite
+      KEYCLOAK_CERTS: http://keycloak:8080/realms/Simovite/protocol/openid-connect/certs
+    extra_hosts:
+      - "keycloak:host-gateway"
+
+  notification-service:
+    build:
+      context: ./Notification_Service
+      dockerfile: Dockerfile
+    container_name: simovite-notification
+    ports:
+      - "8089:8089"
+    depends_on:
+      config-service:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      discovery-service:
+        condition: service_healthy
+    environment:
+      DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka
+      CONFIG_SERVICE_URL: http://config-service:9999
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+    extra_hosts:
+      - "keycloak:host-gateway"
+
+  eta-service:
+    build:
+      context: ./ETA_Service
+      dockerfile: Dockerfile
+    container_name: simovite-eta
+    ports:
+      - "8085:8085"
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8085
+      OPEN_METEO_URL: https://api.open-meteo.com/v1/forecast
+      MODEL_PATH: model/eta_model.pkl
+      ENCODER_PATH: model/label_encoder.pkl
+      EUREKA_URL: http://discovery-service:8761/eureka
+      DELIVERY_SERVICE_URL: http://simovite-delivery:8083
+      HF_TOKEN: ${HF_TOKEN}
+    extra_hosts:
+      - "keycloak:host-gateway"
+
+  # ── AI Chatbot ─────────────────────────────────────────────
+
+  chatbot-service:
+    build:
+      context: ./SimoViteAI_ChatBot
+      dockerfile: Dockerfile
+    container_name: simovite-chatbot
+    ports:
+      - "8084:8084"
+    depends_on:
+      config-service:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+      catalog-service:
+        condition: service_started
+    environment:
+      DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka
+      GROQ_SERVER: ${GROQ_SERVER}
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN}
+      CATALOG_Service_URL: http://simovite-catalog:8081/mcp
+    extra_hosts:
+      - "keycloak:host-gateway"
+
+  # ── Angular Frontend ───────────────────────────────────────
+#
+#  frontend:
+#    build:
+#      context: ./simovite-frontend
+#      dockerfile: Dockerfile
+#    container_name: simovite-frontend
+#    ports:
+#      - "4200:80"
+#    depends_on:
+#      - gateway-service
+#    environment:
+#      API_GATEWAY_URL: http://simovite-gateway:8888
 volumes:
   mongo-data:
   mysql-data:
-#  ollama_data:
