@@ -264,6 +264,7 @@ services:
     environment:
       HOST: 0.0.0.0
       PORT: 8085
+      EUREKA_INSTANCE_HOST: simovite-eta
       OPEN_METEO_URL: https://api.open-meteo.com/v1/forecast
       MODEL_PATH: model/eta_model.pkl
       ENCODER_PATH: model/label_encoder.pkl

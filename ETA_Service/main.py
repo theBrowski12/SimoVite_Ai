@@ -16,7 +16,7 @@ async def lifespan(app: FastAPI):
         eureka_server = os.getenv("EUREKA_URL", "http://localhost:8761/eureka"),
         app_name      = "eta-service",
         instance_port = int(os.getenv("PORT", 8085)),
-        instance_host = os.getenv("HOST", "localhost")
+        instance_host = os.getenv("EUREKA_INSTANCE_HOST", "localhost")
     )
     print("✅ ETA_Service enregistré dans Eureka")
     yield
