@@ -1,4 +1,15 @@
 apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
 kind: ConfigMap
 metadata:
   name: prometheus-config
@@ -8,21 +19,27 @@ data:
       scrape_interval: 10s
       evaluation_interval: 10s
     scrape_configs:
-      - job_name: 'filiere_service'
+      - job_name: 'order-service'
         metrics_path: '/actuator/prometheus'
         scrape_interval: 5s
         static_configs:
-          - targets: ['faculty-filiere-service:8081'] # nom pod de service a surveiller
+          - targets: ['simovite-order:8082']
             labels:
-              application: 'filiere_service'
-      - job_name: 'etudiant_service'
+              application: 'order-service'
+      - job_name: 'delivery-service'
         metrics_path: '/actuator/prometheus'
         scrape_interval: 5s
         static_configs:
-          - targets: ['faculty-etudiant-service:8082'] # nom pod de service a surveiller
+          - targets: ['simovite-delivery:8083']
             labels:
-              application: 'etudiant_service'
-
+              application: 'simovite-delivery'
+      - job_name: 'catalog-service'
+        metrics_path: '/actuator/prometheus'
+        scrape_interval: 5s
+        static_configs:
+          - targets: ['simovite-catalog:8081']
+            labels:
+              application: 'simovite-catalog'
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -47,12 +64,15 @@ spec:
             - name: prometheus-config
               mountPath: /etc/prometheus/prometheus.yml
               subPath: prometheus.yml
+            - name: prometheus-storage
+              mountPath: /prometheus
       volumes:
         - name: prometheus-config
           configMap:
             name: prometheus-config
-
-
+        - name: prometheus-storage
+          persistentVolumeClaim:
+            claimName: prometheus-pvc
 ---
 apiVersion: v1
 kind: Service

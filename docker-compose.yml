@@ -311,6 +311,62 @@ services:
 #      - gateway-service
 #    environment:
 #      API_GATEWAY_URL: http://simovite-gateway:8888
+  # ── Monitoring Infrastructure ────────────────────────────
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - prometheus-data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        echo "global:
+          scrape_interval: 10s
+        scrape_configs:
+          - job_name: 'order-service'
+            metrics_path: '/actuator/prometheus'
+            static_configs:
+              - targets: ['simovite-order:8082']
+          - job_name: 'delivery-service'
+            metrics_path: '/actuator/prometheus'
+            static_configs:
+              - targets: ['simovite-delivery:8083']
+          - job_name: 'catalog-service'
+            metrics_path: '/actuator/prometheus'
+            static_configs:
+              - targets: ['simovite-catalog:8081']" > /etc/prometheus/prometheus.yml
+        /bin/prometheus --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SMTP_ENABLED=true
+      - GF_SMTP_HOST=smtp.gmail.com:587
+      - GF_SMTP_USER=simo.bambou@gmail.com
+      - GF_SMTP_PASSWORD=${MAIL_PASSWORD}
+      - GF_SMTP_FROM_ADDRESS=simo.bambou@gmail.com
+      - GF_SMTP_FROM_NAME=Grafana Alerting
+      - GF_SMTP_SKIP_VERIFY=false
+      - GF_PROVISIONING_DATASOURCES={"apiVersion":1,"datasources":[{"name":"Prometheus","type":"prometheus","url":"http://prometheus:9090","isDefault":true}]}
+    volumes:
+      - grafana-data:/var/lib/grafana
+
 volumes:
   mongo-data:
   mysql-data:
+  prometheus-data:
+  grafana-data:
