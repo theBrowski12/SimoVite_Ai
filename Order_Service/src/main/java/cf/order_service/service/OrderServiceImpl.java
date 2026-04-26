@@ -21,6 +21,7 @@ import cf.order_service.mapper.OrderItemMapper;
 import cf.order_service.mapper.OrderMapper;
 import cf.order_service.repository.OrderRepository;
 import cf.order_service.utils.JwtUtils;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -50,6 +51,8 @@ public class OrderServiceImpl implements OrderService {
     private final CatalogClient catalogRestClient;
     private final StoreClient storeClient;
     private final PriceFeignClient priceClient;
+    private final MeterRegistry meterRegistry;
+
 
     @Override
     public OrderResponseDto createOrder(OrderRequestDto dto) {
@@ -142,6 +145,24 @@ public class OrderServiceImpl implements OrderService {
             // Note : Tu pourrais envoyer un événement Kafka "ORDER_PENDING_PAYMENT" ici juste pour que
             // le Notification_Service envoie un mail "Merci de finaliser votre paiement".
         }
+        meterRegistry.counter("orders.created",
+                "status", "success",
+                "storeCategory", order.getStoreCategory()
+        ).increment();
+
+        // ✅ Add: track order value
+        meterRegistry.summary("orders.total.value",
+                "storeCategory", order.getStoreCategory()
+        ).record(savedOrder.getPrice().doubleValue());
+
+        // ✅ Add: track payment method distribution
+        meterRegistry.counter("orders.payment.method",
+                "method", savedOrder.getPaymentMethod().name()
+        ).increment();
+
+        // ✅ Add: track delivery cost
+        meterRegistry.summary("orders.delivery.cost")
+                .record(savedOrder.getDeliveryCost().doubleValue());
 
         return orderMapper.toResponseDto(savedOrder);
     }

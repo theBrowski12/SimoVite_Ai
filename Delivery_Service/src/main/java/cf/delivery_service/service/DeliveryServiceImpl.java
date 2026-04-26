@@ -22,6 +22,7 @@ import cf.delivery_service.repository.CourierLocationRepository;
 import cf.delivery_service.repository.DeliveryRepository;
 import cf.delivery_service.service.DeliveryService;
 import cf.delivery_service.utils.DistanceCalculator;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -32,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static cf.delivery_service.enums.OrderStatus.ACCEPTED;
@@ -50,6 +52,8 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final ETAFeignClient etaFeignClient;
     private final CourierLocationRepository courierLocationRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final MeterRegistry meterRegistry;
+
     @Override
     public List<DeliveryResponseDto> getPendingDeliveries() {
         log.info("Récupération des livraisons en attente...");
@@ -293,8 +297,9 @@ public class DeliveryServiceImpl implements DeliveryService {
 
         delivery.setStatus(DeliveryStatus.DELIVERED);
         delivery.setDeliveredAt(LocalDateTime.now());
+        long actualMinutes = 0L;
         if (delivery.getAcceptedAt() != null) {
-            long actualMinutes = java.time.temporal.ChronoUnit.MINUTES.between(
+            actualMinutes = java.time.temporal.ChronoUnit.MINUTES.between(
                     delivery.getAcceptedAt(),
                     delivery.getDeliveredAt()
             );
@@ -325,6 +330,10 @@ public class DeliveryServiceImpl implements DeliveryService {
                 .build();
 
         kafkaProducerService.sendDeliveryEvent(event);
+        // In completeDelivery()
+        meterRegistry.counter("deliveries.completed").increment();
+        meterRegistry.timer("delivery.duration")
+                .record(actualMinutes, TimeUnit.MINUTES);
         return deliveryMapper.toDto(savedDelivery);
     }
 
