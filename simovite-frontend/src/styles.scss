@@ -380,3 +380,22 @@ footer{background:var(--navy2);padding:60px 5% 30px;border-top:1px solid rgba(25
   .nav-search{display:none}
   .footer-top{grid-template-columns:1fr}
 }
+// RTL support
+[dir="rtl"] {
+  font-family: 'Segoe UI', 'Arial', sans-serif;
+
+  // Flip flexbox directions
+  .topbar-actions { flex-direction: row-reverse; }
+  .sidebar { right: 0; left: auto; }
+
+  // Flip margins/paddings
+  .ml-auto { margin-left: unset; margin-right: auto; }
+  .mr-auto { margin-right: unset; margin-left: auto; }
+
+  // Flip text alignment
+  .text-left  { text-align: right; }
+  .text-right { text-align: left; }
+
+  // Flip icons/arrows
+  .chevron, .arrow { transform: scaleX(-1); }
+}

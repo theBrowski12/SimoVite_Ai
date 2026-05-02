@@ -226,6 +226,41 @@
   gap: 16px;
 }
 
+.lang-switcher {
+  .lang-select {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 107, 53, 0.2);
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s ease;
+    appearance: none;
+    -webkit-appearance: none;
+    text-align: center;
+
+    &:hover {
+      border-color: #ff6b35;
+      background: rgba(255, 107, 53, 0.1);
+      box-shadow: 0 0 15px rgba(255, 107, 53, 0.15);
+    }
+
+    &:focus {
+      border-color: #ff6b35;
+      box-shadow: 0 0 15px rgba(255, 107, 53, 0.2);
+    }
+
+    option {
+      background: #121212;
+      color: #fff;
+      padding: 10px;
+    }
+  }
+}
+
 // Notification Bell (assuming component exists)
 app-notification-bell {
   display: flex;

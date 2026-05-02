@@ -4,28 +4,28 @@
   <div class="hero-left">
     <div class="hero-badge">
       <div class="hero-badge-dot"></div>
-      <span>Delivering Now</span>
+      <span>{{ 'home.delivering_now' | translate }}</span>
     </div>
-    <h1>Everything You Need,<br><span class="accent">Delivered Fast</span></h1>
-    <p class="hero-sub">Restaurants, pharmacies, groceries and special deliveries — at your doorstep in minutes.</p>
+    <h1>{{ 'home.hero_title' | translate }}<br><span class="accent">{{ 'home.hero_accent' | translate }}</span></h1>
+    <p class="hero-sub">{{ 'home.hero_subtitle' | translate }}</p>
     <div class="hero-btns">
-      <button class="btn-primary">Order Now</button>
-      <button class="btn-secondary" routerLink="/categories">View Menu</button>
+      <button class="btn-primary">{{ 'home.order_now' | translate }}</button>
+      <button class="btn-secondary" routerLink="/categories">{{ 'home.view_menu' | translate }}</button>
     </div>
     <div class="hero-stats">
       <div class="stat-item">
-        <div class="stat-val">30 min</div>
-        <div class="stat-lbl">Avg. Delivery</div>
+        <div class="stat-val">{{ 'home.avg_delivery' | translate }}</div>
+        <div class="stat-lbl">{{ 'home.avg_delivery_label' | translate }}</div>
       </div>
       <div class="stat-divider"></div>
       <div class="stat-item">
-        <div class="stat-val">500+</div>
-        <div class="stat-lbl">Stores</div>
+        <div class="stat-val">{{ 'home.stores_count' | translate }}</div>
+        <div class="stat-lbl">{{ 'home.stores_label' | translate }}</div>
       </div>
       <div class="stat-divider"></div>
       <div class="stat-item">
-        <div class="stat-val">4.9 ★</div>
-        <div class="stat-lbl">Rating</div>
+        <div class="stat-val">{{ 'home.rating' | translate }}</div>
+        <div class="stat-lbl">{{ 'home.rating_label' | translate }}</div>
       </div>
     </div>
   </div>
@@ -37,15 +37,15 @@
       <div class="float-card float-card-1">
         <div class="float-icon green">✅</div>
         <div>
-          <div class="float-title">Order Delivered!</div>
-          <div class="float-sub">2 min ago</div>
+          <div class="float-title">{{ 'home.delivered' | translate }}</div>
+          <div class="float-sub">{{ 'home.delivered_time' | translate }}</div>
         </div>
       </div>
       <div class="float-card float-card-2">
         <div class="float-icon orange">🍕</div>
         <div>
-          <div class="float-title">Pizza Palace</div>
-          <div class="float-sub" style="color:var(--orange);font-weight:600">−25% OFF</div>
+          <div class="float-title">{{ 'home.pizza_palace' | translate }}</div>
+          <div class="float-sub" style="color:var(--orange);font-weight:600">{{ 'home.discount' | translate }}</div>
         </div>
       </div>
     </div>
@@ -54,37 +54,37 @@
 
 <!-- ── CATEGORIES ── -->
 <section id="categories">
-  <div class="section-tag">Browse</div>
-  <h2 class="section-title">What are you looking for?</h2>
-  <p class="section-sub">Choose from our wide range of categories and get everything delivered to your doorstep.</p>
+  <div class="section-tag">{{ 'home.browse' | translate }}</div>
+  <h2 class="section-title">{{ 'home.what_looking_for' | translate }}</h2>
+  <p class="section-sub">{{ 'home.categories_subtitle' | translate }}</p>
   <div class="categories-grid">
     
     <div class="cat-card food" routerLink="/categories/restaurant">
       <span class="cat-icon">🍔</span>
-      <div class="cat-name">Food</div>
-      <div class="cat-sub">500+ restaurants</div>
-      <div class="cat-arrow">Browse →</div>
+      <div class="cat-name">{{ 'home.categories.food' | translate }}</div>
+      <div class="cat-sub">{{ 'home.categories.food_sub' | translate }}</div>
+      <div class="cat-arrow">{{ 'home.browse_arrow' | translate }}</div>
     </div>
     
     <div class="cat-card pharma" routerLink="/categories/pharmacy">
       <span class="cat-icon">💊</span>
-      <div class="cat-name">Pharmacy</div>
-      <div class="cat-sub">Health & Beauty</div>
-      <div class="cat-arrow">Browse →</div>
+      <div class="cat-name">{{ 'home.categories.pharmacy' | translate }}</div>
+      <div class="cat-sub">{{ 'home.categories.pharmacy_sub' | translate }}</div>
+      <div class="cat-arrow">{{ 'home.browse_arrow' | translate }}</div>
     </div>
     
     <div class="cat-card market" routerLink="/categories/supermarket">
       <span class="cat-icon">🛒</span>
-      <div class="cat-name">SuperMarket</div>
-      <div class="cat-sub">Groceries & More</div>
-      <div class="cat-arrow">Browse →</div>
+      <div class="cat-name">{{ 'home.categories.supermarket' | translate }}</div>
+      <div class="cat-sub">{{ 'home.categories.supermarket_sub' | translate }}</div>
+      <div class="cat-arrow">{{ 'home.browse_arrow' | translate }}</div>
     </div>
     
     <div class="cat-card special" routerLink="/categories/special">
       <span class="cat-icon">📦</span>
-      <div class="cat-name">Special</div>
-      <div class="cat-sub">Express Delivery</div>
-      <div class="cat-arrow">Browse →</div>
+      <div class="cat-name">{{ 'home.categories.special' | translate }}</div>
+      <div class="cat-sub">{{ 'home.categories.special_sub' | translate }}</div>
+      <div class="cat-arrow">{{ 'home.browse_arrow' | translate }}</div>
     </div>
     
   </div>
@@ -94,14 +94,14 @@
 <section style="background:var(--bg);padding:80px 5%">
   <div class="deals-header">
     <div>
-      <div class="section-tag">Limited Time</div>
-      <h2 class="section-title" style="margin-bottom:0">🔥 Hot Deals</h2>
+      <div class="section-tag">{{ 'home.limited_time' | translate }}</div>
+      <h2 class="section-title" style="margin-bottom:0">🔥 {{ 'home.hot_deals' | translate }}</h2>
     </div>
-    <a href="#" class="view-all">View All →</a>
+    <a href="#" class="view-all">{{ 'home.view_all' | translate }} {{ 'home.browse_arrow' | translate }}</a>
   </div>
 
   <div *ngIf="loadingDeals" style="text-align: center; padding: 3rem; color: #64748b;">
-    <p>Loading hot deals...</p>
+    <p>{{ 'home.loading_deals' | translate }}</p>
   </div>
 
   <div class="deals-scroll" *ngIf="!loadingDeals && hotDeals.length > 0">
@@ -117,21 +117,21 @@
         <div class="deal-discount">−{{ deal.percentage || 0 }}%</div>
       </div>
       <div class="deal-body">
-        <div class="deal-store">{{ deal.store?.name || 'Unknown Store' }}</div>
+        <div class="deal-store">{{ getStoreName(deal.storeId) || ('home.unknown_store' | translate) }}</div>
         <div class="deal-name">{{ deal.name }}</div>
         <div class="deal-pricing" *ngIf="deal.originalPrice && deal.basePrice">
           <span class="deal-old">{{ deal.originalPrice | number:'1.0-0' }} DH</span>
           <span class="deal-new">{{ deal.basePrice | number:'1.0-0' }} DH</span>
         </div>
         <div class="deal-savings" *ngIf="deal.originalPrice && deal.basePrice">
-          Save {{ (deal.originalPrice - deal.basePrice) | number:'1.0-0' }} DH
+          {{ 'home.save' | translate }} {{ (deal.originalPrice - deal.basePrice) | number:'1.0-0' }} DH
         </div>
       </div>
     </div>
   </div>
 
   <div *ngIf="!loadingDeals && hotDeals.length === 0" style="text-align: center; padding: 3rem; color: #64748b;">
-    <p>No hot deals available at the moment.</p>
+    <p>{{ 'home.no_deals' | translate }}</p>
   </div>
 </section>
 
@@ -139,10 +139,10 @@
 <section id="stores" class="stores-section">
   <div style="display:flex;justify-content:space-between;align-items:flex-end">
     <div>
-      <div class="section-tag">Featured</div>
-      <h2 class="section-title" style="margin-bottom:0">Top Rated Stores Near You</h2>
+      <div class="section-tag">{{ 'home.featured' | translate }}</div>
+      <h2 class="section-title" style="margin-bottom:0">{{ 'home.top_rated_stores' | translate }}</h2>
     </div>
-    <a routerLink="/client/categories" class="view-all">View All →</a>
+    <a routerLink="/client/categories" class="view-all">{{ 'home.view_all' | translate }} {{ 'home.browse_arrow' | translate }}</a>
   </div>
 
   <div class="stores-grid">
@@ -160,7 +160,7 @@
         <span *ngIf="!store.imageURL">{{ categoryIcons[store.category] }}</span>
         
         <div class="store-status" [ngClass]="store.open ? 'open' : 'closed'">
-          {{ store.open ? '● Open' : 'Closed' }}
+          {{ store.open ? ('home.open' | translate) : ('home.closed' | translate) }}
         </div>
       </div>
 
@@ -185,46 +185,46 @@
               {{ store.rating }} ({{ store.reviewCount || 0 }})
             </span>
             <ng-template #noRating>
-              No ratings yet
+              {{ 'home.no_ratings' | translate }}
             </ng-template>
           </div>
           
-          <div class="store-delivery">⏱ 20–30 min</div>
+          <div class="store-delivery">⏱ {{ 'home.delivery_time' | translate }}</div>
         </div>
       </div>
     </div>
   </div>
 
   <div *ngIf="!loading && stores.length === 0" style="text-align: center; padding: 3rem; color: #64748b;">
-    <p>No stores available in your area at the moment.</p>
+    <p>{{ 'home.no_stores' | translate }}</p>
   </div>
 </section>
 
 <!-- ── HOW IT WORKS ── -->
 <section class="howitworks">
   <div style="text-align:center;max-width:520px;margin:0 auto 0">
-    <div class="section-tag">Simple Process</div>
-    <h2 class="section-title">Order in 3 Simple Steps</h2>
-    <p class="section-sub" style="margin:0 auto">From craving to doorstep in minutes — it really is that easy.</p>
+    <div class="section-tag">{{ 'home.simple_process' | translate }}</div>
+    <h2 class="section-title">{{ 'home.order_in_3_steps' | translate }}</h2>
+    <p class="section-sub" style="margin:0 auto">{{ 'home.steps_subtitle' | translate }}</p>
   </div>
   <div class="steps">
     <div class="step">
       <div class="step-num">1</div>
       <div class="step-icon">🔍</div>
-      <div class="step-title">Browse & Choose</div>
-      <p class="step-desc">Explore hundreds of stores, browse menus and find exactly what you want.</p>
+      <div class="step-title">{{ 'home.step1_title' | translate }}</div>
+      <p class="step-desc">{{ 'home.step1_desc' | translate }}</p>
     </div>
     <div class="step">
       <div class="step-num">2</div>
       <div class="step-icon">🛒</div>
-      <div class="step-title">Place Your Order</div>
-      <p class="step-desc">Add items to cart, choose delivery address and pay securely online or cash.</p>
+      <div class="step-title">{{ 'home.step2_title' | translate }}</div>
+      <p class="step-desc">{{ 'home.step2_desc' | translate }}</p>
     </div>
     <div class="step">
       <div class="step-num">3</div>
       <div class="step-icon">🛵</div>
-      <div class="step-title">Fast Delivery</div>
-      <p class="step-desc">A nearby courier picks up your order and delivers it straight to your door.</p>
+      <div class="step-title">{{ 'home.step3_title' | translate }}</div>
+      <p class="step-desc">{{ 'home.step3_desc' | translate }}</p>
     </div>
   </div>
 </section>
@@ -233,8 +233,8 @@
 <section style="background:var(--white)">
   <div class="reviews-header">
     <div>
-      <div class="section-tag">Testimonials</div>
-      <h2 class="section-title" style="margin-bottom:0">What Our Customers Say</h2>
+      <div class="section-tag">{{ 'home.testimonials' | translate }}</div>
+      <h2 class="section-title" style="margin-bottom:0">{{ 'home.what_customers_say' | translate }}</h2>
     </div>
     <div class="rating-summary">
       <div class="big-rating">
@@ -242,7 +242,7 @@
       </div>
       <div class="rating-details">
         <div class="rating-stars-big">★★★★★</div>
-        <div class="rating-count">Based on {{ reviews.length }} reviews</div>
+        <div class="rating-count">{{ 'home.based_on' | translate }} {{ reviews.length }} {{ 'home.reviews' | translate }}</div>
       </div>
     </div>
   </div>
@@ -283,18 +283,18 @@
   </div>
 
   <div *ngIf="loadingReviews" style="text-align: center; padding: 3rem; color: #64748b;">
-    <p>Loading reviews...</p>
+    <p>{{ 'home.loading_reviews' | translate }}</p>
   </div>
 
   <div *ngIf="!loadingReviews && reviews.length === 0" style="text-align: center; padding: 3rem; color: #64748b;">
-    <p>No reviews available yet.</p>
+    <p>{{ 'home.no_reviews' | translate }}</p>
   </div>
 
   <div class="reviews-cta">
     <button class="btn-primary"
             style="margin: 0 auto; display: block;"
             routerLink="/my-reviews">
-      Manage My Reviews ✍️
+      {{ 'home.manage_reviews' | translate }} ✍️
     </button>
   </div>
 </section>
@@ -303,14 +303,14 @@
 <section id="track" class="track-section">
   <div class="track-inner">
     <div class="track-left">
-      <div class="section-tag" style="color:rgba(255,107,53,0.8)">Live Tracking</div>
-      <h2>Where is my order?</h2>
-      <p>Enter your order reference to get real-time updates on your delivery.</p>
+      <div class="section-tag" style="color:rgba(255,107,53,0.8)">{{ 'home.live_tracking' | translate }}</div>
+      <h2>{{ 'home.where_is_order' | translate }}</h2>
+      <p>{{ 'home.track_description' | translate }}</p>
       <div class="track-input-row">
-        <input class="track-input" type="text" placeholder="Enter order reference SV..."
+        <input class="track-input" type="text" [placeholder]="'home.order_reference_placeholder' | translate"
                [(ngModel)]="trackOrderRef"
                (keydown.enter)="trackOrder()">
-        <button class="track-btn" (click)="trackOrder()">Track Now 🔍</button>
+        <button class="track-btn" (click)="trackOrder()">{{ 'home.track_now' | translate }} 🔍</button>
       </div>
     </div>
     <div class="track-right">
@@ -319,32 +319,32 @@
           <div class="track-step-line"></div>
           <div class="track-dot done">✓</div>
           <div class="track-step-text">
-            <div class="title">Order Confirmed</div>
-            <div class="sub">09:14 — Payment received</div>
+            <div class="title">{{ 'home.order_confirmed' | translate }}</div>
+            <div class="sub">09:14 — {{ 'home.payment_received' | translate }}</div>
           </div>
         </div>
         <div class="track-step">
           <div class="track-step-line"></div>
           <div class="track-dot done">✓</div>
           <div class="track-step-text">
-            <div class="title">Courier Assigned</div>
-            <div class="sub">09:22 — Mohamed B. on the way</div>
+            <div class="title">{{ 'home.courier_assigned_title' | translate }}</div>
+            <div class="sub">09:22 — Mohamed B. {{ 'home.on_the_way' | translate }}</div>
           </div>
         </div>
         <div class="track-step">
           <div class="track-step-line"></div>
           <div class="track-dot active">🛵</div>
           <div class="track-step-text">
-            <div class="title">Picked Up</div>
-            <div class="sub">09:31 — Heading to you · ETA 8 min</div>
+            <div class="title">{{ 'home.picked_up' | translate }}</div>
+            <div class="sub">09:31 — {{ 'home.heading_to_you' | translate }} · ETA 8 min</div>
           </div>
         </div>
         <div class="track-step">
           <div class="track-step-line"></div>
           <div class="track-dot pending">○</div>
           <div class="track-step-text">
-            <div class="title">Delivered</div>
-            <div class="sub">Estimated 09:39</div>
+            <div class="title">{{ 'home.delivered' | translate }}</div>
+            <div class="sub">{{ 'home.estimated' | translate }} 09:39</div>
           </div>
         </div>
       </div>
@@ -360,7 +360,7 @@
         <div class="logo-icon">⚡</div>
         <div class="logo-text">Simo<span>Vite</span></div>
       </div>
-      <p class="footer-tagline">Fast. Reliable. Everywhere.<br>Your city, delivered in minutes.</p>
+      <p class="footer-tagline" [innerHTML]="'footer.tagline' | translate"></p>
       <div class="social-links">
         <a class="social-btn" href="#">f</a>
         <a class="social-btn" href="#">in</a>
@@ -369,35 +369,35 @@
       </div>
     </div>
     <div class="footer-col">
-      <h4>Company</h4>
-      <a href="#">About Us</a>
-      <a href="#">Careers</a>
-      <a href="#">Blog</a>
-      <a href="#">Press</a>
+      <h4>{{ 'footer.company' | translate }}</h4>
+      <a href="#">{{ 'footer.about_us' | translate }}</a>
+      <a href="#">{{ 'footer.careers' | translate }}</a>
+      <a href="#">{{ 'footer.blog' | translate }}</a>
+      <a href="#">{{ 'footer.press' | translate }}</a>
       
     </div>
     <div class="footer-col">
-      <h4>Support</h4>
-      <a href="#">Contact Us</a>
-      <a href="#">Help Center</a>
-      <a href="#">Track Order</a>
-      <a href="#">Returns</a>
-      <a href="/my-reviews">My Reviews</a>
+      <h4>{{ 'footer.support' | translate }}</h4>
+      <a href="#">{{ 'footer.contact_us' | translate }}</a>
+      <a href="#">{{ 'footer.help_center' | translate }}</a>
+      <a href="#">{{ 'footer.track_order' | translate }}</a>
+      <a href="#">{{ 'footer.returns' | translate }}</a>
+      <a href="/my-reviews">{{ 'footer.my_reviews' | translate }}</a>
     </div>
     <div class="footer-col">
-      <h4>Legal</h4>
-      <a href="#">Privacy Policy</a>
-      <a href="#">Terms of Service</a>
-      <a href="#">Cookie Policy</a>
-      <a href="#">GDPR</a>
+      <h4>{{ 'footer.legal' | translate }}</h4>
+      <a href="#">{{ 'footer.privacy_policy' | translate }}</a>
+      <a href="#">{{ 'footer.terms_of_service' | translate }}</a>
+      <a href="#">{{ 'footer.cookie_policy' | translate }}</a>
+      <a href="#">{{ 'footer.gdpr' | translate }}</a>
     </div>
   </div>
   <div class="footer-bottom">
-    <div class="footer-copy">© 2025 SimoVite — All rights reserved</div>
+    <div class="footer-copy">{{ 'footer.all_rights_reserved' | translate }}</div>
     <div class="footer-legal">
-      <a href="#">Privacy</a>
-      <a href="#">Terms</a>
-      <a href="#">Cookies</a>
+      <a href="#">{{ 'footer.privacy' | translate }}</a>
+      <a href="#">{{ 'footer.terms' | translate }}</a>
+      <a href="#">{{ 'footer.cookies' | translate }}</a>
     </div>
   </div>
 </footer>

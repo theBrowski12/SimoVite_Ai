@@ -96,5 +96,5 @@ spec:
     app: grafana-service
   ports:
     - protocol: TCP
-      port: 6060
+      port: 3000
       targetPort: 3000

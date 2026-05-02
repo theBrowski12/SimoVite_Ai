@@ -1,6 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { KeycloakService } from '@core/auth/keycloak.service';
+import { LanguageService } from './shared/services/language.service';
 
 @Component({
   selector: 'app-root', // 👈 Doit être identique à la balise dans index.html
@@ -10,9 +11,14 @@ import { KeycloakService } from '@core/auth/keycloak.service';
 })
 export class App implements OnInit{ // 👈 Le nom de la classe est "App"
   protected readonly title = signal('simovite-frontend');
-  constructor(public router: Router ,private readonly keycloak: KeycloakService) {}
+  constructor(
+    public router: Router ,
+    private readonly keycloak: KeycloakService,
+    private languageService: LanguageService
+  ) {}
 
   async ngOnInit() {
+    this.languageService.init();
     const isLoggedIn = await this.keycloak.isLoggedIn();
 
     if (isLoggedIn) {

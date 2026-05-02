@@ -1,6 +1,6 @@
 import { NgModule, APP_INITIALIZER } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClient, HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { KeycloakAngularModule } from 'keycloak-angular';
 
@@ -16,6 +16,9 @@ import { Sidebar } from './shared/components/sidebar/sidebar';
 import { JwtInterceptor } from '@core/interceptors/jwt.interceptor';
 import { AuthService } from '@core/auth/auth.service';
 
+export function HttpLoaderFactory(http: HttpClient) {
+  return new TranslateHttpLoader();
+}
 // Fonction pour initialiser Keycloak
 function initializeKeycloak(
   keycloak: KeycloakService,
@@ -41,10 +44,7 @@ function initializeKeycloak(
     SharedModule,
     KeycloakAngularModule,
     TranslateModule.forRoot({
-      loader: {
-        provide: TranslateLoader,
-        useClass: TranslateHttpLoader
-      }
+      defaultLanguage: 'fr'  // ✅ default language
     })
   ],
   providers: [

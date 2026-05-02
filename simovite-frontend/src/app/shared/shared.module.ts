@@ -4,6 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { TranslateModule } from '@ngx-translate/core';
 import { RouteMap } from './components/route-map/route-map';
 import { MapViewer } from './components/map-viewer/map-viewer';
 import { StarRating } from './components/star-rating/star-rating';
@@ -19,6 +20,7 @@ import { HasRole } from './directives/has-role';
 import { ClickOutsideDirective } from './directives/click-outside';
 import { ChatbotComponent } from './components/chatbot/chatbot';
 import { FormsModule } from '@angular/forms';
+import { LanguageSwitcherComponent } from './components/language-switcher/language-switcher';
 
 @NgModule({
   declarations: [
@@ -35,7 +37,8 @@ import { FormsModule } from '@angular/forms';
     DhCurrencyPipe,
     HasRole,
     ClickOutsideDirective,
-    ChatbotComponent
+    ChatbotComponent,
+    LanguageSwitcherComponent,
   ],
   imports: [
     CommonModule,
@@ -44,6 +47,7 @@ import { FormsModule } from '@angular/forms';
     MatTooltipModule,
     MatButtonModule,
     MatProgressSpinnerModule,
+    TranslateModule,
   ],
   exports: [
     RouteMap,
@@ -65,6 +69,8 @@ import { FormsModule } from '@angular/forms';
     MatTooltipModule,
     MatButtonModule,
     MatProgressSpinnerModule,
+    TranslateModule,
+    LanguageSwitcherComponent
   ],
 })
 export class SharedModule {}

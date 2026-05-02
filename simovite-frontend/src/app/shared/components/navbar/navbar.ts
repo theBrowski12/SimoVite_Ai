@@ -3,6 +3,7 @@ import { Router, NavigationEnd } from '@angular/router'; // 👈 Import Router
 import { filter } from 'rxjs/operators'; // 👈 Import filter
 import { KeycloakService } from '@core/auth/keycloak.service';
 import { KeycloakProfile } from 'keycloak-js';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-navbar',
@@ -20,7 +21,8 @@ export class Navbar implements OnInit {
   constructor(
     @Inject(KeycloakService) private readonly keycloak: KeycloakService,
     private cdr: ChangeDetectorRef,
-    private router: Router // 👈 Inject the Router
+    private router: Router ,
+    private translate: TranslateService
   ) {
     // 👈 Listen to URL changes to show/hide the navbar
     this.router.events.pipe(
@@ -55,6 +57,14 @@ export class Navbar implements OnInit {
       }
     }
   }
+  showMessage() {
+  this.translate.get('common.error').subscribe(msg => {
+    console.log(msg);
+  });
+
+  // Or instant (sync) if translation is already loaded
+  const msg = this.translate.instant('common.loading');
+}
 
   login() { this.keycloak.login(); }
   register() { this.keycloak.register(); } 

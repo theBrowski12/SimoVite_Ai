@@ -6,6 +6,7 @@ import { ReviewService } from '@services/review.service';
 import { ReviewResponseDto } from '@models/review.model';
 import { CatalogService } from '@services/catalog.service';
 import { CatalogResponseDto } from '@models/catalog.model';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-home',
@@ -17,6 +18,7 @@ export class Home implements OnInit {
   // On transforme l'Enum en tableau pour l'affichage
   categories: any[] = [];
   stores: StoreResponseDto[] = [];
+  storesMap = new Map<string, StoreResponseDto>(); // ✅ Add store map for quick lookup
   reviews: ReviewResponseDto[] = [];
   hotDeals: CatalogResponseDto[] = [];
   loading = true;
@@ -41,20 +43,20 @@ export class Home implements OnInit {
   // Tracking input
   trackOrderRef = '';
 
-protected readonly Math = Math;
-constructor(
-  private storeService: StoreService,
-  private cdr: ChangeDetectorRef,
-  private reviewSvc: ReviewService,
-  private catalogSvc: CatalogService,
-  private router: Router
-) {}
+  protected readonly Math = Math;
+  
+  constructor(
+    private storeService: StoreService,
+    private cdr: ChangeDetectorRef,
+    private reviewSvc: ReviewService,
+    private catalogSvc: CatalogService,
+    private router: Router,
+    private translate: TranslateService
+  ) {}
 
   ngOnInit(): void {
     this.initCategories();
-    this.loadStores();
-    this.loadReviews();
-    this.loadHotDeals();
+    this.loadData(); // ✅ Load stores first, then hot deals
   }
 
   private initCategories(): void {
@@ -62,26 +64,45 @@ constructor(
     this.categories = Object.values(MainCategory).map(value => ({
       id: value,
       name: this.categoryLabels[value] || value,
-      icon: this.categoryIcons[value] || '📦'
+      icon: this.categoryIcons[value] || '📦',
+      route: value.toLowerCase()
     }));
   }
 
-  loadStores(): void {
+  // ✅ New method: Load stores first, create map, then load everything else
+  loadData(): void {
     this.loading = true;
     this.storeService.getAllStores().subscribe({
       next: (storeList) => {
         this.stores = storeList;
+        // Create map for quick store lookup
+        storeList.forEach(store => this.storesMap.set(store.id, store));
         this.loading = false;
         this.cdr.detectChanges();
-        // Load reviews to calculate ratings
+        
+        // Load dependent data after stores are loaded
         this.loadReviews();
+        this.loadHotDeals();
       },
       error: (err) => {
         console.error("Erreur chargement magasins:", err);
         this.loading = false;
         this.cdr.detectChanges();
+        // Still try to load hot deals even without store info
+        this.loadHotDeals();
       }
     });
+  }
+
+  // ✅ Helper method to get store name from map (like admin component)
+  getStoreName(storeId: string): string {
+    const store = this.storesMap.get(storeId);
+    return store?.name ?? this.translate.instant('home.unknown_store');
+  }
+
+  // ✅ Helper method to get store category
+  getStoreCategory(storeId: string): string {
+    return this.storesMap.get(storeId)?.category ?? '';
   }
 
   getStoreImage(imagePath: string): string {
@@ -168,7 +189,7 @@ constructor(
 
   formatDate(dateString: string): string {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
+    return date.toLocaleDateString(this.translate.currentLang || 'en', { 
       day: 'numeric', 
       month: 'long', 
       year: 'numeric' 

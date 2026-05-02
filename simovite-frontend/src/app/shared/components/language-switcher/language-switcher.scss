@@ -1,0 +1,126 @@
+.lang-container {
+  position: relative;
+  display: inline-block;
+}
+
+.lang-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+  font-weight: 500;
+  min-width: 120px;
+  justify-content: space-between;
+
+  &:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+    color: #0f172a;
+  }
+
+  &.active {
+    border-color: #FF6B35;
+    background: #fffafa;
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+    color: #FF6B35;
+  }
+
+  .flag {
+    font-size: 16px;
+  }
+
+  .arrow {
+    font-size: 10px;
+    opacity: 0.5;
+    transition: transform 0.2s;
+  }
+
+  &.active .arrow {
+    transform: rotate(180deg);
+  }
+}
+
+.lang-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  min-width: 160px;
+  padding: 6px;
+  z-index: 1000;
+  overflow: hidden;
+  animation: slideIn 0.2s ease-out;
+
+  &[dir="rtl"] {
+    right: auto;
+    left: 0;
+  }
+}
+
+.dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+  font-family: inherit;
+
+  &:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+  }
+
+  &.selected {
+    background: #fff7ed;
+    color: #FF6B35;
+    font-weight: 600;
+  }
+
+  .flag {
+    font-size: 18px;
+  }
+
+  .check {
+    margin-left: auto;
+    font-size: 14px;
+    font-weight: bold;
+  }
+}
+
+[dir="rtl"] .dropdown-item {
+  text-align: right;
+  .check {
+    margin-left: 0;
+    margin-right: auto;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
