@@ -1,23 +1,23 @@
 <div class="cart-page">
   <!-- Header -->
   <header class="cart-header">
-    <h1 class="page-title">🛒 Your Cart</h1>
+    <h1 class="page-title">🛒 {{ 'cart.title' | translate }}</h1>
     <p class="page-subtitle" *ngIf="store">
-      Shopping from <span class="store-highlight">{{ store.name }}</span>
+      {{ 'cart.shopping_from' | translate }} <span class="store-highlight">{{ store.name }}</span>
     </p>
   </header>
 
   <!-- Empty Cart -->
   <div class="empty-cart" *ngIf="items.length === 0">
     <div class="empty-icon">🛒</div>
-    <h2>Your cart is empty</h2>
-    <p>Looks like you haven't added anything to your cart yet.</p>
+    <h2>{{ 'cart.empty' | translate }}</h2>
+    <p>{{ 'cart.empty_subtitle' | translate }}</p>
     <button class="btn-primary" (click)="continueShopping()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
         <polyline points="9 22 9 12 15 12 15 22"/>
       </svg>
-      Browse Stores
+      {{ 'cart.browse_stores' | translate }}
     </button>
   </div>
 
@@ -39,9 +39,9 @@
           <div class="item-header">
             <div>
               <h3 class="item-name">{{ item.product.name }}</h3>
-              <span class="item-category">{{ item.product.type }}</span>
+              <span class="item-category">{{ 'common.categories.' + item.product.type | translate }}</span>
             </div>
-            <button class="btn-remove" (click)="removeItem(item.product.id)" title="Remove item">
+            <button class="btn-remove" (click)="removeItem(item.product.id)" [title]="'cart.remove_item' | translate">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M18 6L6 18M6 6l12 12"/>
               </svg>
@@ -58,7 +58,7 @@
 
             <!-- Item Price -->
             <div class="item-price">
-              <span class="unit-price">{{ item.product.basePrice | number:'1.2-2' }} DH each</span>
+              <span class="unit-price">{{ item.product.basePrice | number:'1.2-2' }} DH {{ 'cart.each' | translate }}</span>
               <span class="total-price">{{ item.product.basePrice * item.quantity | number:'1.2-2' }} DH</span>
             </div>
           </div>
@@ -69,35 +69,35 @@
     <!-- Order Summary Sidebar -->
     <aside class="order-summary">
       <div class="summary-card">
-        <h3 class="summary-title">Order Summary</h3>
+        <h3 class="summary-title">{{ 'cart.order_summary' | translate }}</h3>
 
         <div class="summary-row">
-          <span class="summary-label">Items ({{ itemCount }})</span>
+          <span class="summary-label">{{ 'cart.items_count' | translate:{ count: itemCount } }}</span>
           <span class="summary-value">{{ subtotal | number:'1.2-2' }} DH</span>
         </div>
 
         <div class="summary-row">
-          <span class="summary-label">Delivery</span>
-          <span class="summary-value note">Calculated at checkout</span>
+          <span class="summary-label">{{ 'cart.delivery' | translate }}</span>
+          <span class="summary-value note">{{ 'cart.calculated_at_checkout' | translate }}</span>
         </div>
 
         <hr class="summary-divider">
 
         <div class="summary-row total">
-          <span class="total-label">Subtotal</span>
+          <span class="total-label">{{ 'cart.subtotal' | translate }}</span>
           <span class="total-value">{{ subtotal | number:'1.2-2' }} DH</span>
         </div>
 
         <button class="btn-checkout" (click)="proceedToCheckout()">
-          Proceed to Checkout →
+          {{ 'cart.proceed_to_checkout' | translate }} →
         </button>
 
         <button class="btn-continue" (click)="continueShopping()">
-          Continue Shopping
+          {{ 'cart.continue_shopping' | translate }}
         </button>
 
         <button class="btn-clear-cart" (click)="clearCart()">
-          Clear Cart
+          {{ 'cart.clear_cart' | translate }}
         </button>
       </div>
     </aside>

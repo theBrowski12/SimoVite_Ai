@@ -146,7 +146,23 @@
     "checkout": "إتمام الطلب",
     "add": "أضف إلى السلة",
     "remove": "حذف",
-    "quantity": "الكمية"
+    "quantity": "الكمية",
+    "shopping_from": "التسوق من",
+    "empty_subtitle": "يبدو أنك لم تضف أي شيء إلى سلتك بعد.",
+    "browse_stores": "تصفح المتاجر",
+    "remove_item": "حذف العنصر",
+    "each": "لكل واحد",
+    "order_summary": "ملخص الطلب",
+    "items_count": "العناصر ({{count}})",
+    "delivery": "التوصيل",
+    "calculated_at_checkout": "يتم احتسابها عند الدفع",
+    "subtotal": "المجموع الفرعي",
+    "proceed_to_checkout": "المتابعة للدفع",
+    "continue_shopping": "مواصلة التسوق",
+    "clear_cart": "مسح السلة",
+    "item_removed": "تم حذف {{name}} من السلة.",
+    "clear_confirm": "هل أنت متأكد من مسح السلة؟",
+    "cart_cleared": "تم مسح السلة."
   },
   "common": {
     "loading": "جاري التحميل...",
@@ -156,7 +172,93 @@
     "confirm": "تأكيد",
     "back": "رجوع",
     "search": "بحث",
-    "no_results": "لا توجد نتائج"
+    "no_results": "لا توجد نتائج",
+    "categories": {
+      "RESTAURANT": "مطعم",
+      "PHARMACY": "صيدلية",
+      "SUPERMARKET": "سوبر ماركت",
+      "SPECIAL_DELIVERY": "توصيل خاص"
+    }
+  },
+  "categories": {
+    "title": "الفئات",
+    "search_placeholder": "ابحث عن المتاجر...",
+    "sort": {
+      "default": "الافتراضي",
+      "price_asc": "السعر ↑",
+      "price_desc": "السعر ↓",
+      "rating": "الأعلى تقييماً"
+    },
+    "browse": "تصفح",
+    "what_looking_for": "عما تبحث؟",
+    "subtitle": "اختر من بين مجموعتنا الواسعة من الفئات واحصل على كل شيء يتم توصيله إلى باب منزلك.",
+    "browse_arrow": "تصفح ←",
+    "no_stores": "لم يتم العثور على متاجر تطابق بحثك.",
+    "no_products": "لم يتم العثور على منتجات.",
+    "close": "إغلاق",
+    "all": "الكل",
+    "back_to": "الرجوع إلى",
+    "items": {
+      "RESTAURANT": {
+        "sub": "الغذاء والتغذية"
+      },
+      "PHARMACY": {
+        "sub": "الصحة والجمال"
+      },
+      "SUPERMARKET": {
+        "sub": "البقالة وأكثر"
+      },
+      "SPECIAL_DELIVERY": {
+        "sub": "توصيل سريع"
+      }
+    }
+  },
+  "checkout": {
+    "title": "الدفع",
+    "order_summary": "ملخص الطلب",
+    "subtotal": "المجموع الفرعي",
+    "delivery": "التوصيل",
+    "calculated_after": "يتم احتسابها بعد التأكيد",
+    "estimated": "تقديري",
+    "delivery_details": "تفاصيل التوصيل",
+    "address_title": "📍 عنوان التوصيل",
+    "street": "الشارع",
+    "street_placeholder": "مثلاً: شارع محمد الخامس",
+    "building_no": "رقم المبنى",
+    "building_placeholder": "12",
+    "city": "المدينة",
+    "city_placeholder": "الدار البيضاء",
+    "apartment": "الشقة",
+    "apartment_placeholder": "شقة 3B",
+    "pin_location": "📍 حدد موقعك",
+    "pin_subtitle": "انقر على الخريطة، ابحث، أو استخدم نظام تحديد المواقع العالمي (GPS) لتعيين إحداثيات دقيقة.",
+    "search_location_placeholder": "أدخل عنواناً (مثلاً: المعاريف، الدار البيضاء)",
+    "search_btn": "بحث",
+    "my_location_btn": "موقعي",
+    "latitude": "خط العرض",
+    "longitude": "خط الطول",
+    "payment_method": "طريقة الدفع",
+    "cash_on_delivery": "الدفع عند الاستلام",
+    "cash_desc": "ادفع عند استلام طلبك.",
+    "credit_card": "بطاقة الائتمان",
+    "card_desc": "ادفع بأمان باستخدام بطاقتك الائتمانية.",
+    "card_details": "تفاصيل بطاقة الائتمان",
+    "card_number": "رقم البطاقة",
+    "full_name": "الاسم الكامل",
+    "expiry_date": "تاريخ الانتهاء",
+    "cvv": "رمز التحقق (CVV)",
+    "confirm_order": "تأكيد الطلب",
+    "pin_required": "يرجى تحديد موقعك على الخريطة.",
+    "success": "تم وضع الطلب بنجاح!",
+    "confirming": "جاري التأكيد...",
+    "error": "فشل في وضع الطلب.",
+    "location_error": "تعذر الحصول على الموقع. يرجى السماح بالوصول إلى الموقع.",
+    "geolocation_unsupported": "تحديد الموقع الجغرافي غير مدعوم من قبل هذا المتصفح.",
+    "address_not_found": "العنوان غير موجود. حاول إضافة المدينة.",
+    "payment_confirmed": "تم تأكيد الدفع! ✅",
+    "payment_failed_created": "تم إنشاء الطلب، لكن فشل الدفع. يرجى الاتصال بالدعم.",
+    "payment_failed": "فشل الدفع. يرجى الاتصال بالدعم.",
+    "creation_failed": "فشل إنشاء الطلب. يرجى المحاولة مرة أخرى."
   },
   "auth": {
     "welcome": "مرحباً",

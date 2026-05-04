@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { CartService, CartItem } from '@services/cart.service';
 import { NotificationService } from '@services/notification.service';
 import { StoreResponseDto } from '@models/store.model';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-cart',
@@ -18,7 +19,8 @@ export class Cart implements OnInit {
   constructor(
     private cartSvc: CartService,
     private notifSvc: NotificationService,
-    private router: Router
+    private router: Router,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -40,14 +42,14 @@ export class Cart implements OnInit {
     const item = this.items.find(i => i.product.id === productId);
     this.cartSvc.remove(productId);
     if (item) {
-      this.notifSvc.info(`${item.product.name} removed from cart.`);
+      this.notifSvc.info(this.translate.instant('cart.item_removed', { name: item.product.name }));
     }
   }
 
   clearCart(): void {
-    if (confirm('Are you sure you want to clear the cart?')) {
+    if (confirm(this.translate.instant('cart.clear_confirm'))) {
       this.cartSvc.clear();
-      this.notifSvc.warning('Cart cleared.');
+      this.notifSvc.warning(this.translate.instant('cart.cart_cleared'));
     }
   }
 

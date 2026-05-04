@@ -146,7 +146,23 @@
     "checkout": "Commander",
     "add": "Ajouter au panier",
     "remove": "Supprimer",
-    "quantity": "Quantité"
+    "quantity": "Quantité",
+    "shopping_from": "Achat chez",
+    "empty_subtitle": "Il semble que vous n'ayez encore rien ajouté à votre panier.",
+    "browse_stores": "Parcourir les magasins",
+    "remove_item": "Supprimer l'article",
+    "each": "chacun",
+    "order_summary": "Résumé de la commande",
+    "items_count": "Articles ({{count}})",
+    "delivery": "Livraison",
+    "calculated_at_checkout": "Calculé à la caisse",
+    "subtotal": "Sous-total",
+    "proceed_to_checkout": "Passer à la caisse",
+    "continue_shopping": "Continuer les achats",
+    "clear_cart": "Vider le panier",
+    "item_removed": "{{name}} retiré du panier.",
+    "clear_confirm": "Êtes-vous sûr de vouloir vider le panier ?",
+    "cart_cleared": "Panier vidé."
   },
   "common": {
     "loading": "Chargement...",
@@ -156,7 +172,93 @@
     "confirm": "Confirmer",
     "back": "Retour",
     "search": "Rechercher",
-    "no_results": "Aucun résultat trouvé"
+    "no_results": "Aucun résultat trouvé",
+    "categories": {
+      "RESTAURANT": "Restaurant",
+      "PHARMACY": "Pharmacie",
+      "SUPERMARKET": "Supermarché",
+      "SPECIAL_DELIVERY": "Livraison Spéciale"
+    }
+  },
+  "categories": {
+    "title": "Catégories",
+    "search_placeholder": "Rechercher des magasins...",
+    "sort": {
+      "default": "Par défaut",
+      "price_asc": "Prix ↑",
+      "price_desc": "Prix ↓",
+      "rating": "Mieux notés"
+    },
+    "browse": "Parcourir",
+    "what_looking_for": "Que cherchez-vous ?",
+    "subtitle": "Choisissez parmi notre large gamme de catégories et faites livrer tout à votre porte.",
+    "browse_arrow": "Parcourir →",
+    "no_stores": "Aucun magasin trouvé correspondant à votre recherche.",
+    "no_products": "Aucun produit trouvé.",
+    "close": "Fermer",
+    "all": "Tout",
+    "back_to": "Retour à",
+    "items": {
+      "RESTAURANT": {
+        "sub": "Nourriture et nutrition"
+      },
+      "PHARMACY": {
+        "sub": "Santé & Beauté"
+      },
+      "SUPERMARKET": {
+        "sub": "Épicerie & Plus"
+      },
+      "SPECIAL_DELIVERY": {
+        "sub": "Livraison Express"
+      }
+    }
+  },
+  "checkout": {
+    "title": "Caisse",
+    "order_summary": "Résumé de la commande",
+    "subtotal": "Sous-total",
+    "delivery": "Livraison",
+    "calculated_after": "Calculé après confirmation",
+    "estimated": "Estimé",
+    "delivery_details": "Détails de livraison",
+    "address_title": "📍 Adresse de livraison",
+    "street": "Rue",
+    "street_placeholder": "ex: Rue Mohammed V",
+    "building_no": "Bâtiment N°",
+    "building_placeholder": "12",
+    "city": "Ville",
+    "city_placeholder": "Casablanca",
+    "apartment": "Appartement",
+    "apartment_placeholder": "Apt 3B",
+    "pin_location": "📍 Épingler votre position",
+    "pin_subtitle": "Cliquez sur la carte, recherchez ou utilisez votre GPS pour définir des coordonnées exactes.",
+    "search_location_placeholder": "Entrez une adresse (ex: Maarif, Casablanca)",
+    "search_btn": "Chercher",
+    "my_location_btn": "Ma position",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "payment_method": "Mode de paiement",
+    "cash_on_delivery": "Paiement à la livraison",
+    "cash_desc": "Payez à la réception de votre commande.",
+    "credit_card": "Carte de crédit",
+    "card_desc": "Payez en toute sécurité avec votre carte de crédit.",
+    "card_details": "Détails de la carte de crédit",
+    "card_number": "Numéro de carte",
+    "full_name": "Nom complet",
+    "expiry_date": "Date d'expiration",
+    "cvv": "CVV",
+    "confirm_order": "Confirmer la commande",
+    "pin_required": "Veuillez épingler votre position sur la carte.",
+    "success": "Commande passée avec succès !",
+    "confirming": "Confirmation...",
+    "error": "Échec de la commande.",
+    "location_error": "Impossible d'obtenir la position. Veuillez autoriser l'accès à la localisation.",
+    "geolocation_unsupported": "La géolocalisation n'est pas supportée par ce navigateur.",
+    "address_not_found": "Adresse introuvable. Essayez d'ajouter la ville.",
+    "payment_confirmed": "Paiement confirmé ! ✅",
+    "payment_failed_created": "Commande créée, mais le paiement a échoué. Veuillez contacter le support.",
+    "payment_failed": "Le paiement a échoué. Veuillez contacter le support.",
+    "creation_failed": "La création de la commande a échoué. Veuillez réessayer."
   },
   "auth": {
     "welcome": "Bienvenue",

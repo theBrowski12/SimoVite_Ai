@@ -43,9 +43,14 @@ export class History implements OnInit {
   private loadHistory(): void {
     this.isLoading = true;
     this.errorMessage = '';
+    
 
     this.deliveryService.getMine().subscribe({
       next: (deliveries) => {
+        console.log('Deliveries from API:', deliveries);
+        deliveries.forEach(d => {
+          console.log(`Order ${d.orderRef} — ETA: ${d.estimatedTimeInMinutes}, Actual: ${d.actualDeliveryTimeInMinutes}`);
+        });
         // Only keep DELIVERED or CANCELLED
         this.allDeliveries = deliveries
           .filter(d => d.status === 'DELIVERED' || d.status === 'CANCELLED')

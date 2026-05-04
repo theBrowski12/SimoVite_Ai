@@ -146,7 +146,23 @@
     "checkout": "Checkout",
     "add": "Add to cart",
     "remove": "Remove",
-    "quantity": "Quantity"
+    "quantity": "Quantity",
+    "shopping_from": "Shopping from",
+    "empty_subtitle": "Looks like you haven't added anything to your cart yet.",
+    "browse_stores": "Browse Stores",
+    "remove_item": "Remove item",
+    "each": "each",
+    "order_summary": "Order Summary",
+    "items_count": "Items ({{count}})",
+    "delivery": "Delivery",
+    "calculated_at_checkout": "Calculated at checkout",
+    "subtotal": "Subtotal",
+    "proceed_to_checkout": "Proceed to Checkout",
+    "continue_shopping": "Continue Shopping",
+    "clear_cart": "Clear Cart",
+    "item_removed": "{{name}} removed from cart.",
+    "clear_confirm": "Are you sure you want to clear the cart?",
+    "cart_cleared": "Cart cleared."
   },
   "common": {
     "loading": "Loading...",
@@ -156,7 +172,93 @@
     "confirm": "Confirm",
     "back": "Back",
     "search": "Search",
-    "no_results": "No results found"
+    "no_results": "No results found",
+    "categories": {
+      "RESTAURANT": "Restaurant",
+      "PHARMACY": "Pharmacy",
+      "SUPERMARKET": "Supermarket",
+      "SPECIAL_DELIVERY": "Special Delivery"
+    }
+  },
+  "categories": {
+    "title": "Categories",
+    "search_placeholder": "Search stores...",
+    "sort": {
+      "default": "Default",
+      "price_asc": "Price ↑",
+      "price_desc": "Price ↓",
+      "rating": "Best Rated"
+    },
+    "browse": "Browse",
+    "what_looking_for": "What are you looking for?",
+    "subtitle": "Choose from our wide range of categories and get everything delivered to your doorstep.",
+    "browse_arrow": "Browse →",
+    "no_stores": "No stores found matching your search.",
+    "no_products": "No products found.",
+    "close": "Close",
+    "all": "All",
+    "back_to": "Back to",
+    "items": {
+      "RESTAURANT": {
+        "sub": "Food and nutrition"
+      },
+      "PHARMACY": {
+        "sub": "Health & Beauty"
+      },
+      "SUPERMARKET": {
+        "sub": "Groceries & More"
+      },
+      "SPECIAL_DELIVERY": {
+        "sub": "Express Delivery"
+      }
+    }
+  },
+  "checkout": {
+    "title": "Checkout",
+    "order_summary": "Order Summary",
+    "subtotal": "Subtotal",
+    "delivery": "Delivery",
+    "calculated_after": "Calculated after confirmation",
+    "estimated": "Estimated",
+    "delivery_details": "Delivery Details",
+    "address_title": "📍 Delivery Address",
+    "street": "Street",
+    "street_placeholder": "e.g. Rue Mohammed V",
+    "building_no": "Building No.",
+    "building_placeholder": "12",
+    "city": "City",
+    "city_placeholder": "Casablanca",
+    "apartment": "Apartment",
+    "apartment_placeholder": "Apt 3B",
+    "pin_location": "📍 Pin your Location",
+    "pin_subtitle": "Click on the map, search, or use your GPS to set exact coordinates.",
+    "search_location_placeholder": "Enter an address (e.g. Maarif, Casablanca)",
+    "search_btn": "Search",
+    "my_location_btn": "My location",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "payment_method": "Payment Method",
+    "cash_on_delivery": "Cash on Delivery",
+    "cash_desc": "Pay upon receiving your order.",
+    "credit_card": "Credit Card",
+    "card_desc": "Pay securely with your credit card.",
+    "card_details": "Credit Card Details",
+    "card_number": "Card Number",
+    "full_name": "Full Name",
+    "expiry_date": "Expiry Date",
+    "cvv": "CVV",
+    "confirm_order": "Confirm Order",
+    "pin_required": "Please pin your location on the map.",
+    "success": "Order placed successfully!",
+    "confirming": "Confirming...",
+    "error": "Failed to place order.",
+    "location_error": "Could not get location. Please allow location access.",
+    "geolocation_unsupported": "Geolocation is not supported by this browser.",
+    "address_not_found": "Address not found. Try adding the city.",
+    "payment_confirmed": "Payment confirmed! ✅",
+    "payment_failed_created": "Order created, but payment failed. Please contact support.",
+    "payment_failed": "Payment failed. Please contact support.",
+    "creation_failed": "Order creation failed. Please try again."
   },
   "auth": {
     "welcome": "Welcome",
