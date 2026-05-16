@@ -10,7 +10,7 @@ import { CatalogResponseDto, FoodCategory, PharmacyCategory, SupermarketCategory
 import { StoreResponseDto, MainCategory } from '../../../models/store.model';
 // ── View modes ────────────────────────────────────────────────────────────────
 export type ViewMode    = 'categories' | 'stores' | 'products';
-export type SortOption  = 'default' | 'price_asc' | 'price_desc' | 'rating';
+export type SortOption  = 'default' | 'price_asc' | 'price_desc' | 'rating' | 'category';
 
 // ── Category config ───────────────────────────────────────────────────────────
 export interface CategoryConfig {
@@ -34,6 +34,7 @@ export class Categories implements OnInit, OnDestroy {
 
   // ── View state ────────────────────────────────────────────────────────────
   viewMode: ViewMode = 'categories';
+  showStores = false; // Toggle between stores and products
 
   // ── Selected context ──────────────────────────────────────────────────────
   selectedCategory: MainCategory | null = null;
@@ -48,10 +49,15 @@ export class Categories implements OnInit, OnDestroy {
   loadingStores   = false;
   loadingProducts = false;
 
-  // ── Search & sort ─────────────────────────────────────────────────────────
+  // ── Search & sort & filters ───────────────────────────────────────────────
   searchCtrl  = new FormControl('');
   searchTerm  = '';
   sort: SortOption = 'default';
+  
+  minPrice: number | null = null;
+  maxPrice: number | null = null;
+  showOnlyAvailable = false;
+  typeFilter: string = 'ALL';
 
   // ── Category definitions ──────────────────────────────────────────────────
   readonly categories: CategoryConfig[] = [
@@ -147,33 +153,28 @@ export class Categories implements OnInit, OnDestroy {
     this.selectedSubCat   = '';
     this.selectedStore    = null;
     this.viewMode         = 'stores';
-    this.products         = []; // 👈 On vide les produits
-    this.storesForCat     = []; // 👈 On vide les magasins
+    this.products         = []; 
+    this.storesForCat     = []; 
+    this.showStores       = false; // Default to showing products
 
-    this.cdr.detectChanges(); // 👈 On force l'UI à mettre à jour les onglets tout de suite
+    this.cdr.detectChanges(); 
 
     this.loadStoresForCategory(cat.key);
+    this.loadProducts(); // Load all products for this category
   }
 
   selectSubCat(sub: string): void {
     if (this.selectedSubCat === sub) {
-      // Si on reclique sur le même filtre, on le désactive (retour aux magasins)
       this.selectedSubCat = '';
-      this.products = [];
     } else {
-      // Sinon, on active le filtre et on charge les produits
       this.selectedSubCat = sub;
-      this.products = [];
-      this.loadProductsForSubCat(); 
     }
-    this.cdr.detectChanges(); // Force la vue à se mettre à jour
+    this.loadProducts(); 
+    this.cdr.detectChanges(); 
   }
 
   enterStore(store: StoreResponseDto): void {
-    // Si ton module client est chargé sous la route principale '/client'
     this.router.navigate(['/stores', store.id]); 
-    
-    // OU si c'est la racine, utilise : this.router.navigate(['/stores', store.id]);
   }
 
   backToCategories(): void {
@@ -184,6 +185,7 @@ export class Categories implements OnInit, OnDestroy {
     this.storesForCat     = [];
     this.products         = [];
     this.searchCtrl.setValue('');
+    this.loadProducts(); // Load all products globally
   }
 
   // ── Data loading ──────────────────────────────────────────────────────────
@@ -196,41 +198,49 @@ export class Categories implements OnInit, OnDestroy {
         next:  s  => { 
           this.storesForCat = s; 
           this.loadingStores = false; 
-          this.cdr.detectChanges(); // 👈 4. Force la mise à jour 
+          this.cdr.detectChanges(); 
         },
         error: () => { 
           this.loadingStores = false; 
-          this.cdr.detectChanges(); // 👈 4. Force la mise à jour 
+          this.cdr.detectChanges(); 
         }
       });
   }
 
-  loadProductsForSubCat(): void {
-    if (!this.selectedSubCat || !this.selectedCategory) return;
-    
+  loadProducts(): void {
     this.loadingProducts = true;
-    this.cdr.detectChanges(); // Affiche le spinner immédiatement
+    this.cdr.detectChanges(); 
 
     let request$;
-    switch (this.selectedCategory) {
-      case MainCategory.RESTAURANT:
-        request$ = this.catalogSvc.getOffersByFoodCategory(this.selectedSubCat);
-        break;
-      case MainCategory.PHARMACY:
-        request$ = this.catalogSvc.getOffersByPharmacyCategory(this.selectedSubCat);
-        break;
-      case MainCategory.SUPERMARKET:
-        request$ = this.catalogSvc.getOffersBySupermarketCategory(this.selectedSubCat);
-        break;
-      default:
-        request$ = this.catalogSvc.getProductsByMainType(this.selectedCategory);
+    
+    if (!this.selectedCategory) {
+      // Global products load
+      request$ = this.catalogSvc.getAllOffers();
+    } else if (!this.selectedSubCat) {
+      // Products for main category
+      request$ = this.catalogSvc.getProductsByMainType(this.selectedCategory);
+    } else {
+      // Products for sub-category
+      switch (this.selectedCategory) {
+        case MainCategory.RESTAURANT:
+          request$ = this.catalogSvc.getOffersByFoodCategory(this.selectedSubCat);
+          break;
+        case MainCategory.PHARMACY:
+          request$ = this.catalogSvc.getOffersByPharmacyCategory(this.selectedSubCat);
+          break;
+        case MainCategory.SUPERMARKET:
+          request$ = this.catalogSvc.getOffersBySupermarketCategory(this.selectedSubCat);
+          break;
+        default:
+          request$ = this.catalogSvc.getProductsByMainType(this.selectedCategory);
+      }
     }
 
     request$.pipe(takeUntil(this.destroy$)).subscribe({
       next:  p  => { 
         this.products = p; 
         this.loadingProducts = false; 
-        this.cdr.detectChanges(); // 👈 5. Force l'affichage des produits
+        this.cdr.detectChanges(); 
       },
       error: () => { 
         this.loadingProducts = false; 
@@ -257,27 +267,38 @@ export class Categories implements OnInit, OnDestroy {
   get filteredProducts(): CatalogResponseDto[] {
     const term = this.searchTerm.toLowerCase();
     let list   = this.products.filter(p => {
-      return !term ||
+      const matchSearch = !term ||
         p.name.toLowerCase().includes(term) ||
         (p.description || '').toLowerCase().includes(term);
+      const matchMinPrice = this.minPrice === null || p.basePrice >= this.minPrice;
+      const matchMaxPrice = this.maxPrice === null || p.basePrice <= this.maxPrice;
+      const matchAvailable = !this.showOnlyAvailable || p.available;
+      const matchType = this.typeFilter === 'ALL' || p.type === this.typeFilter;
+      
+      return matchSearch && matchMinPrice && matchMaxPrice && matchAvailable && matchType;
     });
 
     switch (this.sort) {
       case 'price_asc':  list = [...list].sort((a,b) => a.basePrice - b.basePrice);  break;
       case 'price_desc': list = [...list].sort((a,b) => b.basePrice - a.basePrice);  break;
       case 'rating':     list = [...list].sort((a,b) => (b.rating??0) - (a.rating??0)); break;
+      case 'category':   list = [...list].sort((a,b) => String(a.type).localeCompare(String(b.type))); break;
     }
     return list;
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
-  getStoreIcon(cat: MainCategory): string {
-    return { RESTAURANT:'🍕', PHARMACY:'💊', SUPERMARKET:'🛒', SPECIAL_DELIVERY:'📦' }[cat] ?? '🏪';
+  getStoreIcon(cat: any): string {
+    const key = String(cat);
+    const icons: any = { RESTAURANT:'🍕', PHARMACY:'💊', SUPERMARKET:'🛒', SPECIAL_DELIVERY:'📦' };
+    return icons[key] ?? '🏪';
   }
 
-  getStoreBgClass(cat: MainCategory): string {
-    return { RESTAURANT:'food-bg', PHARMACY:'pharma-bg', SUPERMARKET:'market-bg', SPECIAL_DELIVERY:'special-bg' }[cat] ?? '';
+  getStoreBgClass(cat: any): string {
+    const key = String(cat);
+    const bgs: any = { RESTAURANT:'food-bg', PHARMACY:'pharma-bg', SUPERMARKET:'market-bg', SPECIAL_DELIVERY:'special-bg' };
+    return bgs[key] ?? '';
   }
 
   getCatBadgeClass(cat: string): string {
