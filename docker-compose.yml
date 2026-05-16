@@ -218,6 +218,7 @@ services:
     environment:
       DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka
       CONFIG_SERVICE_URL: http://config-service:9999
+      ETA_SERVICE_URL: http://simovite-eta:8085
       DB_URL: jdbc:mysql://simovite-mysql:3306/delivery_db?createDatabaseIfNotExist=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
