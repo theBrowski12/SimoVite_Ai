@@ -54,7 +54,7 @@ pipeline {
                     set GROQ_SERVER=%GROQ_SERVER%
                     set DISCORD_BOT_TOKEN=%DISCORD_BOT_TOKEN%
                     set HF_TOKEN=%HF_TOKEN%
-                    docker-compose up -d --build
+                    docker-compose up -d
                 '''
             }
         }
