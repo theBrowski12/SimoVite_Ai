@@ -29,8 +29,7 @@ pipeline {
                             echo "🔍 Analysing ${service}..."
 
                             withSonarQubeEnv('SonarCloud') {
-                                bat "call mvn sonar:sonar -Dsonar.organization=thebrowski12 -Dsonar.projectKey=simovite-${service} -Dsonar.projectName=\"SimoVite ${service}\" -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=%%SONAR_TOKEN%% -DskipTests"
-                            }
+                                bat "call mvn clean compile sonar:sonar -Dsonar.organization=thebrowski12 -Dsonar.projectKey=simovite-${service} -Dsonar.projectName=\"SimoVite ${service}\" -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=%%SONAR_TOKEN%% -DskipTests"                            }
 
                             timeout(time: 5, unit: 'MINUTES') {
                                 waitForQualityGate abortPipeline: true
