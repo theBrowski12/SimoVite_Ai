@@ -18,25 +18,25 @@ pipeline {
             }
         }
 
-        stage('Code Quality — SonarCloud') {
+        stage('Code Quality & Quality Gate') {
             steps {
-                withSonarQubeEnv('SonarCloud') {
-                    bat '''
-                        for %%S in (Gateway_service Order_Service Delivery_Service Catalog_Service Notification_Service) do (
-                            echo "🔍 Analysing %%S..."
-                            cd %%S
-                            call mvn sonar:sonar -Dsonar.organization=BenBouazzaMohamed -Dsonar.projectKey=simovite-%%S -Dsonar.projectName="SimoVite %%S" -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=%SONAR_TOKEN% -DskipTests
-                            cd ..
-                        )
-                    '''
-                }
-            }
-        }
+                script {
+                    def services = ['Gateway_service', 'Order_Service', 'Delivery_Service', 'Catalog_Service', 'Notification_Service']
 
-        stage('Quality Gate') {
-            steps {
-                timeout(time: 5, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
+                    for (String service : services) {
+
+                        dir(service) {
+                            echo "🔍 Analysing ${service}..."
+
+                            withSonarQubeEnv('SonarCloud') {
+                                bat "call mvn sonar:sonar -Dsonar.organization=BenBouazzaMohamed -Dsonar.projectKey=simovite-${service} -Dsonar.projectName=\"SimoVite ${service}\" -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=%%SONAR_TOKEN%% -DskipTests"
+                            }
+
+                            timeout(time: 5, unit: 'MINUTES') {
+                                waitForQualityGate abortPipeline: true
+                            }
+                        }
+                    }
                 }
             }
         }
