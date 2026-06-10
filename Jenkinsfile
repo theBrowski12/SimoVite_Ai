@@ -21,19 +21,13 @@ pipeline {
         stage('Code Quality — SonarCloud') {
             steps {
                 withSonarQubeEnv('SonarCloud') {
-                    sh '''
-                        for service in Gateway_service Order_Service Delivery_Service Catalog_Service Notification_Service; do
-                            echo "🔍 Analysing $service..."
-                            cd $service
-                            mvn sonar:sonar \
-                                -Dsonar.organization=BenBouazzaMohamed \
-                                -Dsonar.projectKey=simovite-$service \
-                                -Dsonar.projectName="SimoVite $service" \
-                                -Dsonar.host.url=https://sonarcloud.io \
-                                -Dsonar.token=$SONAR_TOKEN \
-                                -DskipTests
+                    bat '''
+                        for %%S in (Gateway_service Order_Service Delivery_Service Catalog_Service Notification_Service) do (
+                            echo "🔍 Analysing %%S..."
+                            cd %%S
+                            call mvn sonar:sonar -Dsonar.organization=BenBouazzaMohamed -Dsonar.projectKey=simovite-%%S -Dsonar.projectName="SimoVite %%S" -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=%SONAR_TOKEN% -DskipTests
                             cd ..
-                        done
+                        )
                     '''
                 }
             }
@@ -49,17 +43,17 @@ pipeline {
 
         stage('Stop Old Containers') {
             steps {
-                sh 'docker-compose down || true'
+                bat 'docker-compose down || exit 0'
             }
         }
 
         stage('Build & Start') {
             steps {
-                sh '''
-                    export MAIL_PASSWORD=$MAIL_PASSWORD
-                    export GROQ_SERVER=$GROQ_SERVER
-                    export DISCORD_BOT_TOKEN=$DISCORD_BOT_TOKEN
-                    export HF_TOKEN=$HF_TOKEN
+                bat '''
+                    set MAIL_PASSWORD=%MAIL_PASSWORD%
+                    set GROQ_SERVER=%GROQ_SERVER%
+                    set DISCORD_BOT_TOKEN=%DISCORD_BOT_TOKEN%
+                    set HF_TOKEN=%HF_TOKEN%
                     docker-compose up -d --build
                 '''
             }
@@ -67,10 +61,10 @@ pipeline {
 
         stage('Health Check') {
             steps {
-                sh 'sleep 30'
-                sh 'docker ps'
-                sh 'curl -f http://localhost:8761/actuator/health || echo "Discovery not ready yet"'
-                sh 'curl -f http://localhost:8888/actuator/health || echo "Gateway not ready yet"'
+                bat 'timeout /t 30 /nobreak > NUL'
+                bat 'docker ps'
+                bat 'curl -f http://localhost:8761/actuator/health || echo "Discovery not ready yet"'
+                bat 'curl -f http://localhost:8888/actuator/health || echo "Gateway not ready yet"'
             }
         }
     }
@@ -91,7 +85,7 @@ pipeline {
             )
         }
         always {
-            sh 'docker image prune -f || true'
+            bat 'docker image prune -f || exit 0'
         }
     }
 }
