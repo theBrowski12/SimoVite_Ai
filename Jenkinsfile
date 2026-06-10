@@ -26,7 +26,7 @@ pipeline {
                             echo "🔍 Analysing $service..."
                             cd $service
                             mvn sonar:sonar \
-                                -Dsonar.organization=theBrowski12 \
+                                -Dsonar.organization=BenBouazzaMohamed \
                                 -Dsonar.projectKey=simovite-$service \
                                 -Dsonar.projectName="SimoVite $service" \
                                 -Dsonar.host.url=https://sonarcloud.io \
